@@ -1,0 +1,232 @@
+﻿Stwórz kompletną aplikację Python do porównywania dokumentów bankowych w formacie DOCX. To jest POC działające lokalnie na laptopie.
+## Wymagania architektury
+Aplikacja ma działać jako standalone web application z FastAPI backendem i responsive HTML frontendem. Wszystkie komponenty w jednym projekcie, bez zewnętrznych baz danych czy message brokerów.
+## Struktura katalogów projektu
+document_comparison_poc/ 
+├── pyproject.toml (konfiguracja UV) 
+├── main.py (FastAPI application) 
+├── processors/ 
+│ ├── init.py 
+│ ├── extractor.py (ekstrakcja z DOCX) 
+│ ├── comparator.py (algorytmy diff) 
+│ └── analyzer.py (integracja AI) 
+├── report_generator/ 
+│ ├── init.py 
+│ ├── html_generator.py (Jinja2 templates) 
+│ └── pdf_generator.py (WeasyPrint) 
+├── templates/ 
+│ ├── base.html 
+│ ├── dashboard.html 
+│ ├── comparison_report.html 
+│ └── summary.html 
+├── static/ 
+│ ├── styles.css 
+│ └── app.js 
+├── nowa_wersja/ (katalog wejściowy) 
+├── stara_wersja/ (katalog wejściowy) 
+└── output/ (raporty wyjściowe)
+## Zależności (pyproject.toml)
+```toml
+[project]
+name = "document-comparison-poc"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "docx2python>=2.0.0",
+    "python-docx>=1.1.0",
+    "fast-diff-match-patch>=2.1.0",
+    "anthropic>=0.18.0",
+    "google-generativeai>=0.3.0",
+    "jinja2>=3.1.0",
+    "weasyprint>=60.0",
+    "aiofiles>=23.0.0",
+    "pydantic>=2.0.0",
+    "python-multipart>=0.0.6"
+]
+
+Szczegółowe wymagania funkcjonalne
+1. Ekstrakcja dokumentów (processors/extractor.py)
+ Utwórz klasę DocumentExtractor która:
+  Używa docx2python do ekstrakcji z opcją html=True dla zachowania formatowania
+  Ekstrahuje: pełny tekst, listę akapitów, tabele jako struktury, komentarze z autorami i datami
+  Zwraca structured dictionary z sekcjami: metadata (autor, data modyfikacji, liczba stron), content (lista paragrafów z formatowaniem), tables (struktura tabel), comments (lista komentarzy)
+  Implementuje error handling dla uszkodzonych plików
+  Dodaje verbose logging dla debugowania
+2. Porównywanie dokumentów (processors/comparator.py)
+ Utwórz klasę DocumentComparator która implementuje:
+  Podstawowe porównanie:
+   Używa fast_diff_match_patch na poziomie akapitów
+   Dla każdego zmienionego akapitu robi drill-down na poziom słów
+   Zwraca DiffResult z: added_paragraphs (lista), removed_paragraphs (lista), modified_paragraphs (lista z before/after), moved_paragraphs (detekcja przesunięć), statistics (liczby zmian)
+ Porównanie tabel:
+   Wykrywa dodane/usunięte/zmodyfikowane wiersze
+   Porównuje cell-by-cell dla zmodyfikowanych wierszy
+   Zwraca TableDiffResult ze strukturą podobną do paragrafów
+ Porównanie metadanych:
+   Porównuje autora, daty, wersje
+   Wykrywa zmiany w komentarzach
+3. Analiza AI (processors/analyzer.py)
+ Utwórz klasę AIAnalyzer która:
+  Tryb podstawowy (BasicAnalysis):
+   Bierze listę zmian z DocumentComparator
+   Dla każdej zmiany generuje prompt do Claude: "Przeanalizuj następującą zmianę w dokumencie bankowym. Stara wersja: {old_text}. Nowa wersja: {new_text}. Klasyfikuj jako: MINOR (kosmetyczne zmiany), MODERATE (istotne ale nie krytyczne), MAJOR (wymaga przeglądu prawnego). Zwróć JSON: {severity: string, summary: string, reasoning: string}"
+   Agreguje wyniki i generuje overall summary
+  Tryb zaawansowany (AdvancedAnalysis):
+   Rozszerza BasicAnalysis o compliance check
+   Dodatkowy prompt: "Oceń wpływ tej zmiany na zgodność z regulacjami: DORA (operational resilience), KYC (know your customer), AML (anti money laundering). Dla każdej regulacji zwróć JSON: {regulation: string, impact_level: HIGH/MEDIUM/LOW/NONE, potential_issues: [lista stringów], recommendations: [lista stringów]}"
+   Generuje consolidated compliance report
+ Konfiguracja:
+   Używa Anthropic Python SDK dla Claude (claude-sonnet-4-20250514)
+   Fallback do Gemini jeśli Claude API key nie jest dostępny
+   Graceful degradation - jeśli żaden API key nie działa, zwraca informację że analiza AI jest niedostępna ale podstawowe porównanie działa
+4. Generator raportów (report_generator/)
+ HTML Generator (html_generator.py):
+  Utwórz HTMLReportGenerator który używa Jinja2 templates do generowania trzech typów stron:
+ Dashboard (templates/dashboard.html):
+  Wyświetla listę wszystkich znalezionych par dokumentów
+  Dla każdej pary pokazuje: nazwy plików, rozmiary, daty modyfikacji, status (pending/processing/completed/error)
+  Przyciski akcji: "Compare Basic", "Compare Advanced", "View Report" (jeśli completed), "Download PDF"
+  Real-time progress indicators jeśli porównanie w toku
+  Responsive grid layout z Tailwind CSS
+ Comparison Report (templates/comparison_report.html):
+  Header z metadanymi obu dokumentów i overall statistics
+  Summary section z key findings i AI analysis summary (jeśli była)
+  Side-by-side comparison layout: lewa kolumna stara wersja, prawa nowa
+  Color coding: czerwony dla usunięć, zielony dla dodań, żółty dla modyfikacji
+  Expandable sections dla długich dokumentów
+  Tabela zmian z filtrowaniem po severity
+  Compliance section (jeśli advanced mode) z breakdown per regulacja
+ Summary Page (templates/summary.html):
+  Aggregated view wszystkich porównań
+  Charts pokazujące distribution of changes (użyj Chart.js przez CDN)
+  Prioritized list of high-severity changes
+  Executive summary w punktach
+ Styling (static/styles.css + Tailwind CDN):
+  Implementuj banking color scheme z wymagań:
+   Primary background: #F2F2F2 (jasny szary)
+   Accent colors: #009597 (duck blue), #70A300 (zielony ciemny), #ED1B2F (czerwony bankowy)
+   Text: #595959 (ciemny szary)
+   Table borders: #A6A6A6 (średni szary)
+  Professional typography (system fonts stack)
+  Print-friendly CSS dla PDF generation
+ PDF Generator (pdf_generator.py):
+  Używa WeasyPrint do konwersji HTML → PDF
+  Renderuje ten sam template co HTML ale z print-specific CSS
+  Dodaje page numbers w footer
+  Implementuje proper page breaks (avoid breaking tables)
+  Filename format: {timestamp}comparison{doc1_name}vs{doc2_name}.pdf
+5. FastAPI Backend (main.py)
+ Zaimplementuj następujące endpointy:
+  GET /
+   Zwraca dashboard.html
+  GET /api/documents
+   Skanuje katalogi nowa_wersja/ i stara_wersja/
+   Paruje dokumenty po nazwach
+   Zwraca JSON z listą par i ich metadanych
+   Format: {pairs: [{old_path, new_path, name, size, last_modified, status}]}
+  POST /api/compare
+   Body: {old_path: string, new_path: string, mode: "basic"|"advanced"}
+   Wykonuje porównanie w background (async)
+   Zwraca comparison_id dla polling statusu
+   Format response: {comparison_id: string, status: "started"}
+  GET /api/compare/{comparison_id}/status
+   Zwraca status porównania: pending/processing/completed/error
+   Jeśli completed zwraca też URL do raportu
+  GET /report/{comparison_id}
+   Zwraca generated HTML report
+   Używa templates/comparison_report.html
+  GET /api/download/{comparison_id}
+   Generuje PDF on-the-fly jeśli nie istnieje
+   Zwraca PDF do pobrania
+  GET /api/summary
+   Generuje summary page dla wszystkich completed comparisons
+   Zwraca rendered templates/summary.html
+6. Frontend JavaScript (static/app.js)
+ Dashboard functionality:
+  Fetch document pairs on page load
+  Render cards dla każdej pary
+  Handle button clicks dla compare (basic/advanced)
+  Polling dla status updates co 2 sekundy
+  Progress indicators (używaj simple spinner + status text)
+  Error handling z user-friendly messages
+ Interactive report features:
+  Highlight on hover dla changed sections
+  Click to expand/collapse long sections
+  Filters dla severity levels
+  Search functionality w ramach raportu
+  Export buttons
+7. Main Application Flow
+ Startup (main.py):
+  @app.on_event("startup")
+   async def startup():
+    # Sprawdź czy katalogi exist
+    # Utwórz output/ directory jeśli nie istnieje
+    # Initialize in-memory storage dla comparison results
+    # Log configuration (API keys available, directories OK)
+ Processing Pipeline:
+  User clicks "Compare"
+   POST /api/compare creates comparison_id
+   Background task starts:
+    1. Extract old document
+    2. Extract new document
+    3. Compare documents (basic diff)
+    4. If advanced mode: Run AI analysis
+    5. Generate HTML report
+    6. Save to output/
+    7. Update status to "completed"
+   Frontend polls status
+   When completed, shows "View Report" button
+8. Error Handling & Logging
+ Implementuj comprehensive logging:
+  Logger per module z descriptive names
+  Log levels: DEBUG dla detailed operations, INFO dla major steps, WARNING dla recoverable errors, ERROR dla failures
+  Loguj do console (kolorowy output) + file (output/app.log z rotation)
+  Graceful error handling z user-friendly messages
+9. Configuration Management
+ Utwórz config.py z:
+  class Config:
+    # Directories
+     OLD_VERSION_DIR = "stara_wersja"
+     NEW_VERSION_DIR = "nowa_wersja"
+     OUTPUT_DIR = "output"
+   
+    # API Keys (from environment variables z fallback)
+     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+   
+    # Processing settings
+     MAX_CONCURRENT_COMPARISONS = 1  # Sequential dla POC
+     CHUNK_SIZE_PARAGRAPHS = 50  # Dla długich dokumentów
+   
+    # Report settings
+     INCLUDE_METADATA = True
+     GENERATE_PDF_AUTO = False  # On-demand tylko
+   
+    # AI settings
+     LLM_TIMEOUT = 60  # sekundy
+     MAX_RETRIES = 3
+
+
+Acceptance Criteria
+ Aplikacja jest kompletna kiedy:
+  Uruchamia się jednym poleceniem: uv run uvicorn main:app --reload
+  Dashboard pokazuje wszystkie pary dokumentów z obu katalogów
+  Podstawowe porównanie działa bez API keys (pure diff)
+  Zaawansowane porównanie wymaga co najmniej Claude API key
+  Raport HTML jest czytelny, responsywny i professional-looking
+  PDF generation działa dla każdego completed comparison
+  Wszystkie errors są handled gracefully z informacyjnymi messages
+  Aplikacja przetwarza 5 par dokumentów po 50 stron każdy w mniej niż 5 minut (advanced mode)
+
+ Implementation Notes
+  Używaj type hints dla wszystkich funkcji
+  Dokumentuj wszystkie klasy i metody (docstrings)
+  Implementuj Pydantic models dla wszystkich data structures
+  Async/await gdzie możliwe (I/O operations)
+  Clean separation of concerns (każdy moduł ma single responsibility)
+  Comprehensive error messages wskazujące co poszło nie tak i jak to naprawić
+  Progress indicators dla długich operacji
+
+Generuj kompletny, production-ready kod który można od razu uruchomić.

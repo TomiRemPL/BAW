@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Raport Porównania - {{ document_pair.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="/" class="text-blue-600 hover:text-blue-800 mb-4 inline-block">&larr; Powrót do Dashboard</a>
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">Raport Porównania</h2>
+    <p class="text-gray-600">{{ document_pair.name }}</p>
+</div>
+
+<!-- Header with metadata -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Old Version -->
+        <div>
+            <h3 class="text-lg font-bold text-gray-700 mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/>
+                </svg>
+                Stara Wersja
+            </h3>
+            <div class="space-y-2 text-sm">
+                <div><span class="font-semibold">Autor:</span> {{ old_meta.author or "N/A" }}</div>
+                <div><span class="font-semibold">Ostatnia modyfikacja:</span> {{ old_meta.last_modified | format_datetime }}</div>
+                <div><span class="font-semibold">Liczba akapitów:</span> {{ old_meta.paragraph_count | format_number }}</div>
+                <div><span class="font-semibold">Liczba tabel:</span> {{ old_meta.table_count }}</div>
+            </div>
+        </div>
+
+        <!-- New Version -->
+        <div>
+            <h3 class="text-lg font-bold text-gray-700 mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/>
+                </svg>
+                Nowa Wersja
+            </h3>
+            <div class="space-y-2 text-sm">
+                <div><span class="font-semibold">Autor:</span> {{ new_meta.author or "N/A" }}</div>
+                <div><span class="font-semibold">Ostatnia modyfikacja:</span> {{ new_meta.last_modified | format_datetime }}</div>
+                <div><span class="font-semibold">Liczba akapitów:</span> {{ new_meta.paragraph_count | format_number }}</div>
+                <div><span class="font-semibold">Liczba tabel:</span> {{ new_meta.table_count }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overall Statistics -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Statystyki Zmian</h3>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="text-center p-4 bg-green-50 rounded">
+            <div class="text-2xl font-bold text-green-600">{{ diff.statistics.added_count }}</div>
+            <div class="text-sm text-gray-600">Dodane</div>
+        </div>
+        <div class="text-center p-4 bg-red-50 rounded">
+            <div class="text-2xl font-bold text-red-600">{{ diff.statistics.removed_count }}</div>
+            <div class="text-sm text-gray-600">Usunięte</div>
+        </div>
+        <div class="text-center p-4 bg-yellow-50 rounded">
+            <div class="text-2xl font-bold text-yellow-600">{{ diff.statistics.modified_count }}</div>
+            <div class="text-sm text-gray-600">Zmodyfikowane</div>
+        </div>
+        <div class="text-center p-4 bg-blue-50 rounded">
+            <div class="text-2xl font-bold text-blue-600">{{ diff.statistics.moved_count }}</div>
+            <div class="text-sm text-gray-600">Przesunięte</div>
+        </div>
+        <div class="text-center p-4 bg-gray-50 rounded">
+            <div class="text-2xl font-bold text-gray-600">{{ diff.statistics.unchanged_count }}</div>
+            <div class="text-sm text-gray-600">Bez zmian</div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Analysis Summary -->
+{% if has_ai and ai_analysis %}
+<div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg shadow-md p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+        </svg>
+        Analiza AI
+    </h3>
+    <div class="prose max-w-none">
+        <p class="text-gray-700 whitespace-pre-line">{{ ai_analysis.overall_summary }}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Compliance Report (Advanced Mode) -->
+{% if has_ai and ai_analysis and ai_analysis.compliance_report %}
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Analiza Compliance</h3>
+
+    <div class="mb-4">
+        <span class="text-sm font-semibold text-gray-600">Ogólny poziom ryzyka:</span>
+        {% set risk_class = {
+            'NONE': 'bg-gray-200 text-gray-700',
+            'LOW': 'bg-green-200 text-green-800',
+            'MEDIUM': 'bg-yellow-200 text-yellow-800',
+            'HIGH': 'bg-red-200 text-red-800'
+        }[ai_analysis.compliance_report.overall_risk.value] %}
+        <span class="ml-2 px-3 py-1 rounded-full text-sm font-semibold {{ risk_class }}">
+            {{ ai_analysis.compliance_report.overall_risk.value }}
+        </span>
+    </div>
+
+    <p class="text-gray-700 mb-6">{{ ai_analysis.compliance_report.summary }}</p>
+
+    <!-- Impacts by Regulation -->
+    <div class="space-y-4">
+        {% for impact in ai_analysis.compliance_report.impacts %}
+        <div class="border rounded-lg p-4">
+            <h4 class="font-bold text-lg text-gray-800 mb-2">{{ impact.regulation }}</h4>
+
+            <div class="mb-3">
+                <span class="text-sm font-semibold text-gray-600">Poziom wpływu:</span>
+                {% set impact_class = {
+                    'NONE': 'bg-gray-200 text-gray-700',
+                    'LOW': 'bg-green-200 text-green-800',
+                    'MEDIUM': 'bg-yellow-200 text-yellow-800',
+                    'HIGH': 'bg-red-200 text-red-800'
+                }[impact.impact_level.value] %}
+                <span class="ml-2 px-3 py-1 rounded-full text-xs font-semibold {{ impact_class }}">
+                    {{ impact.impact_level.value }}
+                </span>
+            </div>
+
+            {% if impact.potential_issues %}
+            <div class="mb-3">
+                <div class="text-sm font-semibold text-gray-600 mb-1">Potencjalne problemy:</div>
+                <ul class="list-disc list-inside text-sm text-gray-700">
+                    {% for issue in impact.potential_issues %}
+                    <li>{{ issue }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if impact.recommendations %}
+            <div>
+                <div class="text-sm font-semibold text-gray-600 mb-1">Rekomendacje:</div>
+                <ul class="list-disc list-inside text-sm text-gray-700">
+                    {% for rec in impact.recommendations %}
+                    <li>{{ rec }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Detailed Changes -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Szczegółowe Zmiany</h3>
+        <div class="space-x-2">
+            <button onclick="filterChanges('all')" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm">Wszystkie</button>
+            <button onclick="filterChanges('added')" class="px-3 py-1 bg-green-200 hover:bg-green-300 rounded text-sm">Dodane</button>
+            <button onclick="filterChanges('removed')" class="px-3 py-1 bg-red-200 hover:bg-red-300 rounded text-sm">Usunięte</button>
+            <button onclick="filterChanges('modified')" class="px-3 py-1 bg-yellow-200 hover:bg-yellow-300 rounded text-sm">Zmodyfikowane</button>
+        </div>
+    </div>
+
+    <!-- Added Paragraphs -->
+    {% if diff.added_paragraphs %}
+    <div class="change-section added-section mb-6">
+        <h4 class="font-bold text-green-700 mb-3">Dodane Akapity ({{ diff.added_paragraphs | length }})</h4>
+        {% for idx, text in diff.added_paragraphs %}
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-2">
+            <div class="text-xs text-gray-500 mb-1">Pozycja: {{ idx }}</div>
+            <div class="text-sm text-gray-800">{{ text }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Removed Paragraphs -->
+    {% if diff.removed_paragraphs %}
+    <div class="change-section removed-section mb-6">
+        <h4 class="font-bold text-red-700 mb-3">Usunięte Akapity ({{ diff.removed_paragraphs | length }})</h4>
+        {% for idx, text in diff.removed_paragraphs %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-2">
+            <div class="text-xs text-gray-500 mb-1">Pozycja: {{ idx }}</div>
+            <div class="text-sm text-gray-800 line-through">{{ text }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Modified Paragraphs -->
+    {% if diff.modified_paragraphs %}
+    <div class="change-section modified-section mb-6">
+        <h4 class="font-bold text-yellow-700 mb-3">Zmodyfikowane Akapity ({{ diff.modified_paragraphs | length }})</h4>
+        {% for mod in diff.modified_paragraphs %}
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-4">
+            <div class="text-xs text-gray-500 mb-2">Pozycja: {{ mod.index }}</div>
+
+            {% if has_ai and ai_analysis %}
+                {% set matching_analysis = ai_analysis.change_analyses | selectattr('old_text', 'eq', mod.old_text[:200]) | first %}
+                {% if matching_analysis %}
+                <div class="mb-3 p-3 bg-white rounded border">
+                    <div class="flex items-center mb-2">
+                        <span class="text-xs font-semibold mr-2">Ocena AI:</span>
+                        {% set severity_class = {
+                            'MINOR': 'bg-green-500',
+                            'MODERATE': 'bg-yellow-500',
+                            'MAJOR': 'bg-red-500'
+                        }[matching_analysis.severity.value] %}
+                        <span class="px-2 py-1 rounded text-xs font-bold text-white {{ severity_class }}">
+                            {{ matching_analysis.severity.value }}
+                        </span>
+                    </div>
+                    <div class="text-sm text-gray-700">{{ matching_analysis.summary }}</div>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Inline diff view -->
+            <div class="mb-3">
+                <div class="text-xs font-semibold text-gray-700 mb-2">ZMIANA (inline):</div>
+                <div class="text-sm text-gray-800 bg-white p-3 rounded border">
+                    {% for operation, text in mod.changes %}
+                        {% if operation == -1 %}
+                            <span class="bg-red-200 text-red-900 line-through">{{ text }}</span>
+                        {% elif operation == 1 %}
+                            <span class="bg-green-200 text-green-900 font-semibold">{{ text }}</span>
+                        {% else %}
+                            <span>{{ text }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Side-by-side comparison -->
+            <details class="cursor-pointer">
+                <summary class="text-xs font-semibold text-gray-600 hover:text-gray-800 mb-2">
+                    Pokaż porównanie obok siebie
+                </summary>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div>
+                        <div class="text-xs font-semibold text-red-700 mb-1">STARA WERSJA:</div>
+                        <div class="text-sm text-gray-800 bg-red-100 p-2 rounded">{{ mod.old_text }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs font-semibold text-green-700 mb-1">NOWA WERSJA:</div>
+                        <div class="text-sm text-gray-800 bg-green-100 p-2 rounded">{{ mod.new_text }}</div>
+                    </div>
+                </div>
+            </details>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Moved Paragraphs -->
+    {% if diff.moved_paragraphs %}
+    <div class="change-section moved-section mb-6">
+        <h4 class="font-bold text-blue-700 mb-3">Przesunięte Akapity ({{ diff.moved_paragraphs | length }})</h4>
+        {% for moved in diff.moved_paragraphs %}
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-2">
+            <div class="text-xs text-gray-500 mb-1">
+                Przesunięto z pozycji {{ moved.old_index }} na {{ moved.new_index }}
+            </div>
+            <div class="text-sm text-gray-800">{{ moved.text }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Table Changes -->
+{% if table_diff.statistics.added_rows > 0 or table_diff.statistics.removed_rows > 0 or table_diff.statistics.modified_cells > 0 %}
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Zmiany w Tabelach</h3>
+
+    <div class="grid grid-cols-3 gap-4 mb-4">
+        <div class="text-center p-3 bg-green-50 rounded">
+            <div class="text-xl font-bold text-green-600">{{ table_diff.statistics.added_rows }}</div>
+            <div class="text-xs text-gray-600">Dodane wiersze</div>
+        </div>
+        <div class="text-center p-3 bg-red-50 rounded">
+            <div class="text-xl font-bold text-red-600">{{ table_diff.statistics.removed_rows }}</div>
+            <div class="text-xs text-gray-600">Usunięte wiersze</div>
+        </div>
+        <div class="text-center p-3 bg-yellow-50 rounded">
+            <div class="text-xl font-bold text-yellow-600">{{ table_diff.statistics.modified_cells }}</div>
+            <div class="text-xs text-gray-600">Zmodyfikowane komórki</div>
+        </div>
+    </div>
+
+    <!-- Modified cells details -->
+    {% if table_diff.modified_cells %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full border">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-2 border text-left text-xs font-semibold">Tabela</th>
+                    <th class="px-4 py-2 border text-left text-xs font-semibold">Wiersz</th>
+                    <th class="px-4 py-2 border text-left text-xs font-semibold">Kolumna</th>
+                    <th class="px-4 py-2 border text-left text-xs font-semibold">Stara wartość</th>
+                    <th class="px-4 py-2 border text-left text-xs font-semibold">Nowa wartość</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for table_idx, row_idx, col_idx, old_val, new_val in table_diff.modified_cells[:50] %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2 border text-sm">{{ table_idx }}</td>
+                    <td class="px-4 py-2 border text-sm">{{ row_idx }}</td>
+                    <td class="px-4 py-2 border text-sm">{{ col_idx }}</td>
+                    <td class="px-4 py-2 border text-sm bg-red-50">{{ old_val }}</td>
+                    <td class="px-4 py-2 border text-sm bg-green-50">{{ new_val }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterChanges(type) {
+    const sections = {
+        'added': document.querySelectorAll('.added-section'),
+        'removed': document.querySelectorAll('.removed-section'),
+        'modified': document.querySelectorAll('.modified-section'),
+        'moved': document.querySelectorAll('.moved-section')
+    };
+
+    if (type === 'all') {
+        Object.values(sections).forEach(sectionList => {
+            sectionList.forEach(section => section.style.display = 'block');
+        });
+    } else {
+        Object.entries(sections).forEach(([key, sectionList]) => {
+            sectionList.forEach(section => {
+                section.style.display = key === type ? 'block' : 'none';
+            });
+        });
+    }
+}
+</script>
+{% endblock %}

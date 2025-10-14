@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Porównywanie Dokumentów{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
+    <p class="text-gray-600">Znaleziono {{ total_pairs }} par dokumentów do porównania</p>
+</div>
+
+<!-- Statistics -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-gray-600 text-sm font-semibold mb-2">Wszystkie pary</div>
+        <div class="text-3xl font-bold" style="color: var(--accent-blue);">{{ total_pairs }}</div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-gray-600 text-sm font-semibold mb-2">Ukończone</div>
+        <div class="text-3xl font-bold text-green-600">
+            {{ document_pairs | selectattr('status', 'equalto', 'completed') | list | length }}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-gray-600 text-sm font-semibold mb-2">W trakcie</div>
+        <div class="text-3xl font-bold text-yellow-600">
+            {{ document_pairs | selectattr('status', 'equalto', 'processing') | list | length }}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-gray-600 text-sm font-semibold mb-2">Oczekujące</div>
+        <div class="text-3xl font-bold text-gray-600">
+            {{ document_pairs | selectattr('status', 'equalto', 'pending') | list | length }}
+        </div>
+    </div>
+</div>
+
+<!-- Document Pairs -->
+<div id="document-pairs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for pair in document_pairs %}
+    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition" data-pair-name="{{ pair.name }}">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 truncate" title="{{ pair.name }}">
+            {{ pair.name }}
+        </h3>
+
+        <!-- File info -->
+        <div class="space-y-2 mb-4 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-600">Stara wersja:</span>
+                <span class="text-gray-800">{{ (pair.old_size / 1024) | round(1) }} KB</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Nowa wersja:</span>
+                <span class="text-gray-800">{{ (pair.new_size / 1024) | round(1) }} KB</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Ostatnia modyfikacja:</span>
+                <span class="text-gray-800">{{ pair.new_modified }}</span>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="mb-4">
+            {% set status_class = {
+                'pending': 'bg-gray-200 text-gray-700',
+                'processing': 'bg-yellow-200 text-yellow-800',
+                'completed': 'bg-green-200 text-green-800',
+                'error': 'bg-red-200 text-red-800'
+            }[pair.status] %}
+            <span class="px-3 py-1 rounded-full text-xs font-semibold {{ status_class }}">
+                {{ {'pending': 'Oczekujące', 'processing': 'Przetwarzanie', 'completed': 'Ukończone', 'error': 'Błąd'}[pair.status] }}
+            </span>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-2">
+            {% if pair.status == 'pending' or pair.status == 'error' %}
+            <button
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition"
+                onclick="startComparison('{{ pair.old_path | replace('\\', '/') }}', '{{ pair.new_path | replace('\\', '/') }}', 'basic')"
+            >
+                Porównaj (Basic)
+            </button>
+            <button
+                class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded transition"
+                onclick="startComparison('{{ pair.old_path | replace('\\', '/') }}', '{{ pair.new_path | replace('\\', '/') }}', 'advanced')"
+            >
+                Porównaj (Advanced + AI)
+            </button>
+            {% elif pair.status == 'processing' %}
+            <div class="flex items-center justify-center py-2">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <span class="ml-2 text-sm text-gray-600">Przetwarzanie...</span>
+            </div>
+            {% elif pair.status == 'completed' %}
+            <button
+                class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition"
+                onclick="viewReport('{{ pair.comparison_id }}')"
+            >
+                Zobacz Raport
+            </button>
+            <button
+                class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition"
+                onclick="downloadPDF('{{ pair.comparison_id }}')"
+            >
+                Pobierz PDF
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not document_pairs %}
+<div class="bg-white rounded-lg shadow-md p-12 text-center">
+    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">Brak dokumentów</h3>
+    <p class="text-gray-600">
+        Umieść pliki DOCX w katalogach <code>stara_wersja/</code> i <code>nowa_wersja/</code>
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auto-refresh every 3 seconds when there are processing tasks
+    const hasProcessing = {{ 'true' if (document_pairs | selectattr('status', 'equalto', 'processing') | list | length) > 0 else 'false' }};
+    if (hasProcessing) {
+        setTimeout(() => {
+            location.reload();
+        }, 3000);
+    }
+</script>
+{% endblock %}

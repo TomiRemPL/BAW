@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Porównywanie Dokumentów Bankowych{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/styles.css">
+
+    <!-- Chart.js for summary page -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <style>
+        :root {
+            --primary-bg: #F2F2F2;
+            --accent-blue: #009597;
+            --accent-green: #70A300;
+            --accent-red: #ED1B2F;
+            --text-dark: #595959;
+            --border-gray: #A6A6A6;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold" style="color: var(--accent-blue);">
+                        Porównywanie Dokumentów Bankowych
+                    </h1>
+                </div>
+                <nav class="flex space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 transition">Dashboard</a>
+                    <a href="/api/summary" class="text-gray-700 hover:text-blue-600 transition">Podsumowanie</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white mt-12 py-6 border-t">
+        <div class="container mx-auto px-6 text-center text-gray-600 text-sm">
+            <p>Aplikacja POC do porównywania dokumentów bankowych &copy; 2024</p>
+            <p class="mt-2">Wygenerowano: {{ generated_at | format_datetime if generated_at else "N/A" }}</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="/static/app.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

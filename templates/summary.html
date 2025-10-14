@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Podsumowanie - Wszystkie Porównania{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="/" class="text-blue-600 hover:text-blue-800 mb-4 inline-block">&larr; Powrót do Dashboard</a>
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">Podsumowanie Wszystkich Porównań</h2>
+    <p class="text-gray-600">Zagregowany widok {{ total_reports }} raportów</p>
+</div>
+
+<!-- Overall Statistics -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-gray-600 text-sm font-semibold mb-2">Łączna liczba raportów</div>
+        <div class="text-3xl font-bold" style="color: var(--accent-blue);">{{ total_reports }}</div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-gray-600 text-sm font-semibold mb-2">Wszystkie zmiany</div>
+        <div class="text-3xl font-bold text-gray-800">{{ total_changes | format_number }}</div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-gray-600 text-sm font-semibold mb-2">Zmiany MAJOR</div>
+        <div class="text-3xl font-bold text-red-600">{{ total_major }}</div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-gray-600 text-sm font-semibold mb-2">Zmiany MODERATE</div>
+        <div class="text-3xl font-bold text-yellow-600">{{ total_moderate }}</div>
+    </div>
+</div>
+
+<!-- Executive Summary -->
+{% if total_major > 0 %}
+<div class="bg-red-50 border-l-4 border-red-500 rounded-lg shadow-md p-6 mb-6">
+    <h3 class="text-xl font-bold text-red-800 mb-3 flex items-center">
+        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        Executive Summary - Wymagana Uwaga
+    </h3>
+    <p class="text-gray-700 mb-4">
+        Znaleziono <strong>{{ total_major }}</strong> zmian o wysokiej wadze (MAJOR), które wymagają przeglądu prawnego przed zatwierdzeniem.
+    </p>
+    <ul class="list-disc list-inside text-gray-700 space-y-1">
+        {% for report in reports %}
+            {% if report.ai_analysis %}
+                {% for change in report.ai_analysis.change_analyses %}
+                    {% if change.severity.value == 'MAJOR' %}
+                    <li><strong>{{ report.document_pair.name }}:</strong> {{ change.summary }}</li>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Charts -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Rozkład Zmian według Dokumentów</h3>
+    <canvas id="changesChart" height="80"></canvas>
+</div>
+
+<!-- Severity Distribution -->
+{% if total_major > 0 or total_moderate > 0 or total_minor > 0 %}
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Rozkład według Wagi</h3>
+    <canvas id="severityChart" height="80"></canvas>
+</div>
+{% endif %}
+
+<!-- Detailed Reports List -->
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Szczegółowa Lista Raportów</h3>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 border-b text-left text-xs font-semibold text-gray-600 uppercase">Dokument</th>
+                    <th class="px-6 py-3 border-b text-center text-xs font-semibold text-gray-600 uppercase">Dodane</th>
+                    <th class="px-6 py-3 border-b text-center text-xs font-semibold text-gray-600 uppercase">Usunięte</th>
+                    <th class="px-6 py-3 border-b text-center text-xs font-semibold text-gray-600 uppercase">Zmodyfikowane</th>
+                    <th class="px-6 py-3 border-b text-center text-xs font-semibold text-gray-600 uppercase">Łącznie</th>
+                    <th class="px-6 py-3 border-b text-center text-xs font-semibold text-gray-600 uppercase">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 border-b">
+                        <div class="font-medium text-gray-800">{{ report.document_pair.name }}</div>
+                        <div class="text-xs text-gray-500">{{ report.generated_at | format_datetime }}</div>
+                    </td>
+                    <td class="px-6 py-4 border-b text-center">
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
+                            {{ report.diff_result.statistics.added_count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 border-b text-center">
+                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">
+                            {{ report.diff_result.statistics.removed_count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 border-b text-center">
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm">
+                            {{ report.diff_result.statistics.modified_count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 border-b text-center">
+                        <span class="font-bold text-gray-800">
+                            {{ report.diff_result.statistics.total_changes }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 border-b text-center">
+                        <button
+                            onclick="viewReport('{{ report.comparison_id }}')"
+                            class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded transition"
+                        >
+                            Zobacz
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if not reports %}
+<div class="bg-white rounded-lg shadow-md p-12 text-center">
+    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">Brak raportów</h3>
+    <p class="text-gray-600">
+        Wykonaj porównania dokumentów, aby zobaczyć podsumowanie.
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+{% if reports %}
+// Changes Distribution Chart
+const changesCtx = document.getElementById('changesChart').getContext('2d');
+new Chart(changesCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ chart_data.labels | tojson }},
+        datasets: [{
+            label: 'Liczba zmian',
+            data: {{ chart_data.changes | tojson }},
+            backgroundColor: '#009597',
+            borderColor: '#007577',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0
+                }
+            }
+        }
+    }
+});
+
+// Severity Distribution Chart
+{% if total_major > 0 or total_moderate > 0 or total_minor > 0 %}
+const severityCtx = document.getElementById('severityChart').getContext('2d');
+new Chart(severityCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['MAJOR', 'MODERATE', 'MINOR'],
+        datasets: [{
+            data: [{{ total_major }}, {{ total_moderate }}, {{ total_minor }}],
+            backgroundColor: ['#ED1B2F', '#FFA500', '#70A300'],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+{% endif %}
+{% endif %}
+</script>
+{% endblock %}
