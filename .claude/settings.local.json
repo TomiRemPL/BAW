@@ -8,7 +8,10 @@
       "Bash(curl -s -X POST http://127.0.0.1:8000/api/compare -H \"Content-Type: application/json\" -d \"{\"\"old_path\"\": \"\"stara_wersja/dokument.docx\"\", \"\"new_path\"\": \"\"nowa_wersja/dokument.docx\"\", \"\"mode\"\": \"\"basic\"\"}\")",
       "Bash(curl -s http://127.0.0.1:8000/api/compare/c29d4e61-2963-48c7-a425-708b0c59be74/status)",
       "Bash(curl -s http://127.0.0.1:8000/)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(mkdir:*)",
+      "Bash(python:*)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []

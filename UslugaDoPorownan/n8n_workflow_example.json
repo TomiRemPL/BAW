@@ -1,0 +1,302 @@
+{
+  "name": "Document Comparison Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "start",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "filePath": "C:\\documents\\old_document.docx",
+        "dataPropertyName": "old_file"
+      },
+      "id": "read_old",
+      "name": "Read Old Document",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "filePath": "C:\\documents\\new_document.docx",
+        "dataPropertyName": "new_file"
+      },
+      "id": "read_new",
+      "name": "Read New Document",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8001/api/documents/upload",
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "old_document",
+              "value": "={{ $binary.old_file }}"
+            },
+            {
+              "name": "new_document",
+              "value": "={{ $binary.new_file }}"
+            }
+          ]
+        }
+      },
+      "id": "upload",
+      "name": "Upload Documents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8001/api/process",
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "document_pair_id",
+              "value": "={{ $('Upload Documents').item.json.document_pair_id }}"
+            }
+          ]
+        }
+      },
+      "id": "start_process",
+      "name": "Start Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "id": "wait_initial",
+      "name": "Wait 3 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:8001/api/status/{{ $('Start Processing').item.json.process_id }}",
+        "method": "GET"
+      },
+      "id": "check_status",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "operation": "equals",
+              "value2": "completed"
+            }
+          ]
+        }
+      },
+      "id": "if_completed",
+      "name": "Is Completed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "wait_loop",
+      "name": "Wait 2 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1450, 500]
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:8001/api/result/{{ $('Start Processing').item.json.process_id }}/full",
+        "method": "GET"
+      },
+      "id": "get_full",
+      "name": "Get Full Result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:8001/api/result/{{ $('Start Processing').item.json.process_id }}/modified",
+        "method": "GET"
+      },
+      "id": "get_modified",
+      "name": "Get Modified",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1850, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fullResult = $input.item.json;\nconst stats = fullResult.statistics;\n\nconst summary = {\n  timestamp: new Date().toISOString(),\n  process_id: fullResult.process_id,\n  total_changes: stats.total_changes,\n  modified: stats.modified_paragraphs,\n  added: stats.added_paragraphs,\n  deleted: stats.deleted_paragraphs,\n  severity: stats.total_changes > 10 ? 'HIGH' : 'LOW'\n};\n\nreturn { json: summary };"
+      },
+      "id": "process_results",
+      "name": "Process Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2050, 200]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Read Old Document",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read New Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Old Document": {
+      "main": [
+        [
+          {
+            "node": "Upload Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read New Document": {
+      "main": [
+        [
+          {
+            "node": "Upload Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Documents": {
+      "main": [
+        [
+          {
+            "node": "Start Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Processing": {
+      "main": [
+        [
+          {
+            "node": "Wait 3 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Is Completed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Completed?": {
+      "main": [
+        [
+          {
+            "node": "Get Full Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 2 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Full Result": {
+      "main": [
+        [
+          {
+            "node": "Get Modified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Modified": {
+      "main": [
+        [
+          {
+            "node": "Process Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

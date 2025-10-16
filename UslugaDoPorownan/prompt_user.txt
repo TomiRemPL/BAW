@@ -1,0 +1,61 @@
+Przeanalizuj załączony plik full_result.json z wynikami porównania dokumentów.
+
+Plik JSON zawiera:
+- statistics: zagregowane statystyki zmian
+- paragraphs: lista wszystkich paragrafów z nowego dokumentu oraz usuniętych ze starego
+- tables: lista tabel ze zmianami w komórkach
+
+Każdy paragraf ma:
+- index: pozycja
+- text: aktualna treść (z nowego dokumentu)
+- type: unchanged/modified/added/deleted
+- old_text: poprzednia treść (dla modified i deleted)
+- changes: szczegółowe zmiany słowo po słowie (dla modified)
+
+Przygotuj szczegółowy raport zawierający:
+
+1. EXECUTIVE SUMMARY
+   - Łącznie zmian: [liczba]
+   - Charakterystyka: [głównie co?]
+   - Ocena: [istotne/drobne]
+
+2. ZMIANY KRYTYCZNE
+   Lista zmian wymagających natychmiastowej uwagi (definicje, liczby, wymagania prawne)
+   Format: Paragraf #X: [opis] | Stare: [...] | Nowe: [...] | Wpływ: [...]
+
+3. ZMIANY ISTOTNE
+   Lista ważnych zmian (nazwy, terminy, procedury)
+   Format: Paragraf #X: [opis zmiany]
+
+4. ZMIANY MNIEJSZE
+   Lista mniejszych zmian (stylistyka, formatowanie)
+
+5. DODANE TREŚCI
+   Lista nowych paragrafów (type="added")
+   Format: Paragraf #X: [treść]
+
+6. USUNIĘTE TREŚCI
+   Lista usuniętych paragrafów (type="deleted")
+   Format: Paragraf #X: [treść]
+
+7. ZMIANY W TABELACH
+   Lista zmian w komórkach tabel
+   Format: Tabela #X, Wiersz Y, Kolumna Z: [stara] → [nowa]
+
+8. REKOMENDACJE
+   - Działania do podjęcia
+   - Obszary wymagające weryfikacji
+   - Potencjalne ryzyka
+
+Zwróć szczególną uwagę na:
+- Zmiany w liczbach i wartościach liczbowych
+- Zmiany w nazwach departamentów, ról, stanowisk
+- Zmiany w definicjach i terminach
+- Zmiany w wymaganiach i procedurach
+- Usunięte wymagania (potencjalne problemy compliance)
+- Dodane wymagania (nowe obowiązki)
+
+Kontekst: [opisz domenę dokumentu, np. "Polityka Zarządzania Ryzykiem ICT - dokument bankowy, wymogi DORA"]
+
+Plik JSON:
+[WKLEJ TUTAJ ZAWARTOŚĆ full_result.json]
