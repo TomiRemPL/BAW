@@ -1,0 +1,128 @@
+==========================================
+  PROMPTY LLM DLA full_result.json
+==========================================
+
+UTWORZONE PLIKI (5):
+
+1. LLM_PROMPT_FULL_RESULT.md (12KB)
+   - Pełna dokumentacja promptów
+   - Szczegółowy opis struktury JSON
+   - Instrukcje interpretacji
+   - Przykłady użycia
+
+2. prompt_system.txt (2KB)
+   - System prompt gotowy do skopiowania
+   - Instrukcje dla modelu AI
+   - Definicje typów zmian
+   - Format odpowiedzi
+
+3. prompt_user.txt (2KB)
+   - User prompt szablon
+   - Gotowy do wklejenia JSON
+   - Miejsce na kontekst
+   - Lista zadań analitycznych
+
+4. EXAMPLE_LLM_USAGE.md (11KB)
+   - Praktyczne przykłady
+   - Kod Python (Claude, GPT-4, Gemini)
+   - Integracja z n8n
+   - Zaawansowane scenariusze
+
+5. LLM_QUICK_START.md (7KB)
+   - Szybki start (2 minuty)
+   - Checklist
+   - Best practices
+   - Troubleshooting
+
+==========================================
+
+FUNKCJE:
+
+✅ Analiza wyników porównania przez AI
+✅ Automatyczne klasyfikowanie zmian (krytyczne/istotne/mniejsze)
+✅ Generowanie raportów wykonawczych
+✅ Identyfikacja ryzyk compliance
+✅ Rekomendacje działań
+
+==========================================
+
+JAK UŻYWAĆ:
+
+1. Skopiuj prompt_system.txt → wklej jako System Prompt
+2. Skopiuj prompt_user.txt → wklej jako User Message
+3. Wklej zawartość full_result.json do promptu
+4. Dostosuj kontekst (banking/legal/technical)
+5. Wyślij do AI (Claude/ChatGPT/Gemini)
+6. Otrzymaj szczegółowy raport
+
+==========================================
+
+PLATFORMY:
+
+✅ Claude (Anthropic) - zalecane
+✅ ChatGPT (OpenAI) - GPT-4 Turbo
+✅ Gemini (Google) - darmowe
+✅ n8n (automation)
+✅ API (Python/Node.js)
+
+==========================================
+
+ZASTOSOWANIA:
+
+• Automatyczna analiza zmian w dokumentach
+• Raportowanie dla Zarządu
+• Analiza compliance (DORA, RODO, itp.)
+• Weryfikacja consistency
+• Risk assessment
+• Change impact analysis
+
+==========================================
+
+PRZYKŁAD RAPORTU:
+
+# RAPORT ANALIZY ZMIAN
+
+## EXECUTIVE SUMMARY
+Wykryto 12 zmian, w tym 3 krytyczne...
+
+## ZMIANY KRYTYCZNE
+1. Zmiana Właściciela Polityki (CRO → COO)
+2. Restrukturyzacja Zespołu ICT
+3. Zmiana Częstotliwości Komitetu
+
+## REKOMENDACJE
+- Aktualizacja RACI matrix
+- Komunikacja do stakeholderów
+- Weryfikacja zgodności z DORA
+
+==========================================
+
+KOSZTY (szacunkowe):
+
+Dokument 20KB JSON:
+- GPT-4 Turbo: ~$0.12
+- Claude Sonnet: ~$0.06
+- Gemini Pro: Darmowe (do limitu)
+
+==========================================
+
+BEZPIECZEŃSTWO:
+
+⚠️ Dla danych wrażliwych użyj:
+- Azure OpenAI
+- AWS Bedrock
+- Lokalny model (Ollama)
+
+==========================================
+
+START:
+
+1. Przeczytaj: LLM_QUICK_START.md
+2. Testuj na: full_result.json (przykład w repo)
+3. Integruj z: n8n / Python / API
+
+==========================================
+
+Utworzone: 2025-10-15
+Wersja: 1.0
+Status: ✅ Gotowe do użycia
