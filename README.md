@@ -1,252 +1,353 @@
-# Document Comparison POC
+# BAW - Projekt Porównywania Dokumentów Bankowych
 
-Aplikacja do porównywania dokumentów bankowych w formacie DOCX z wykorzystaniem FastAPI i analizy AI.
+Kompleksowy system do porównywania dokumentów bankowych w formacie DOCX składający się z dwóch komponentów:
 
-## Wymagania
+## 📦 Komponenty Projektu
 
-- Python 3.11+
-- UV package manager
-- (Opcjonalnie) Klucz API Anthropic Claude lub Google Gemini dla zaawansowanej analizy
+### 1. **SecureDocCompare** - Bezpieczny Frontend
+**Port:** 8000
+**Lokalizacja:** `SecureDocCompare/`
 
-## Instalacja
+Bezpieczny interfejs webowy z:
+- 🔐 Systemem logowania (hasło + sesje)
+- 📤 Formularzem do uploadu dokumentów
+- ⚙️ Interfejsem do uruchamiania analiz
+- 📊 Wyświetlaniem wyników w formacie JSON
+- 🛡️ 5 warstwami zabezpieczeń (auth, rate limiting, walidacja plików, bezpieczne nagłówki, path safety)
 
-1. Sklonuj repozytorium lub rozpakuj pliki projektu
+**Szczegóły:** Zobacz `SecureDocCompare/README.md`
 
-2. Zainstaluj zależności używając UV:
-```bash
-uv sync
+### 2. **UslugaDoPorownan** - Backend API
+**Port:** 8001
+**Lokalizacja:** `UslugaDoPorownan/`
+
+Usługa REST API do przetwarzania dokumentów:
+- 📄 Ekstrakcja treści z DOCX
+- 🔄 Porównywanie wersji dokumentów
+- 📋 Zwracanie wyników w JSON (pełny, zmodyfikowane, dodane, usunięte)
+- 💾 Przechowywanie w pamięci
+
+**Szczegóły:** Zobacz `UslugaDoPorownan/README.md`
+
+## 🎯 Architektura
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Użytkownik                                         │
+└─────────────────┬───────────────────────────────────┘
+                  │ HTTP (przeglądarka)
+                  ▼
+┌─────────────────────────────────────────────────────┐
+│  SecureDocCompare (Frontend) - Port 8000            │
+│  - Logowanie                                        │
+│  - Upload plików                                    │
+│  - Wyświetlanie wyników                             │
+└─────────────────┬───────────────────────────────────┘
+                  │ HTTP API
+                  ▼
+┌─────────────────────────────────────────────────────┐
+│  UslugaDoPorownan (Backend) - Port 8001             │
+│  - Ekstrakcja DOCX                                  │
+│  - Porównywanie                                     │
+│  - Generowanie JSON                                 │
+└─────────────────────────────────────────────────────┘
 ```
 
-3. **Wymagane dla generowania PDF (WeasyPrint):**
+## 🚀 Wymagania
 
-WeasyPrint wymaga bibliotek GTK+ na Windows. Wybierz jedną z metod instalacji:
+### Windows (Development)
+- **Python:** 3.11.9
+- **Package Manager:** `uv` lub `pip`
+- **System:** Windows 10/11
 
-### Metoda 1: GTK for Windows Runtime (ZALECANE)
+### Debian/Linux (Production)
+- **Python:** 3.11.9 (zainstalowany przez pyenv)
+- **OS:** Debian 11+
+- **Dostęp:** SSH do serwera
 
-1. Pobierz instalator GTK3 Runtime:
-   ```
-   https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
-   ```
+## 📥 Instalacja
 
-2. Pobierz najnowszą wersję (np. `gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe`)
+### Windows (Development)
 
-3. Uruchom instalator jako Administrator
+```bash
+# 1. Sprawdź wersję Pythona
+python --version  # Powinno być 3.11.9
 
-4. **WAŻNE:** Zaznacz opcję "Add to PATH" podczas instalacji
+# 2. Przejdź do katalogu projektu
+cd c:/Projects/BAW
 
-5. Po instalacji zrestartuj terminal/PowerShell
+# 3. Stwórz środowisko wirtualne
+python -m venv .venv
 
-6. Sprawdź instalację:
-   ```bash
-   # Powinna pokazać ścieżkę do GTK
-   where libcairo-2.dll
-   ```
+# 4. Aktywuj środowisko
+.venv\Scripts\activate  # Windows CMD
+# lub
+.\.venv\Scripts\Activate.ps1  # PowerShell
 
-### Metoda 2: MSYS2 (dla zaawansowanych użytkowników)
+# 5. Zainstaluj zależności
+pip install -r requirements.txt
 
-1. Zainstaluj MSYS2:
-   ```
-   https://www.msys2.org/
-   ```
+# 6. Gotowe!
+```
 
-2. Otwórz MSYS2 terminal i zainstaluj pakiety:
-   ```bash
-   pacman -Syu
-   pacman -S mingw-w64-x86_64-gtk3
-   pacman -S mingw-w64-x86_64-cairo
-   pacman -S mingw-w64-x86_64-pango
-   pacman -S mingw-w64-x86_64-gdk-pixbuf2
-   ```
+### Debian/Linux (Production)
 
-3. Dodaj ścieżkę MSYS2 do PATH systemowego:
-   ```
-   C:\msys64\mingw64\bin
-   ```
+**Zobacz szczegółowe instrukcje:** `DEPLOYMENT.md`
 
-4. Zrestartuj terminal
+Krótka wersja:
+```bash
+# 1. Zainstaluj pyenv i Python 3.11.9
+curl https://pyenv.run | bash
+pyenv install 3.11.9
+pyenv global 3.11.9
 
-### Weryfikacja instalacji GTK+
+# 2. Stwórz środowisko
+cd /home/debian/hack/BAW
+python -m venv .venv
+source .venv/bin/activate
 
-Po instalacji GTK+, sprawdź czy WeasyPrint działa:
+# 3. Zainstaluj zależności
+pip install -r requirements.txt
+```
 
+## 🎮 Uruchomienie
+
+### Development (Windows)
+
+**Terminal 1 - Backend:**
 ```bash
 cd c:/Projects/BAW
-uv run python -c "from weasyprint import HTML; print('WeasyPrint działa!')"
+.venv\Scripts\activate
+cd UslugaDoPorownan
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
-Jeśli widzisz komunikat "WeasyPrint działa!" - instalacja przebiegła pomyślnie!
-
-### Rozwiązywanie problemów z GTK+
-
-Jeśli nadal występują błędy:
-
-1. **Sprawdź PATH:**
-   ```powershell
-   $env:PATH
-   ```
-   Upewnij się, że zawiera ścieżkę do GTK (np. `C:\Program Files\GTK3-Runtime Win64\bin`)
-
-2. **Sprawdź czy biblioteki są dostępne:**
-   ```bash
-   where libgobject-2.0-0.dll
-   where libcairo-2.dll
-   where libpango-1.0-0.dll
-   ```
-
-3. **Błąd "cannot load library":**
-   - Upewnij się, że instalowałeś 64-bitową wersję GTK (jeśli masz 64-bit Python)
-   - Sprawdź czy wszystkie DLL są w tej samej lokalizacji
-   - Spróbuj zrestartować komputer
-
-4. **Alternatywnie:** Jeśli problemy się utrzymują, możesz tymczasowo użyć starszej wersji generatora PDF (xhtml2pdf) - skontaktuj się z zespołem.
-
-## Konfiguracja
-
-### Klucze API (opcjonalne, tylko dla trybu advanced)
-
-Ustaw zmienne środowiskowe:
-
-**Windows (PowerShell):**
-```powershell
-$env:ANTHROPIC_API_KEY="twoj-klucz-api"
-```
-
-**Windows (CMD):**
-```cmd
-set ANTHROPIC_API_KEY=twoj-klucz-api
-```
-
-**Linux/Mac:**
+**Terminal 2 - Frontend:**
 ```bash
-export ANTHROPIC_API_KEY="twoj-klucz-api"
+cd c:/Projects/BAW
+.venv\Scripts\activate
+cd SecureDocCompare
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Alternatywnie możesz użyć Google Gemini:
+### Production (Debian)
+
+**Terminal 1 - Backend:**
 ```bash
-export GOOGLE_API_KEY="twoj-klucz-api"
+cd /home/debian/hack/BAW
+source .venv/bin/activate
+cd UslugaDoPorownan
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
-## Uruchomienie
-
-1. Uruchom aplikację:
+**Terminal 2 - Frontend:**
 ```bash
-uv run uvicorn main:app --reload
+cd /home/debian/hack/BAW
+source .venv/bin/activate
+cd SecureDocCompare
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-2. Otwórz przeglądarkę i przejdź do:
-```
-http://localhost:8000
-```
+## 🌐 Dostęp
 
-## Użycie
+Po uruchomieniu obu serwisów:
 
-### Przygotowanie dokumentów
+- **Frontend:** http://localhost:8000
+- **Backend API:** http://localhost:8001
+- **API Docs:** http://localhost:8001/docs
 
-1. Umieść stare wersje dokumentów DOCX w katalogu `stara_wersja/`
-2. Umieść nowe wersje dokumentów DOCX w katalogu `nowa_wersja/`
-3. Upewnij się, że pliki mają takie same nazwy w obu katalogach
+### Pierwsze logowanie
 
-### Porównywanie dokumentów
+**Hasło domyślne:** `SecurePassword123!`
 
-1. Na dashboardzie zobaczysz wszystkie pary dokumentów
-2. Kliknij "Porównaj (Basic)" dla podstawowego porównania (bez AI)
-3. Kliknij "Porównaj (Advanced + AI)" dla zaawansowanej analizy z AI (wymaga klucza API)
-4. Poczekaj na zakończenie przetwarzania
-5. Kliknij "Zobacz Raport" aby zobaczyć wyniki
-6. Kliknij "Pobierz PDF" aby pobrać raport w formacie PDF
-
-### Tryby porównywania
-
-**Basic Mode:**
-- Porównanie na poziomie akapitów
-- Wykrywanie dodanych, usuniętych, zmodyfikowanych i przesunięty akapitów
-- Porównanie tabel
-- Porównanie metadanych
-- Działa bez kluczy API
-
-**Advanced Mode:**
-- Wszystko z Basic Mode
-- Analiza AI każdej zmiany
-- Klasyfikacja wagi zmian (MINOR/MODERATE/MAJOR)
-- Analiza zgodności z regulacjami (DORA, KYC, AML)
-- Rekomendacje i podsumowanie
-- Wymaga ANTHROPIC_API_KEY lub GOOGLE_API_KEY
-
-## Struktura projektu
-
-```
-document_comparison_poc/
-├── main.py                 # FastAPI application
-├── config.py              # Configuration
-├── processors/            # Document processing
-│   ├── extractor.py      # DOCX extraction
-│   ├── comparator.py     # Diff algorithms
-│   └── analyzer.py       # AI analysis
-├── report_generator/      # Report generation
-│   ├── html_generator.py # HTML reports
-│   └── pdf_generator.py  # PDF reports
-├── templates/             # Jinja2 templates
-│   ├── base.html
-│   ├── dashboard.html
-│   ├── comparison_report.html
-│   └── summary.html
-├── static/                # Static assets
-│   ├── styles.css
-│   └── app.js
-├── nowa_wersja/          # Input: new versions
-├── stara_wersja/         # Input: old versions
-└── output/               # Output: reports and logs
+⚠️ **WAŻNE:** Zmień hasło w pliku `SecureDocCompare/.env`:
+```env
+APP_PASSWORD=TwojeNoweSuperbezpieczneHaslo
 ```
 
-## API Endpoints
+## 📚 Dokumentacja
 
-- `GET /` - Dashboard
-- `GET /api/documents` - Lista par dokumentów
-- `POST /api/compare` - Start porównania
-- `GET /api/compare/{id}/status` - Status porównania
-- `GET /report/{id}` - Zobacz raport HTML
-- `GET /api/download/{id}` - Pobierz raport PDF
-- `GET /api/summary` - Podsumowanie wszystkich porównań
-- `GET /health` - Health check
+| Plik | Opis |
+|------|------|
+| `README.md` | Ten plik - ogólny opis projektu |
+| `DEPLOYMENT.md` | Instrukcje wdrożenia na serwer Debian |
+| `requirements.txt` | Wszystkie zależności Python |
+| `SecureDocCompare/README.md` | Dokumentacja frontendu |
+| `SecureDocCompare/QUICK_START.md` | Szybki start frontendu |
+| `SecureDocCompare/SECURITY.md` | Opis zabezpieczeń |
+| `UslugaDoPorownan/README.md` | Dokumentacja API backendu |
+| `UslugaDoPorownan/QUICKSTART.md` | Szybki start backendu |
 
-## Rozwiązywanie problemów
+## 🔧 Konfiguracja
 
-### Brak dokumentów na dashboardzie
-- Upewnij się, że pliki DOCX są w katalogach `stara_wersja/` i `nowa_wersja/`
-- Sprawdź czy pliki mają rozszerzenie `.docx`
-- Sprawdź czy nazwy plików są identyczne w obu katalogach
+### SecureDocCompare (.env)
 
-### Błąd podczas porównywania
-- Sprawdź logi w konsoli
-- Upewnij się, że pliki DOCX nie są uszkodzone
-- Spróbuj ponownie otworzyć i zapisać plik w MS Word
+```env
+# Hasło dostępu
+APP_PASSWORD=TwojeHaslo
 
-### Tryb Advanced nie działa
-- Sprawdź czy zmienna środowiskowa ANTHROPIC_API_KEY jest ustawiona
-- Sprawdź czy klucz API jest prawidłowy
-- Sprawdź połączenie z internetem
+# URL do API
+DOCUMENT_API_URL=http://localhost:8001
 
-### Problemy z PDF
-- Zobacz szczegółowe instrukcje instalacji GTK+ w sekcji "Instalacja" powyżej
-- WeasyPrint wymaga bibliotek GTK+ (libgobject, libcairo, libpango)
-- Jeśli widzisz błąd "cannot load library", upewnij się że GTK+ jest zainstalowany i dodany do PATH
-- Zrestartuj terminal po instalacji GTK+
+# Port aplikacji
+APP_PORT=8000
 
-## Wydajność
+# Tryb produkcyjny
+PRODUCTION=false
+```
 
-Aplikacja została zaprojektowana do przetwarzania:
-- 5 par dokumentów po 50 stron każdy
-- W mniej niż 5 minut (tryb advanced)
+### Wspólne zależności
 
-Przetwarzanie jest sekwencyjne (jedna para na raz) dla stabilności POC.
+Wszystkie zależności są w głównym `requirements.txt`:
+- FastAPI, Uvicorn - framework webowy
+- Pydantic - walidacja danych
+- httpx - HTTP client
+- Jinja2 - templating
+- docx2python - przetwarzanie DOCX
+- fast-diff-match-patch - algorytm diff
 
-## Uwagi
+## 📁 Struktura Projektu
 
-- To jest POC (Proof of Concept) - aplikacja do demonstracji i testów
-- Działa lokalnie, nie wymaga zewnętrznych baz danych
-- Wyniki porównań są przechowywane w pamięci (znikają po restarcie)
-- Dla produkcji zaleca się dodać trwałe przechowywanie danych
+```
+BAW/
+├── README.md                    # Ten plik
+├── DEPLOYMENT.md                # Instrukcje wdrożenia
+├── requirements.txt             # Wspólne zależności
+├── .venv/                       # Środowisko wirtualne (wspólne)
+├── CLAUDE.md                    # Instrukcje dla Claude Code
+│
+├── SecureDocCompare/            # Frontend (Port 8000)
+│   ├── main.py                  # Aplikacja FastAPI
+│   ├── config.py                # Konfiguracja
+│   ├── auth.py                  # System autentykacji
+│   ├── middleware.py            # Zabezpieczenia
+│   ├── templates/               # Szablony HTML
+│   ├── static/                  # CSS, JS
+│   ├── .env                     # Konfiguracja (NIE commituj!)
+│   ├── README.md
+│   ├── QUICK_START.md
+│   └── SECURITY.md
+│
+└── UslugaDoPorownan/            # Backend API (Port 8001)
+    ├── main.py                  # API FastAPI
+    ├── models.py                # Modele danych
+    ├── extractor.py             # Ekstrakcja DOCX
+    ├── comparator.py            # Algorytm porównywania
+    ├── storage.py               # Przechowywanie
+    ├── uploads/                 # Uploadowane pliki
+    └── README.md
+```
 
-## Licencja
+## 🧪 Testowanie
 
-POC dla celów demonstracyjnych.
+### Test API backendu:
+
+```bash
+# Health check
+curl http://localhost:8001/health
+
+# Upload dokumentów
+curl -X POST http://localhost:8001/api/documents/upload \
+  -F "old_document=@stary.docx" \
+  -F "new_document=@nowy.docx"
+```
+
+### Test frontendu:
+
+1. Otwórz http://localhost:8000
+2. Zaloguj się hasłem
+3. Wybierz dwa pliki DOCX
+4. Kliknij "Wgraj dokumenty"
+5. Kliknij "Rozpocznij analizę"
+6. Pobierz wyniki
+
+## 🐛 Rozwiązywanie Problemów
+
+### Port jest zajęty
+
+```bash
+# Sprawdź co zajmuje port
+netstat -ano | findstr :8000  # Windows
+lsof -i :8000                 # Linux
+
+# Użyj innego portu
+uvicorn main:app --port 8002
+```
+
+### ModuleNotFoundError
+
+```bash
+# Upewnij się że środowisko jest aktywowane
+source .venv/bin/activate  # Linux
+.venv\Scripts\activate      # Windows
+
+# Zainstaluj ponownie zależności
+pip install -r requirements.txt
+```
+
+### "Connection refused" do API
+
+Upewnij się, że UslugaDoPorownan (backend) działa na porcie 8001:
+```bash
+curl http://localhost:8001/health
+```
+
+## 🔒 Bezpieczeństwo
+
+### Dla Development
+- Użyj silnych haseł w `.env`
+- Nie commituj pliku `.env` do git
+- HTTPS nie jest wymagane (localhost)
+
+### Dla Production
+- ✅ Zmień domyślne hasło
+- ✅ Wygeneruj SECRET_KEY
+- ✅ Ustaw `PRODUCTION=true`
+- ✅ Skonfiguruj HTTPS (nginx + Let's Encrypt)
+- ✅ Skonfiguruj firewall
+- ✅ Używaj systemd do auto-startu
+
+**Zobacz:** `DEPLOYMENT.md` i `SecureDocCompare/SECURITY.md`
+
+## 📈 Wydajność
+
+- Przetwarzanie sekwencyjne (1 para dokumentów na raz)
+- Przechowywanie w pamięci (brak bazy danych)
+- Optymalne dla dokumentów do 50 stron
+- Szybkość: ~30 sekund na parę dokumentów 50-stron
+
+## 🛠️ Development
+
+### Dodawanie funkcji:
+1. Backend: Edytuj `UslugaDoPorownan/main.py` i dodaj endpoint
+2. Frontend: Edytuj `SecureDocCompare/main.py` i `templates/`
+3. Testuj lokalnie
+4. Wdróż na serwer
+
+### Struktura commitów:
+```bash
+git add .
+git commit -m "feat: opis nowej funkcji"
+git push
+```
+
+## 📞 Wsparcie
+
+- **Dokumentacja:** Pliki `.md` w katalogach projektu
+- **Issues:** Zgłaszaj problemy przez GitHub Issues
+- **Development:** Używaj Claude Code dla pomocy
+
+## 📄 Licencja
+
+Wewnętrzny projekt - wszystkie prawa zastrzeżone.
+
+## 👥 Autorzy
+
+Projekt stworzony przez TomiRemPL z pomocą Claude Code.
+
+---
+
+**Wersja:** 1.0.0
+**Ostatnia aktualizacja:** 2025-10-21
+**Python:** 3.11.9
+**Status:** ✅ Production Ready

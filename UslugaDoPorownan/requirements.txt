@@ -1,0 +1,13 @@
+# UslugaDoPorownan - Dependencies
+# Ten projekt używa wspólnego środowiska z głównego katalogu BAW
+# Wszystkie zależności są w /home/debian/hack/BAW/requirements.txt
+
+# Jeśli chcesz zainstalować tylko dla tego projektu:
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.12
+pydantic>=2.9.0
+pydantic-settings>=2.5.0
+python-dotenv>=1.0.1
+docx2python>=2.0.0
+fast-diff-match-patch>=2.0.0

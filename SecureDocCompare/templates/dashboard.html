@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Secure Document Compare</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <h1>🔒 Secure Document Compare by TomiRemPL</h1>
+                <form method="POST" action="/api/logout" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary btn-sm">Wyloguj</button>
+                </form>
+            </div>
+        </header>
+
+        <!-- Main content -->
+        <main class="container">
+            <div class="card">
+                <h2>Porównaj dokumenty</h2>
+                <p class="text-muted">Wybierz starą i nową wersję dokumentu w formacie DOCX</p>
+
+                <!-- Upload Form -->
+                <form id="uploadForm" class="upload-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="oldDocument">📄 Stara wersja</label>
+                            <input
+                                type="file"
+                                id="oldDocument"
+                                name="old_document"
+                                accept=".docx"
+                                required
+                                class="form-control"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newDocument">📄 Nowa wersja</label>
+                            <input
+                                type="file"
+                                id="newDocument"
+                                name="new_document"
+                                accept=".docx"
+                                required
+                                class="form-control"
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">
+                        📤 Wgraj dokumenty
+                    </button>
+                </form>
+
+                <!-- Status Messages -->
+                <div id="statusArea" class="status-area" style="display: none;">
+                    <div id="statusMessage" class="alert"></div>
+                </div>
+
+                <!-- Progress -->
+                <div id="progressArea" style="display: none;">
+                    <div class="progress-bar">
+                        <div id="progressBar" class="progress-fill"></div>
+                    </div>
+                    <p id="progressText" class="text-center"></p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="actionArea" class="card" style="display: none;">
+                <h2>Akcje</h2>
+                <div class="button-grid">
+                    <button class="btn btn-success" onclick="startProcessing()">
+                        ⚙️ Rozpocznij analizę
+                    </button>
+                    <button class="btn btn-info" onclick="checkStatus()" id="statusBtn" style="display: none;">
+                        🔄 Sprawdź status
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="resultsArea" class="card" style="display: none;">
+                <h2>Wyniki</h2>
+                <div class="button-grid">
+                    <button class="btn btn-primary" onclick="getFullResult()">
+                        📋 Pełny dokument
+                    </button>
+                    <button class="btn btn-warning" onclick="getModified()">
+                        ✏️ Zmodyfikowane
+                    </button>
+                    <button class="btn btn-success" onclick="getAdded()">
+                        ➕ Dodane
+                    </button>
+                    <button class="btn btn-danger" onclick="getDeleted()">
+                        ➖ Usunięte
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Display -->
+            <div id="resultDisplay" class="card" style="display: none;">
+                <h2 id="resultTitle">Wynik</h2>
+                <div class="result-content">
+                    <pre id="resultContent" class="result-json"></pre>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-secondary" onclick="downloadResult()">
+                        💾 Pobierz JSON
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyResult()">
+                        📋 Kopiuj
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2025 Secure Document Compare v1.0.0 TomiRemPL</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
