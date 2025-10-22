@@ -18,6 +18,9 @@ from models import (
 from extractor import DocumentExtractor
 from comparator import DocumentComparator
 from storage import storage
+from pdf_converter import PDFConverter
+from pdf_converter.config import DEFAULT_CONFIG as PDF_CONFIG
+from pdf_converter.post_processor import PostProcessor
 
 
 # Konfiguracja logowania
@@ -100,41 +103,106 @@ async def upload_documents(
     """
     Załaduj parę dokumentów do porównania.
 
+    Obsługuje formaty: DOCX, PDF (automatyczna konwersja)
+
     Args:
-        old_document: Stary dokument (DOCX)
-        new_document: Nowy dokument (DOCX)
+        old_document: Stary dokument (DOCX lub PDF)
+        new_document: Nowy dokument (DOCX lub PDF)
 
     Returns:
         UploadResponse z document_pair_id
     """
     try:
-        # Walidacja plików
-        if not old_document.filename.endswith('.docx'):
+        # Walidacja plików - akceptuj .docx i .pdf
+        allowed_extensions = {'.docx', '.pdf'}
+
+        old_ext = Path(old_document.filename).suffix.lower()
+        new_ext = Path(new_document.filename).suffix.lower()
+
+        if old_ext not in allowed_extensions:
             raise HTTPException(
                 status_code=400,
-                detail="Stary dokument musi być w formacie DOCX"
+                detail=f"Stary dokument musi być w formacie DOCX lub PDF (otrzymano: {old_ext})"
             )
 
-        if not new_document.filename.endswith('.docx'):
+        if new_ext not in allowed_extensions:
             raise HTTPException(
                 status_code=400,
-                detail="Nowy dokument musi być w formacie DOCX"
+                detail=f"Nowy dokument musi być w formacie DOCX lub PDF (otrzymano: {new_ext})"
             )
 
         # Generuj ID
         document_pair_id = str(uuid.uuid4())
 
-        # Zapisz pliki
-        old_path = UPLOADS_DIR / f"{document_pair_id}_old.docx"
-        new_path = UPLOADS_DIR / f"{document_pair_id}_new.docx"
+        # Zapisz pliki tymczasowo
+        old_temp_path = UPLOADS_DIR / f"{document_pair_id}_old_temp{old_ext}"
+        new_temp_path = UPLOADS_DIR / f"{document_pair_id}_new_temp{new_ext}"
 
-        with open(old_path, "wb") as f:
+        with open(old_temp_path, "wb") as f:
             content = await old_document.read()
             f.write(content)
 
-        with open(new_path, "wb") as f:
+        with open(new_temp_path, "wb") as f:
             content = await new_document.read()
             f.write(content)
+
+        # Konwertuj PDF→DOCX jeśli potrzeba
+        old_path = UPLOADS_DIR / f"{document_pair_id}_old.docx"
+        new_path = UPLOADS_DIR / f"{document_pair_id}_new.docx"
+
+        conversion_messages = []
+
+        if old_ext == '.pdf':
+            logger.info(f"Konwersja starego dokumentu PDF→DOCX: {old_document.filename}")
+            converter = PDFConverter(PDF_CONFIG)
+            result = await asyncio.to_thread(
+                converter.convert,
+                old_temp_path,
+                old_path
+            )
+
+            if not result.success:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Błąd konwersji starego dokumentu PDF: {result.error}"
+                )
+
+            conversion_messages.append(
+                f"Stary dokument PDF skonwertowany (metoda: {result.method}, "
+                f"jakość: {result.quality_score:.2f})"
+            )
+
+            # Usuń tymczasowy PDF
+            old_temp_path.unlink()
+        else:
+            # Jeśli to DOCX, po prostu przenieś
+            old_temp_path.rename(old_path)
+
+        if new_ext == '.pdf':
+            logger.info(f"Konwersja nowego dokumentu PDF→DOCX: {new_document.filename}")
+            converter = PDFConverter(PDF_CONFIG)
+            result = await asyncio.to_thread(
+                converter.convert,
+                new_temp_path,
+                new_path
+            )
+
+            if not result.success:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Błąd konwersji nowego dokumentu PDF: {result.error}"
+                )
+
+            conversion_messages.append(
+                f"Nowy dokument PDF skonwertowany (metoda: {result.method}, "
+                f"jakość: {result.quality_score:.2f})"
+            )
+
+            # Usuń tymczasowy PDF
+            new_temp_path.unlink()
+        else:
+            # Jeśli to DOCX, po prostu przenieś
+            new_temp_path.rename(new_path)
 
         # Zapisz w storage
         storage.store_document_pair(
@@ -143,12 +211,20 @@ async def upload_documents(
             str(new_path)
         )
 
+        # Komunikat
+        message = f"Dokumenty zostały załadowane: {old_document.filename}, {new_document.filename}"
+        if conversion_messages:
+            message += "\\n" + "\\n".join(conversion_messages)
+
         logger.info(f"Załadowano dokumenty: {document_pair_id}")
+        if conversion_messages:
+            for msg in conversion_messages:
+                logger.info(f"  {msg}")
 
         return UploadResponse(
             document_pair_id=document_pair_id,
             status="uploaded",
-            message=f"Dokumenty zostały załadowane: {old_document.filename}, {new_document.filename}"
+            message=message
         )
 
     except HTTPException:
@@ -159,6 +235,7 @@ async def upload_documents(
             status_code=500,
             detail=f"Błąd podczas ładowania dokumentów: {str(e)}"
         )
+
 
 
 @app.post("/api/process", response_model=ProcessResponse)

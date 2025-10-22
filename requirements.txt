@@ -32,6 +32,11 @@ python-dotenv>=1.0.1
 docx2python>=2.0.0
 fast-diff-match-patch>=2.0.0
 
+# PDF Conversion (nowa funkcjonalność)
+pdf2docx>=0.5.8
+pdfplumber>=0.11.0
+python-docx>=1.1.0
+
 # ============================================
 # Utilities
 # ============================================

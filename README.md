@@ -22,10 +22,11 @@ Bezpieczny interfejs webowy z:
 **Lokalizacja:** `UslugaDoPorownan/`
 
 Usługa REST API do przetwarzania dokumentów:
-- 📄 Ekstrakcja treści z DOCX
+- 📄 Ekstrakcja treści z DOCX i PDF (automatyczna konwersja)
 - 🔄 Porównywanie wersji dokumentów
 - 📋 Zwracanie wyników w JSON (pełny, zmodyfikowane, dodane, usunięte)
 - 💾 Przechowywanie w pamięci
+- 🔀 Dwupoziomowy system konwersji PDF→DOCX (pdf2docx + pdfplumber fallback)
 
 **Szczegóły:** Zobacz `UslugaDoPorownan/README.md`
 
