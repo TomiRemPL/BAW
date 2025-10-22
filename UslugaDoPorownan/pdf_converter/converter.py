@@ -104,23 +104,28 @@ class PDFConverter:
             # Domyślnie próbuj pdf2docx
             result = self._convert_with_pdf2docx(pdf_path, output_path, start_time)
 
-            # Sprawdź czy potrzebny fallback
-            if (
-                result.success
-                and self.config.enable_fallback
-                and result.quality_score < self.config.min_quality_score
-                and force_method != "pdf2docx"
-            ):
-                logger.warning(
-                    f"Niska jakość konwersji pdf2docx ({result.quality_score:.2f}). "
-                    "Próba fallback do pdfplumber..."
-                )
-                return self._convert_with_pdfplumber(
-                    pdf_path,
-                    output_path,
-                    start_time,
-                    fallback=True
-                )
+            # Sprawdź czy potrzebny fallback (niska jakość LUB błąd)
+            if self.config.enable_fallback and force_method != "pdf2docx":
+                should_fallback = False
+                reason = ""
+
+                if not result.success:
+                    should_fallback = True
+                    reason = "pdf2docx nie powiodło się"
+                elif result.quality_score < self.config.min_quality_score:
+                    should_fallback = True
+                    reason = f"niska jakość ({result.quality_score:.2f})"
+
+                if should_fallback:
+                    logger.warning(
+                        f"{reason}. Próba fallback do pdfplumber..."
+                    )
+                    return self._convert_with_pdfplumber(
+                        pdf_path,
+                        output_path,
+                        start_time,
+                        fallback=True
+                    )
 
             return result
 
@@ -203,7 +208,18 @@ class PDFConverter:
         except Exception as e:
             elapsed = time.time() - start_time
             logger.error(f"Błąd pdf2docx: {e}")
-            raise ConversionError(f"pdf2docx nie powiodło się: {e}")
+
+            # Zwróć wynik z błędem zamiast rzucać wyjątek
+            # To pozwoli na automatyczny fallback do pdfplumber
+            return ConversionResult(
+                success=False,
+                output_path=None,
+                quality_score=0.0,
+                conversion_time=elapsed,
+                method="pdf2docx",
+                error=f"pdf2docx nie powiodło się: {e}",
+                fallback_used=False
+            )
 
     def _convert_with_pdfplumber(
         self,

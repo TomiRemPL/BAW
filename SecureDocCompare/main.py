@@ -139,17 +139,19 @@ async def upload_documents(
     Wymaga autentykacji.
     """
     try:
-        # Walidacja nazw plików
-        if not old_document.filename.endswith('.docx'):
+        # Walidacja nazw plików (akceptujemy DOCX i PDF)
+        allowed_extensions = ('.docx', '.pdf')
+
+        if not old_document.filename.lower().endswith(allowed_extensions):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Stary dokument musi być w formacie DOCX"
+                detail="Stary dokument musi być w formacie DOCX lub PDF"
             )
 
-        if not new_document.filename.endswith('.docx'):
+        if not new_document.filename.lower().endswith(allowed_extensions):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Nowy dokument musi być w formacie DOCX"
+                detail="Nowy dokument musi być w formacie DOCX lub PDF"
             )
 
         # Walidacja rozmiaru
@@ -168,7 +170,8 @@ async def upload_documents(
             )
 
         # Wyślij do API dokumentów
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        # Timeout 120s - konwersja PDF może trwać długo (2 duże pliki ~45-50s)
+        async with httpx.AsyncClient(timeout=120.0) as client:
             files = {
                 'old_document': (old_document.filename, old_content, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
                 'new_document': (new_document.filename, new_content, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')

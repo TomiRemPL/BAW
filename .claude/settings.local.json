@@ -11,7 +11,10 @@
       "Bash(curl:*)",
       "Bash(mkdir:*)",
       "Bash(python:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(pip install:*)",
+      "Bash(where python)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []
