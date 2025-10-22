@@ -27,7 +27,10 @@ ENV/
 env/
 
 # IDEs
-.vscode/
+# VSCode - share configs, but ignore local user settings
+.vscode/*.code-workspace
+.vscode/settings.local.json
+.history/
 .idea/
 *.swp
 *.swo

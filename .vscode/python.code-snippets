@@ -1,0 +1,157 @@
+{
+    "FastAPI GET Endpoint": {
+        "prefix": "fapi-get",
+        "body": [
+            "@app.get(\"/${1:path}\")",
+            "async def ${2:function_name}():",
+            "    \"\"\"${3:Description}\"\"\"",
+            "    return {\"message\": \"${4:response}\"}",
+            "$0"
+        ],
+        "description": "FastAPI GET endpoint"
+    },
+    "FastAPI POST Endpoint": {
+        "prefix": "fapi-post",
+        "body": [
+            "@app.post(\"/${1:path}\")",
+            "async def ${2:function_name}(${3:data}: ${4:Model}):",
+            "    \"\"\"${5:Description}\"\"\"",
+            "    return {\"message\": \"${6:response}\"}",
+            "$0"
+        ],
+        "description": "FastAPI POST endpoint"
+    },
+    "Pydantic Model": {
+        "prefix": "pydantic",
+        "body": [
+            "class ${1:ModelName}(BaseModel):",
+            "    \"\"\"${2:Description}\"\"\"",
+            "    ${3:field}: ${4:str}",
+            "    $0"
+        ],
+        "description": "Pydantic model class"
+    },
+    "Python Async Function": {
+        "prefix": "async-def",
+        "body": [
+            "async def ${1:function_name}(${2:params}) -> ${3:ReturnType}:",
+            "    \"\"\"${4:Description}\"\"\"",
+            "    ${5:pass}",
+            "    $0"
+        ],
+        "description": "Async function definition"
+    },
+    "Python Function with Type Hints": {
+        "prefix": "def-typed",
+        "body": [
+            "def ${1:function_name}(${2:param}: ${3:Type}) -> ${4:ReturnType}:",
+            "    \"\"\"${5:Description}\"\"\"",
+            "    ${6:pass}",
+            "    $0"
+        ],
+        "description": "Function with type hints"
+    },
+    "Try-Except Block": {
+        "prefix": "try-except",
+        "body": [
+            "try:",
+            "    ${1:pass}",
+            "except ${2:Exception} as e:",
+            "    ${3:logger.error(f\"Error: {e}\")}",
+            "    $0"
+        ],
+        "description": "Try-except block with logging"
+    },
+    "Logger Setup": {
+        "prefix": "logger",
+        "body": [
+            "import logging",
+            "",
+            "logger = logging.getLogger(__name__)",
+            "$0"
+        ],
+        "description": "Setup logger"
+    },
+    "FastAPI HTTPException": {
+        "prefix": "http-exception",
+        "body": [
+            "raise HTTPException(",
+            "    status_code=${1:400},",
+            "    detail=\"${2:Error message}\"",
+            ")",
+            "$0"
+        ],
+        "description": "Raise HTTPException"
+    },
+    "FastAPI Dependency": {
+        "prefix": "fapi-dependency",
+        "body": [
+            "async def ${1:dependency_name}(${2:params}) -> ${3:ReturnType}:",
+            "    \"\"\"${4:Description}\"\"\"",
+            "    ${5:pass}",
+            "    $0"
+        ],
+        "description": "FastAPI dependency function"
+    },
+    "Python Dataclass": {
+        "prefix": "dataclass",
+        "body": [
+            "@dataclass",
+            "class ${1:ClassName}:",
+            "    \"\"\"${2:Description}\"\"\"",
+            "    ${3:field}: ${4:str}",
+            "    $0"
+        ],
+        "description": "Python dataclass"
+    },
+    "Type Alias": {
+        "prefix": "type-alias",
+        "body": [
+            "${1:AliasName} = ${2:Type}",
+            "$0"
+        ],
+        "description": "Type alias definition"
+    },
+    "Main Guard": {
+        "prefix": "main",
+        "body": [
+            "if __name__ == \"__main__\":",
+            "    ${1:main()}",
+            "    $0"
+        ],
+        "description": "Main function guard"
+    },
+    "TODO Comment": {
+        "prefix": "todo",
+        "body": [
+            "# TODO: ${1:Description}",
+            "$0"
+        ],
+        "description": "TODO comment"
+    },
+    "FIXME Comment": {
+        "prefix": "fixme",
+        "body": [
+            "# FIXME: ${1:Description}",
+            "$0"
+        ],
+        "description": "FIXME comment"
+    },
+    "Class with Docstring": {
+        "prefix": "class-doc",
+        "body": [
+            "class ${1:ClassName}:",
+            "    \"\"\"",
+            "    ${2:Class description}.",
+            "    ",
+            "    Attributes:",
+            "        ${3:attribute}: ${4:Description}",
+            "    \"\"\"",
+            "    ",
+            "    def __init__(self, ${5:params}):",
+            "        ${6:pass}",
+            "        $0"
+        ],
+        "description": "Class with docstring"
+    }
+}

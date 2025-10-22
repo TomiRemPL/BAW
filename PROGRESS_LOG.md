@@ -1,7 +1,7 @@
 # 📊 Log Postępu Prac - Projekt BAW
 
 **Ostatnia aktualizacja:** 2025-10-22
-**Status projektu:** ✅ Production Ready - Wszystkie systemy działają z naprawionymi błędami
+**Status projektu:** ✅ Production Ready + VSCode Development Environment
 
 ---
 
@@ -12,10 +12,19 @@
 BAW/
 ├── SecureDocCompare/         # Frontend (Port 8000) ✅
 ├── UslugaDoPorownan/         # Backend API (Port 8001) ✅
-│   └── pdf_converter/        # Moduł PDF→DOCX ✅ NOWY!
+│   └── pdf_converter/        # Moduł PDF→DOCX ✅
+├── .vscode/                  # VSCode Configuration ✅ NOWY! (2025-10-22)
+│   ├── settings.json         # Workspace settings
+│   ├── launch.json           # Debug configurations
+│   ├── tasks.json            # Tasks (11 tasków)
+│   ├── extensions.json       # Recommended extensions (~20)
+│   └── python.code-snippets  # Code snippets (~15)
 ├── requirements.txt          # Wspólne zależności ✅
+├── requirements-dev.txt      # Dev tools ✅ NOWY! (2025-10-22)
 ├── .venv/                    # Wspólne środowisko ✅
-└── Dokumentacja (12 plików)  ✅
+├── .editorconfig             # Universal editor config ✅ NOWY! (2025-10-22)
+├── test.http                 # API tests (REST Client) ✅ NOWY! (2025-10-22)
+└── Dokumentacja (15 plików)  ✅
 ```
 
 ### Komponenty Działające
@@ -59,7 +68,134 @@ BAW/
 
 ---
 
-## ✅ Ukończone Dzisiaj (2025-10-21)
+## ✅ Ukończone Dzisiaj (2025-10-22) - Sesja 2
+
+### Konfiguracja Visual Studio Code
+
+**Utworzone pliki (10 nowych):**
+
+1. **`.vscode/settings.json`** - Ustawienia workspace:
+   - Python interpreter (.venv)
+   - Black formatter + Flake8 linting
+   - Auto-save, auto-format on save
+   - UTF-8 encoding
+   - Type checking (Pylance - basic mode)
+   - Testing (pytest)
+   - Exclusions dla __pycache__, .venv
+
+2. **`.vscode/launch.json`** - Konfiguracje debugowania (6 konfiguracji):
+   - Backend API (UslugaDoPorownan) - Debug
+   - Frontend (SecureDocCompare) - Debug
+   - **Full Stack** - oba serwisy jednocześnie (compound)
+   - PDF Converter CLI
+   - PDF Converter Tests
+   - Python: Current File
+   - Wszystkie z hot-reload i justMyCode: false
+
+3. **`.vscode/tasks.json`** - Zadania (11 tasków):
+   - Run Backend (port 8001)
+   - Run Frontend (port 8000)
+   - Run Both Servers (parallel)
+   - Install Dependencies
+   - Black - Format Code
+   - Flake8 - Lint Code
+   - PDF Converter - Run Tests
+   - Run Pytest
+   - Check Python Version
+   - Activate Virtual Environment
+   - Clean Python Cache
+
+4. **`.vscode/extensions.json`** - Rekomendowane rozszerzenia (~20):
+   - Python (ms-python.python)
+   - Pylance (ms-python.vscode-pylance)
+   - Black Formatter
+   - Flake8
+   - REST Client
+   - GitLens, Git Graph
+   - Markdown All in One
+   - YAML, Docker
+   - DotEnv
+   - Polish Spell Checker
+   - Todo Tree, Path IntelliSense
+
+5. **`.vscode/python.code-snippets`** - Snippety kodu (~15):
+   - FastAPI endpoints (GET, POST)
+   - Pydantic models
+   - Async functions
+   - Try-except blocks
+   - Logger setup
+   - HTTPException
+   - Dataclass
+   - TODO/FIXME comments
+
+6. **`.editorconfig`** - Uniwersalne ustawienia edytora:
+   - Python: 4 spacje, max 120 znaków
+   - JSON/YAML: 2 spacje
+   - UTF-8, LF endings
+   - Trim trailing whitespace
+   - Insert final newline
+
+7. **`test.http`** - Testy API dla REST Client:
+   - Health checks (backend, frontend)
+   - Upload dokumentów (DOCX, PDF, mieszany)
+   - Rozpoczęcie przetwarzania (basic, advanced)
+   - Sprawdzanie statusu
+   - Pobieranie wyników (full, modified, added, deleted)
+   - Login/Logout frontend
+   - Kompletne przykłady z instrukcjami
+
+8. **`requirements-dev.txt`** - Narzędzia deweloperskie:
+   - Black, Flake8, isort (formatowanie)
+   - Pytest, pytest-asyncio, pytest-cov (testy)
+   - MyPy, type stubs (type checking)
+   - IPython, ipdb (debugging)
+   - Watchdog (file monitoring)
+   - MkDocs, mkdocs-material (docs)
+
+9. **`VSCODE_SETUP.md`** - Kompletny przewodnik VSCode (600+ linii):
+   - Spis treści (8 sekcji)
+   - Wymagania (Python 3.11.9, VSCode 1.80+)
+   - Pierwsze uruchomienie (5 kroków)
+   - Rekomendowane rozszerzenia (tabele)
+   - Debugowanie (6 konfiguracji szczegółowo)
+   - Zadania (tasks) - 11 opisanych
+   - Skróty klawiszowe (podstawowe, edycja, nawigacja, Python)
+   - Rozwiązywanie problemów (10 scenariuszy)
+   - Porady (multi-root workspace, REST Client, snippets, Git, terminal)
+   - Zasoby i wsparcie
+
+10. **`.gitignore`** - Zaktualizowany:
+    - Współdzielenie .vscode/ (settings, launch, tasks, extensions)
+    - Ignorowanie tylko lokalnych ustawień (.vscode/*.code-workspace)
+    - Pozostałe wpisy bez zmian
+
+**Zaktualizowane pliki (2):**
+
+11. **`DOCS_INDEX.md`** - Zaktualizowany (wersja 1.1.0):
+    - Dodana sekcja "Pracuję w Visual Studio Code"
+    - Dodane linki do VSCODE_SETUP.md i test.http
+    - Rozszerzona tabela "Szukam informacji o..."
+    - Zaktualizowany status dokumentacji
+    - Changelog 1.1.0
+
+12. **`requirements.txt`** - Rozszerzony:
+    - Dodane komentarze o dev tools (black, flake8, pytest)
+    - Linki do requirements-dev.txt
+
+**Funkcjonalności:**
+- ✅ Debugowanie Full Stack (F5 - oba serwisy jednocześnie)
+- ✅ Auto-formatowanie przy zapisie (Black)
+- ✅ Linting w czasie rzeczywistym (Flake8)
+- ✅ Snippety dla FastAPI i Pydantic
+- ✅ Testy API przez REST Client (bez Postmana)
+- ✅ 11 gotowych tasków (Install, Run, Test, Format, Lint)
+- ✅ Type checking (Pylance)
+- ✅ Testing framework (pytest)
+- ✅ Git integration (GitLens)
+
+---
+
+## ✅ Ukończone Wcześniej (2025-10-21)
 
 ### Implementacja Modułu PDF→DOCX
 
@@ -216,30 +352,47 @@ BAW/
 
 ### Testy Manualne
 
-**1. Test PDF Conversion (CLI):**
+**1. Test przez REST Client (VSCode) - ZALECANE:**
+```
+1. Otwórz test.http w VSCode
+2. Zainstaluj rozszerzenie REST Client (jeśli nie masz)
+3. Kliknij "Send Request" nad wybranym zapytaniem
+4. Zobacz wynik w nowym oknie
+```
+
+**2. Test PDF Conversion (CLI):**
 ```bash
 cd UslugaDoPorownan
 python pdf_converter/test_converter.py
 ```
 
-**2. Test Upload PDF (API):**
+**3. Test Upload PDF (API przez curl):**
 ```bash
 curl -X POST http://localhost:8001/api/documents/upload \
   -F "old_document=@test.pdf" \
   -F "new_document=@test2.pdf"
 ```
 
-**3. Test Frontend:**
+**4. Test Frontend:**
 1. Otwórz http://localhost:8000
 2. Zaloguj się (hasło z .env)
 3. Wybierz 2 pliki PDF
 4. Wgraj i rozpocznij analizę
 5. Sprawdź wyniki
 
-**4. Test CLI Standalone:**
+**5. Test CLI Standalone:**
 ```bash
 cd UslugaDoPorownan
 python -m pdf_converter.cli test.pdf output.docx --verbose
+```
+
+**6. Test Debugowania (VSCode):**
+```
+1. Otwórz projekt w VSCode
+2. Naciśnij F5
+3. Wybierz "Full Stack (Backend + Frontend)"
+4. Ustaw breakpointy (F9)
+5. Testuj aplikację w przeglądarce
 ```
 
 ### Sprawdzone Scenariusze
@@ -336,36 +489,76 @@ python -m pdf_converter.cli test.pdf output.docx --verbose
 
 ## 📚 Dokumentacja
 
-### Pliki Dokumentacji (12 plików)
+### Pliki Dokumentacji (15 plików)
 
 **Główne:**
 1. `README.md` - Główna dokumentacja projektu
 2. `DEPLOYMENT.md` - Wdrożenie na Debian
-3. `DOCS_INDEX.md` - Indeks całej dokumentacji
-4. `CLAUDE.md` - Instrukcje dla Claude Code AI
+3. `DOCS_INDEX.md` - Indeks całej dokumentacji (wersja 1.1.0)
+4. `VSCODE_SETUP.md` - **NOWY!** Konfiguracja Visual Studio Code (600+ linii)
+5. `CLAUDE.md` - Instrukcje dla Claude Code AI
 
 **SecureDocCompare:**
-5. `SecureDocCompare/README.md` - Dokumentacja frontend
-6. `SecureDocCompare/QUICK_START.md` - Szybki start
-7. `SecureDocCompare/SECURITY.md` - Zabezpieczenia
+6. `SecureDocCompare/README.md` - Dokumentacja frontend
+7. `SecureDocCompare/QUICK_START.md` - Szybki start
+8. `SecureDocCompare/SECURITY.md` - Zabezpieczenia
 
 **UslugaDoPorownan:**
-8. `UslugaDoPorownan/README.md` - Dokumentacja API
-9. `UslugaDoPorownan/QUICKSTART.md` - Szybki start API
-10. `UslugaDoPorownan/PROJECT_SUMMARY.md` - Podsumowanie
+9. `UslugaDoPorownan/README.md` - Dokumentacja API
+10. `UslugaDoPorownan/QUICKSTART.md` - Szybki start API
+11. `UslugaDoPorownan/PROJECT_SUMMARY.md` - Podsumowanie
 
 **PDF Converter:**
-11. `UslugaDoPorownan/pdf_converter/README.md` - Dokumentacja modułu
-12. `PDF_CONVERSION_SUMMARY.md` - Podsumowanie implementacji
+12. `UslugaDoPorownan/pdf_converter/README.md` - Dokumentacja modułu
+13. `PDF_CONVERSION_SUMMARY.md` - Podsumowanie implementacji
 
-**Status:**
-13. `PROGRESS_LOG.md` - Ten plik
+**Status i Testy:**
+14. `PROGRESS_LOG.md` - Ten plik
+15. `test.http` - **NOWY!** Testy API dla REST Client
 
 ---
 
 ## 🔄 Historia Zmian
 
-### 2025-10-22 - Naprawy Krytyczne i Uruchomienie Systemu
+### 2025-10-22 - Sesja 2: Konfiguracja Visual Studio Code
+- ✅ Utworzono katalog `.vscode/` z pełną konfiguracją
+  - **settings.json** - workspace settings (Python, Black, Flake8, auto-format)
+  - **launch.json** - 6 konfiguracji debugowania (w tym Full Stack compound)
+  - **tasks.json** - 11 tasków (Run, Test, Format, Lint, Clean)
+  - **extensions.json** - ~20 rekomendowanych rozszerzeń
+  - **python.code-snippets** - ~15 snippetów dla FastAPI i Pydantic
+- ✅ Utworzono **`.editorconfig`** - uniwersalne ustawienia edytora
+- ✅ Utworzono **`test.http`** - kompletne testy API dla REST Client
+- ✅ Utworzono **`requirements-dev.txt`** - narzędzia deweloperskie
+  - Black, Flake8, isort (formatowanie i linting)
+  - Pytest, pytest-asyncio, pytest-cov (testy)
+  - MyPy, type stubs (type checking)
+  - IPython, ipdb (debugging)
+  - MkDocs (dokumentacja)
+- ✅ Utworzono **`VSCODE_SETUP.md`** - kompletny przewodnik VSCode (600+ linii)
+  - Wymagania i instalacja
+  - Pierwsze uruchomienie (5 kroków)
+  - Debugowanie (6 konfiguracji szczegółowo)
+  - Tasks, skróty klawiszowe, troubleshooting
+- ✅ Zaktualizowano **`DOCS_INDEX.md`** (wersja 1.1.0)
+  - Dodana sekcja "Pracuję w Visual Studio Code"
+  - Rozszerzona tabela "Szukam informacji o..."
+  - Changelog 1.1.0
+- ✅ Zaktualizowano **`.gitignore`**
+  - Współdzielenie konfiguracji VSCode w repo
+  - Ignorowanie tylko lokalnych ustawień użytkownika
+- ✅ Zaktualizowano **`requirements.txt`**
+  - Dodane komentarze o dev tools
+- ✅ **Funkcjonalności:**
+  - Debugowanie Full Stack (F5 - oba serwisy jednocześnie)
+  - Auto-formatowanie przy zapisie (Black)
+  - Linting w czasie rzeczywistym (Flake8)
+  - Testy API przez REST Client (bez Postmana)
+  - 15 snippetów kodu dla szybszego developmentu
+
+**Łącznie dodano:** 10 nowych plików, zaktualizowano 4 pliki
+
+### 2025-10-22 - Sesja 1: Naprawy Krytyczne i Uruchomienie Systemu
 - ✅ Instalacja brakujących zależności w środowisku `.venv`
   - pdfplumber 0.11.7
   - pydantic-settings 2.11.0
@@ -487,8 +680,9 @@ uvicorn main:app --port 8000
 ### Czytaj w kolejności:
 1. `README.md` - Ogólny przegląd
 2. `DOCS_INDEX.md` - Mapa dokumentacji
-3. `SecureDocCompare/QUICK_START.md` - Szybki start
-4. `pdf_converter/README.md` - PDF converter
+3. `VSCODE_SETUP.md` - **NOWY!** Konfiguracja VSCode (jeśli używasz VSCode)
+4. `SecureDocCompare/QUICK_START.md` - Szybki start
+5. `pdf_converter/README.md` - PDF converter
 
 ---
 
@@ -509,51 +703,88 @@ uvicorn main:app --port 8000
 - ✅ SecureDocCompare (Frontend)
 - ✅ UslugaDoPorownan (Backend API)
 - ✅ pdf_converter (PDF→DOCX)
-- ✅ Dokumentacja (13 plików)
+- ✅ **VSCode Configuration** - **NOWY!** (5 plików konfiguracyjnych)
+- ✅ Dokumentacja (15 plików)
 - ✅ Testy jednostkowe
 - ✅ Deployment scripts (systemd)
+- ✅ **Development Tools** - **NOWY!** (requirements-dev.txt)
 
 ### Gotowość
-- ✅ **Development:** Gotowy do użycia
+- ✅ **Development:** Gotowy do użycia + **VSCode Setup**
 - ✅ **Production:** Gotowy do wdrożenia
-- ✅ **Documentation:** Kompletna
-- ✅ **Tests:** Podstawowe testy OK
+- ✅ **Documentation:** Kompletna (15 plików)
+- ✅ **Tests:** Podstawowe testy OK + REST Client tests
+- ✅ **IDE Support:** Visual Studio Code - pełna konfiguracja
 
 ### Następne Uruchomienie
 
-**Co zrobić jutro:**
+**Co zrobić jutro (Visual Studio Code - ZALECANE):**
+
+1. **Otwórz projekt w VSCode:**
+```bash
+cd c:/Projects/BAW
+code .
+```
+
+2. **Zainstaluj rozszerzenia:**
+   - VSCode automatycznie zaproponuje instalację rekomendowanych rozszerzeń
+   - Kliknij **"Install All"** w powiadomieniu
+   - Lub: `Ctrl+Shift+P` → `Extensions: Show Recommended Extensions`
+
+3. **Zainstaluj narzędzia deweloperskie (opcjonalne, ale zalecane):**
+```bash
+.venv\Scripts\activate
+pip install -r requirements-dev.txt
+```
+
+4. **Uruchom Full Stack (oba serwisy jednocześnie):**
+   - Naciśnij **`F5`**
+   - Wybierz: **"Full Stack (Backend + Frontend)"**
+   - Obie aplikacje uruchomią się z debuggerem
+
+5. **Testuj API przez REST Client:**
+   - Otwórz plik `test.http`
+   - Kliknij **"Send Request"** nad wybranym zapytaniem
+
+**Co zrobić jutro (Tradycyjnie - bez VSCode):**
 
 1. **Zainstaluj zależności (jeśli nowe środowisko):**
 ```bash
 cd c:/Projects/BAW
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 2. **Uruchom serwisy:**
 ```bash
-# Backend
+# Backend (Terminal 1)
 cd UslugaDoPorownan
 uvicorn main:app --port 8001 --reload
 
-# Frontend (nowy terminal)
+# Frontend (Terminal 2)
 cd SecureDocCompare
 uvicorn main:app --port 8000 --reload
 ```
 
 3. **Kontynuuj prace (jeśli potrzeba):**
    - Zobacz sekcję "Możliwe Rozszerzenia"
+   - Przeczytaj `VSCODE_SETUP.md` - pełna konfiguracja VSCode
    - Przeczytaj `PDF_CONVERSION_SUMMARY.md`
    - Sprawdź TODO w kodzie (jeśli są)
 
 ---
 
-**📊 Stan:** ✅ COMPLETED & TESTED - Wszystkie funkcje działają
-**🚀 Status:** Production Ready (naprawione błędy krytyczne)
+**📊 Stan:** ✅ COMPLETED & TESTED + VSCode Development Environment
+**🚀 Status:** Production Ready + Full IDE Support
 **📅 Data:** 2025-10-22
-**⏰ Czas pracy dzisiaj:** ~2h (naprawy i testy)
-**📦 Wersja:** 1.0.1
+**⏰ Czas pracy dzisiaj:**
+  - Sesja 1: ~2h (naprawy i testy)
+  - Sesja 2: ~1.5h (konfiguracja VSCode)
+**📦 Wersja:** 1.1.0
 
 ### Podsumowanie Sesji 2025-10-22
+
+**Sesja 1 - Naprawy Krytyczne:**
 - 🔧 Naprawiono 3 krytyczne błędy
 - ✅ System uruchomiony i przetestowany
 - 📊 Testy jednostkowe: 5/6 passed (83%)
@@ -561,4 +792,16 @@ uvicorn main:app --port 8000 --reload
 - ⏱️ Timeout zwiększony do 120s
 - 🧪 Zweryfikowano 2 pary dokumentów PDF
 
+**Sesja 2 - Konfiguracja VSCode:**
+- 💻 Utworzono pełną konfigurację VSCode (5 plików + snippety)
+- 📝 Dodano VSCODE_SETUP.md (600+ linii dokumentacji)
+- 🧪 Dodano test.http dla REST Client (kompletne testy API)
+- 🛠️ Utworzono requirements-dev.txt (Black, Flake8, pytest, MyPy)
+- 📖 Zaktualizowano DOCS_INDEX.md (wersja 1.1.0)
+- ⚙️ Dodano .editorconfig (uniwersalne ustawienia)
+- 🎯 **Funkcjonalności:** Full Stack debugging (F5), auto-format, linting, snippety
+
+**Łącznie:** 10 nowych plików, 4 zaktualizowane
+
 **Projekt w pełni gotowy do użycia! 🎉**
+**Visual Studio Code: Pełna konfiguracja i wsparcie! 💻**

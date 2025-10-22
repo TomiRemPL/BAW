@@ -11,7 +11,11 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 | [README.md](README.md) | **Start tutaj!** Ogólny opis projektu, architektura, instalacja | Wszyscy |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Szczegółowe instrukcje wdrożenia na Debian z pyenv, systemd, nginx | DevOps, Admin |
 | [DOCS_INDEX.md](DOCS_INDEX.md) | Ten plik - indeks całej dokumentacji | Wszyscy |
+| [VSCODE_SETUP.md](VSCODE_SETUP.md) | **NOWY!** Konfiguracja Visual Studio Code, debugowanie, tasks | Developer |
+| [PROGRESS_LOG.md](PROGRESS_LOG.md) | Historia postępu prac i stan projektu | Manager, Developer |
+| [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) | Podsumowanie implementacji konwersji PDF→DOCX | Developer |
 | [requirements.txt](requirements.txt) | Wspólne zależności Python dla całego projektu | Developer |
+| [test.http](test.http) | **NOWY!** Testy API dla REST Client (VSCode) | Developer, API User |
 | [CLAUDE.md](CLAUDE.md) | Instrukcje dla Claude Code AI | Developer |
 
 ### SecureDocCompare (`/SecureDocCompare`)
@@ -66,7 +70,15 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 
 1. [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) - pełna dokumentacja API
 2. [UslugaDoPorownan/QUICKSTART.md](UslugaDoPorownan/QUICKSTART.md) - szybki start
-3. Przykłady curl i integracji
+3. [test.http](test.http) - przykłady zapytań API dla REST Client
+4. Przykłady curl i integracji
+
+### Pracuję w Visual Studio Code
+
+1. [VSCODE_SETUP.md](VSCODE_SETUP.md) - **Start tutaj!** Kompletna konfiguracja VSCode
+2. Zainstaluj rekomendowane rozszerzenia (`.vscode/extensions.json`)
+3. Użyj debugowania (`F5`) i tasków (`Ctrl+Shift+P` → Tasks)
+4. Testuj API przez [test.http](test.http) z rozszerzeniem REST Client
 
 ---
 
@@ -241,7 +253,12 @@ Szybki start backendu API:
 | nginx konfiguracja | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Nginx" |
 | API endpointy | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) |
 | Przykłady curl | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) |
-| Troubleshooting | [README.md](README.md), [QUICK_START.md](SecureDocCompare/QUICK_START.md) |
+| Testowanie API (REST Client) | [test.http](test.http) |
+| VSCode konfiguracja | [VSCODE_SETUP.md](VSCODE_SETUP.md) |
+| Debugowanie w VSCode | [VSCODE_SETUP.md](VSCODE_SETUP.md) sekcja "Debugowanie" |
+| Konwersja PDF→DOCX | [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) |
+| Historia zmian | [PROGRESS_LOG.md](PROGRESS_LOG.md) |
+| Troubleshooting | [README.md](README.md), [QUICK_START.md](SecureDocCompare/QUICK_START.md), [VSCODE_SETUP.md](VSCODE_SETUP.md) |
 | Bezpieczeństwo | [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) |
 | Konfiguracja .env | [SecureDocCompare/.env.example](SecureDocCompare/.env.example) |
 
@@ -253,11 +270,16 @@ Szybki start backendu API:
 |----------|--------|----------------------|--------|
 | README.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
 | DEPLOYMENT.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
+| VSCODE_SETUP.md | ✅ Aktualny | 2025-10-22 | 1.0.0 |
+| PROGRESS_LOG.md | ✅ Aktualny | 2025-10-22 | 1.0.1 |
+| PDF_CONVERSION_SUMMARY.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
+| test.http | ✅ Aktualny | 2025-10-22 | 1.0.0 |
 | SecureDocCompare/README.md | ✅ Aktualny | 2025-10-20 | 1.0.0 |
 | SecureDocCompare/QUICK_START.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
 | SecureDocCompare/SECURITY.md | ✅ Aktualny | 2025-10-20 | 1.0.0 |
 | UslugaDoPorownan/README.md | ✅ Aktualny | 2025-10-15 | 1.0.0 |
 | requirements.txt | ✅ Aktualny | 2025-10-21 | Python 3.11-3.13 |
+| .vscode/ (konfiguracja) | ✅ Aktualny | 2025-10-22 | 1.0.0 |
 
 ---
 
@@ -280,6 +302,13 @@ Jeśli znajdziesz nieaktualną informację:
 
 ---
 
-**Ostatnia aktualizacja:** 2025-10-21
-**Wersja indeksu:** 1.0.0
+**Ostatnia aktualizacja:** 2025-10-22
+**Wersja indeksu:** 1.1.0
 **Projekt:** BAW - Porównywanie Dokumentów Bankowych
+
+**Changelog 1.1.0:**
+- Dodano VSCODE_SETUP.md - kompletna konfiguracja Visual Studio Code
+- Dodano test.http - testy API dla REST Client
+- Dodano .vscode/ - settings, launch, tasks, extensions, snippets
+- Dodano .editorconfig - uniwersalne ustawienia edytora
+- Zaktualizowano .gitignore - współdzielenie konfiguracji VSCode

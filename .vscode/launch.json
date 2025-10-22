@@ -1,0 +1,90 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Backend API (UslugaDoPorownan) - Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "main:app",
+                "--host", "0.0.0.0",
+                "--port", "8001",
+                "--reload"
+            ],
+            "cwd": "${workspaceFolder}/UslugaDoPorownan",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Frontend (SecureDocCompare) - Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "main:app",
+                "--host", "0.0.0.0",
+                "--port", "8000",
+                "--reload"
+            ],
+            "cwd": "${workspaceFolder}/SecureDocCompare",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "PDF Converter CLI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pdf_converter.cli",
+            "args": [
+                "test.pdf",
+                "output.docx",
+                "--verbose"
+            ],
+            "cwd": "${workspaceFolder}/UslugaDoPorownan",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "PDF Converter Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/UslugaDoPorownan/pdf_converter/test_converter.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/UslugaDoPorownan"
+        },
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full Stack (Backend + Frontend)",
+            "configurations": [
+                "Backend API (UslugaDoPorownan) - Debug",
+                "Frontend (SecureDocCompare) - Debug"
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "1-fullstack",
+                "order": 1
+            },
+            "stopAll": true
+        }
+    ]
+}

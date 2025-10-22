@@ -1,0 +1,154 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Install Dependencies",
+            "type": "shell",
+            "command": "pip install -r requirements.txt",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Run Backend (UslugaDoPorownan)",
+            "type": "shell",
+            "command": "cd UslugaDoPorownan && uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "servers"
+            },
+            "isBackground": true,
+            "runOptions": {
+                "instanceLimit": 1
+            }
+        },
+        {
+            "label": "Run Frontend (SecureDocCompare)",
+            "type": "shell",
+            "command": "cd SecureDocCompare && uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "servers"
+            },
+            "isBackground": true,
+            "runOptions": {
+                "instanceLimit": 1
+            }
+        },
+        {
+            "label": "Run Both Servers",
+            "dependsOn": [
+                "Run Backend (UslugaDoPorownan)",
+                "Run Frontend (SecureDocCompare)"
+            ],
+            "dependsOrder": "parallel",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "PDF Converter - Run Tests",
+            "type": "shell",
+            "command": "cd UslugaDoPorownan && python pdf_converter/test_converter.py",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run Pytest",
+            "type": "shell",
+            "command": "pytest",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Black - Format Code",
+            "type": "shell",
+            "command": "black .",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Flake8 - Lint Code",
+            "type": "shell",
+            "command": "flake8 . --max-line-length=120 --exclude=.venv,__pycache__",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Check Python Version",
+            "type": "shell",
+            "command": "python --version",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Activate Virtual Environment",
+            "type": "shell",
+            "command": ".venv\\\\Scripts\\\\activate",
+            "windows": {
+                "command": ".venv\\\\Scripts\\\\activate"
+            },
+            "linux": {
+                "command": "source .venv/bin/activate"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Clean Python Cache",
+            "type": "shell",
+            "command": "powershell -Command \"Get-ChildItem -Path . -Include __pycache__,*.pyc,*.pyo -Recurse -Force | Remove-Item -Force -Recurse\"",
+            "windows": {
+                "command": "powershell -Command \"Get-ChildItem -Path . -Include __pycache__,*.pyc,*.pyo -Recurse -Force | Remove-Item -Force -Recurse\""
+            },
+            "linux": {
+                "command": "find . -type d -name __pycache__ -exec rm -rf {} + ; find . -type f -name '*.pyc' -delete ; find . -type f -name '*.pyo' -delete"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}

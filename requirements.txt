@@ -38,6 +38,15 @@ pdfplumber>=0.11.0
 python-docx>=1.1.0
 
 # ============================================
+# Development Tools (opcjonalne, dla VSCode)
+# ============================================
+# Uncomment dla development w VSCode:
+# black>=24.0.0
+# flake8>=7.0.0
+# pytest>=8.0.0
+# pytest-asyncio>=0.24.0
+
+# ============================================
 # Utilities
 # ============================================
 # Dodatkowe narzędzia jeśli potrzebne

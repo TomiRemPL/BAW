@@ -1,0 +1,195 @@
+### BAW API Test File
+### Wymaga rozszerzenia REST Client (humao.rest-client) w VSCode
+### Użycie: Kliknij "Send Request" nad każdym requestem
+
+#############################################
+# KONFIGURACJA
+#############################################
+
+@backend_url = http://localhost:8001
+@frontend_url = http://localhost:8000
+
+#############################################
+# BACKEND API - UslugaDoPorownan (Port 8001)
+#############################################
+
+### Health Check Backend
+GET {{backend_url}}/health
+Accept: application/json
+
+### Lista dostępnych dokumentów
+GET {{backend_url}}/api/documents
+Accept: application/json
+
+### Upload dokumentów (DOCX)
+# Wymaga: Pliki w katalogu stara_wersja/ i nowa_wersja/
+POST {{backend_url}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_document"; filename="old.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./stara_wersja/dokument.docx
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_document"; filename="new.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./nowa_wersja/dokument.docx
+------WebKitFormBoundary--
+
+### Upload dokumentów (PDF)
+POST {{backend_url}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_document"; filename="old.pdf"
+Content-Type: application/pdf
+
+< ./stara_wersja/dokument.pdf
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_document"; filename="new.pdf"
+Content-Type: application/pdf
+
+< ./nowa_wersja/dokument.pdf
+------WebKitFormBoundary--
+
+### Rozpocznij przetwarzanie (podstawowe porównanie)
+# Zastąp <comparison_id> faktycznym ID z odpowiedzi upload
+POST {{backend_url}}/api/process
+Content-Type: application/json
+
+{
+  "comparison_id": "<comparison_id>",
+  "mode": "basic"
+}
+
+### Rozpocznij przetwarzanie (zaawansowane z AI)
+POST {{backend_url}}/api/process
+Content-Type: application/json
+
+{
+  "comparison_id": "<comparison_id>",
+  "mode": "advanced"
+}
+
+### Sprawdź status przetwarzania
+# Zastąp <comparison_id>
+GET {{backend_url}}/api/status/<comparison_id>
+Accept: application/json
+
+### Pobierz pełny wynik
+GET {{backend_url}}/api/result/<comparison_id>/full
+Accept: application/json
+
+### Pobierz tylko zmodyfikowane
+GET {{backend_url}}/api/result/<comparison_id>/modified
+Accept: application/json
+
+### Pobierz tylko dodane
+GET {{backend_url}}/api/result/<comparison_id>/added
+Accept: application/json
+
+### Pobierz tylko usunięte
+GET {{backend_url}}/api/result/<comparison_id>/deleted
+Accept: application/json
+
+#############################################
+# FRONTEND - SecureDocCompare (Port 8000)
+#############################################
+
+### Health Check Frontend
+GET {{frontend_url}}/
+Accept: text/html
+
+### Login (POST)
+# Uwaga: Wymaga cookie session
+POST {{frontend_url}}/login
+Content-Type: application/x-www-form-urlencoded
+
+password=twoje_haslo_z_env
+
+### Logout
+GET {{frontend_url}}/logout
+
+### Dashboard (wymaga zalogowania)
+GET {{frontend_url}}/dashboard
+Cookie: session=<session_cookie>
+
+### Upload dokumentów przez frontend
+POST {{frontend_url}}/api/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+Cookie: session=<session_cookie>
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_file"; filename="old.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./stara_wersja/dokument.docx
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_file"; filename="new.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./nowa_wersja/dokument.docx
+------WebKitFormBoundary--
+
+### Rozpocznij analizę przez frontend
+POST {{frontend_url}}/api/analyze
+Content-Type: application/json
+Cookie: session=<session_cookie>
+
+{
+  "old_file_id": "<file_id_1>",
+  "new_file_id": "<file_id_2>",
+  "mode": "basic"
+}
+
+#############################################
+# PRZYKŁADY Z RÓŻNYMI FORMATAMI
+#############################################
+
+### Upload mieszany: DOCX + PDF
+POST {{backend_url}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_document"; filename="old.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./stara_wersja/dokument.docx
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_document"; filename="new.pdf"
+Content-Type: application/pdf
+
+< ./nowa_wersja/dokument.pdf
+------WebKitFormBoundary--
+
+#############################################
+# NOTATKI
+#############################################
+
+# 1. Zainstaluj rozszerzenie REST Client:
+#    Ctrl+Shift+X → Wyszukaj "REST Client" → Zainstaluj
+
+# 2. Aby wysłać request:
+#    - Kliknij "Send Request" nad requestem
+#    - Lub ustaw kursor w request i naciśnij Ctrl+Alt+R
+
+# 3. Zastąp placeholdery:
+#    - <comparison_id> - ID z odpowiedzi upload
+#    - <session_cookie> - Cookie z odpowiedzi login
+#    - <file_id_1>, <file_id_2> - ID plików
+
+# 4. Upewnij się, że serwisy są uruchomione:
+#    - Backend: uvicorn main:app --port 8001
+#    - Frontend: uvicorn main:app --port 8000
+
+# 5. Przykładowe pliki do testów:
+#    - Umieść pliki DOCX/PDF w ./stara_wersja/ i ./nowa_wersja/
+
+# 6. Środowiska (environments):
+#    Możesz definiować różne środowiska w settings.json:
+#    "rest-client.environmentVariables": {
+#        "dev": { "backend_url": "http://localhost:8001" },
+#        "prod": { "backend_url": "https://production.com" }
+#    }
