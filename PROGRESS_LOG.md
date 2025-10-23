@@ -1,7 +1,7 @@
 # 📊 Log Postępu Prac - Projekt BAW
 
-**Ostatnia aktualizacja:** 2025-10-22
-**Status projektu:** ✅ Production Ready + VSCode Development Environment
+**Ostatnia aktualizacja:** 2025-10-23
+**Status projektu:** ✅ Production Ready + Nginx Reverse Proxy + N8N Integration
 
 ---
 
@@ -22,9 +22,14 @@ BAW/
 ├── requirements.txt          # Wspólne zależności ✅
 ├── requirements-dev.txt      # Dev tools ✅ NOWY! (2025-10-22)
 ├── .venv/                    # Wspólne środowisko ✅
-├── .editorconfig             # Universal editor config ✅ NOWY! (2025-10-22)
-├── test.http                 # API tests (REST Client) ✅ NOWY! (2025-10-22)
-└── Dokumentacja (15 plików)  ✅
+├── .editorconfig             # Universal editor config ✅ (2025-10-22)
+├── test.http                 # API tests - Production ✅ (2025-10-22)
+├── test.local.http           # API tests - Localhost ✅ NOWY! (2025-10-23)
+├── test.prod.http            # API tests - Production ✅ NOWY! (2025-10-23)
+├── check_api.sh              # Diagnostic tool ✅ NOWY! (2025-10-23)
+├── fix_firewall.sh           # Firewall auto-fix ✅ NOWY! (2025-10-23)
+├── setup_nginx_proxy.sh      # Nginx installer ✅ NOWY! (2025-10-23)
+└── Dokumentacja (21 plików)  ✅
 ```
 
 ### Komponenty Działające
@@ -41,10 +46,13 @@ BAW/
   - Secure HTTP headers (CSP, HSTS, X-Frame-Options)
   - Path safety
 
-#### 2. **UslugaDoPorownan** (Backend - Port 8001)
+#### 2. **UslugaDoPorownan** (Backend - Port 8001 + Nginx Port 80)
 - ✅ API do porównywania dokumentów DOCX
 - ✅ Ekstrakcja treści (docx2python)
 - ✅ Algorytm porównywania (diff-match-patch)
+- ✅ **Nginx Reverse Proxy** (Port 80) - NOWY! (2025-10-23)
+  - Omija blokady firewall proxy
+  - Dostępny z N8N i zewnętrznych systemów
 - ✅ Endpointy:
   - `/api/documents/upload` - Upload + konwersja PDF
   - `/api/process` - Rozpoczęcie analizy
@@ -68,7 +76,228 @@ BAW/
 
 ---
 
-## ✅ Ukończone Dzisiaj (2025-10-22) - Sesja 2
+## ✅ Ukończone Dzisiaj (2025-10-23) - Nginx, Firewall & N8N Integration
+
+### Rozwiązanie problemu dostępu do API
+
+**Problem:** Firmowe proxy (Squid) blokowało dostęp do portu 8001, uniemożliwiając integrację z N8N.
+
+**Utworzone pliki (13 nowych):**
+
+1. **`API_DOCUMENTATION.md`** - Kompletna dokumentacja API (~900 linii):
+   - Wszystkie 9 endpointów z przykładami curl i HTTP
+   - Przykładowe odpowiedzi JSON
+   - 3 przykładowe workflow (DOCX, PDF, bash script)
+   - Modele danych Pydantic
+   - Troubleshooting (5 problemów)
+   - Kody błędów i obsługa
+
+2. **`test.local.http`** - Testy API dla localhost:
+   - URL: http://localhost:8001
+   - Wszystkie endpointy z przykładami
+   - Dokumentacja dla REST Client
+
+3. **`test.prod.http`** - Testy API dla produkcji:
+   - URL: http://217.182.76.146:8001 → http://217.182.76.146 (port 80)
+   - Zaktualizowane po konfiguracji Nginx
+   - Uwagi o zdalnym testowaniu
+
+4. **`check_api.sh`** - Narzędzie diagnostyczne (~250 linii):
+   - Sprawdza status backendu (systemd)
+   - Sprawdza czy port 8001 nasłuchuje
+   - Testuje API lokalnie i zdalnie
+   - Sprawdza firewall (ufw i iptables)
+   - Analizuje konfigurację uvicorn
+   - Generuje raport diagnostyczny z kolorowaniem
+
+5. **`fix_firewall.sh`** - Automatyczna naprawa firewall (~180 linii):
+   - Otwiera porty 8000 i 8001 w UFW
+   - Dodaje reguły iptables
+   - Zapisuje reguły na stałe
+   - Uruchamia backend jeśli nie działa
+   - Testuje dostępność API (lokalnie + zdalnie)
+   - Interaktywne potwierdzenie
+
+6. **`setup_nginx_proxy.sh`** - Instalator Nginx reverse proxy (~280 linii):
+   - Instaluje Nginx (jeśli brak)
+   - Tworzy konfigurację reverse proxy (port 80 → 8001)
+   - Konfiguruje timeouty (120s dla PDF)
+   - Ustawia buffer settings (50MB upload)
+   - Testuje konfigurację (nginx -t)
+   - Wykonuje testy połączenia
+   - Wyświetla nowe URL-e dla N8N
+
+7. **`N8N_INTEGRATION.md`** - Dokumentacja integracji N8N (~600 linii):
+   - Wymagania i weryfikacja
+   - Szybki start (test połączenia)
+   - Przykładowe workflow krok po kroku
+   - Szczegółową konfigurację 4 nodes
+   - JSON workflow do importu
+   - Troubleshooting (5 problemów z rozwiązaniami)
+   - Monitoring (health check co 5 min)
+
+8. **`dokumenty_wejsciowe_UPDATED.json`** - Workflow N8N v2.0:
+   - 12 kroków przetwarzania
+   - URL zmienione na http://217.182.76.146 (port 80)
+   - Naprawiony upload (old_file, new_file)
+   - Pobiera WSZYSTKIE typy zmian (full, modified, added, deleted)
+   - Łączy wyniki w jeden JSON
+   - Zapisuje do Dropbox
+   - Podsumowanie końcowe
+
+9. **`N8N_WORKFLOW_GUIDE.md`** - Przewodnik workflow (~800 linii):
+   - Opis co robi workflow (7 etapów)
+   - Porównanie starej vs nowej wersji
+   - Diagram struktury (12 kroków)
+   - Przykładowa struktura finalnego JSON
+   - Instrukcje importu i konfiguracji
+   - Troubleshooting (4 problemy)
+   - Opcje dostosowania (źródła, powiadomienia, bazy)
+   - Wizualizacja flow (ASCII art)
+
+10. **`n8n_workflow_memory_only.json`** - Workflow N8N v3.0 Memory-Only:
+    - 15 nodes całkowicie w pamięci
+    - BEZ ZAPISU NA DYSKU N8N (wymaganie)
+    - Binary data przepływa przez nodes
+    - JSON objects w RAM
+    - Opcjonalny zapis do Dropbox (fileContent, nie binary)
+    - 5 kolorowych sticky notes jako dokumentacja
+
+11. **`N8N_MEMORY_ONLY_GUIDE.md`** - Przewodnik memory-only (~900 linii):
+    - Wyjaśnienie memory-only architecture
+    - Porównanie dysk vs pamięć (tabele)
+    - Szczegółowa struktura 15 nodes
+    - Gdzie są dane (tabela lokalizacji)
+    - Przykładowe wyniki JSON (2 poziomy)
+    - Integracje (Webhook, DB, Email, Slack)
+    - Performance metrics (1.6 MB RAM, 25-60s)
+    - Troubleshooting (4 scenariusze)
+    - Bezpieczeństwo (bez śladów na dysku)
+
+**Zaktualizowane pliki (3):**
+
+12. **`DEPLOYMENT.md`** - Dodana sekcja "🔥 Konfiguracja Firewall":
+    - Automatyczna naprawa (skrypty)
+    - Manualna konfiguracja UFW
+    - Manualna konfiguracja iptables
+    - Weryfikacja dostępu
+    - Troubleshooting (5 kroków)
+    - Cloud firewall (AWS, Azure, GCP)
+
+13. **`test.http`** - Zaktualizowany na produkcję:
+    - URL zmienione na http://217.182.76.146
+    - Dodane komentarze o localhost (zakomentowane)
+    - Rozszerzone notatki o środowiskach
+
+### Nginx Reverse Proxy - Konfiguracja produkcyjna
+
+**Nginx (`/etc/nginx/sites-available/baw-api`):**
+- Nasłuchuje na porcie 80 (nie blokowany przez proxy)
+- Przekierowuje na localhost:8001 (backend)
+- Timeouty: 120s (upload PDF)
+- Max upload: 50MB
+- Logi: `/var/log/nginx/baw-api-{access,error}.log`
+
+**Endpointy reverse proxy:**
+- `http://217.182.76.146/health` → `localhost:8001/health`
+- `http://217.182.76.146/api/*` → `localhost:8001/api/*`
+- `http://217.182.76.146/docs` → `localhost:8001/docs`
+- `http://217.182.76.146/redoc` → `localhost:8001/redoc`
+
+**Testy weryfikacyjne:**
+```bash
+# Lokalny test
+curl http://localhost:8001/health  # Backend bezpośrednio
+curl http://localhost/health        # Przez Nginx
+
+# Zdalny test (z innego komputera)
+curl http://217.182.76.146/health   # Przez Nginx (port 80)
+```
+
+### Workflow N8N - 3 wersje
+
+**v1.0 (dokumenty_wejsciowe.json)** - Oryginalna:
+- Używała localhost:8001 (nie działało z N8N)
+- Błędne parametry uploadu
+- Tylko full result
+
+**v2.0 (dokumenty_wejsciowe_UPDATED.json)** - Zaktualizowana:
+- URL: http://217.182.76.146 (port 80, Nginx)
+- Naprawiony upload (old_file, new_file)
+- Pobiera full + modified + added + deleted
+- Zapisuje JSON do Dropbox
+
+**v3.0 (n8n_workflow_memory_only.json)** - Memory-Only:
+- BEZ ZAPISU NA DYSKU N8N (wymaganie bezpieczeństwa)
+- Binary data w pamięci RAM
+- JSON objects w pamięci
+- Dropbox upload przez fileContent (string)
+- 15 nodes z pełną dokumentacją (sticky notes)
+
+### Struktura finalnego JSON
+
+Workflow zwraca kompletny JSON z:
+```json
+{
+  "metadata": {
+    "process_id": "...",
+    "document_pair_id": "...",
+    "generated_at": "...",
+    "processed_at": "..."
+  },
+  "statistics": {
+    "total_paragraphs": 100,
+    "unchanged": 70,
+    "modified": 20,
+    "added": 5,
+    "deleted": 5,
+    "change_percentage": 30.0
+  },
+  "full_document": {
+    "paragraphs": [...],  // Wszystkie paragrafy
+    "tables": [...]
+  },
+  "changes_detail": {
+    "modified": { count: 20, sentences: [...] },
+    "added": { count: 5, sentences: [...] },
+    "deleted": { count: 5, sentences: [...] }
+  },
+  "summary": {
+    "total_changes": 30,
+    "change_severity": "HIGH|MEDIUM|LOW",
+    "requires_review": true|false
+  }
+}
+```
+
+### Funkcjonalności
+
+**Narzędzia diagnostyczne:**
+- ✅ Automatyczna diagnoza firewall
+- ✅ Automatyczna naprawa portów
+- ✅ Testy lokalne i zdalne
+- ✅ Raport kolorowany z zaleceniami
+
+**Nginx Reverse Proxy:**
+- ✅ Port 80 (omija blokady proxy)
+- ✅ Timeouty 120s (PDF conversion)
+- ✅ Buffer 50MB (duże pliki)
+- ✅ Logi access + error
+
+**N8N Integration:**
+- ✅ Workflow bez zapisu na dysku
+- ✅ Binary data w pamięci (~1.6 MB)
+- ✅ Pełny JSON ze wszystkimi zmianami
+- ✅ Loop polling (status check)
+- ✅ Opcjonalny zapis do Dropbox
+- ✅ Summary z severity level
+
+**Łącznie dodano:** 13 nowych plików, 3 zaktualizowane
+**Łączna dokumentacja:** ~4500 linii kodu + dokumentacji
+
+---
+
+## ✅ Ukończone Wcześniej (2025-10-22) - Sesja 2
 
 ### Konfiguracja Visual Studio Code
 
@@ -489,13 +718,13 @@ python -m pdf_converter.cli test.pdf output.docx --verbose
 
 ## 📚 Dokumentacja
 
-### Pliki Dokumentacji (15 plików)
+### Pliki Dokumentacji (21 plików)
 
 **Główne:**
 1. `README.md` - Główna dokumentacja projektu
-2. `DEPLOYMENT.md` - Wdrożenie na Debian
-3. `DOCS_INDEX.md` - Indeks całej dokumentacji (wersja 1.1.0)
-4. `VSCODE_SETUP.md` - **NOWY!** Konfiguracja Visual Studio Code (600+ linii)
+2. `DEPLOYMENT.md` - Wdrożenie na Debian + Firewall (wersja 1.1.0)
+3. `DOCS_INDEX.md` - Indeks całej dokumentacji (wersja 1.2.0)
+4. `VSCODE_SETUP.md` - Konfiguracja Visual Studio Code (600+ linii)
 5. `CLAUDE.md` - Instrukcje dla Claude Code AI
 
 **SecureDocCompare:**
@@ -512,13 +741,67 @@ python -m pdf_converter.cli test.pdf output.docx --verbose
 12. `UslugaDoPorownan/pdf_converter/README.md` - Dokumentacja modułu
 13. `PDF_CONVERSION_SUMMARY.md` - Podsumowanie implementacji
 
-**Status i Testy:**
-14. `PROGRESS_LOG.md` - Ten plik
-15. `test.http` - **NOWY!** Testy API dla REST Client
+**API i Testy (2025-10-23):**
+14. `API_DOCUMENTATION.md` - **NOWY!** Kompletna dokumentacja API (~900 linii)
+15. `test.http` - Testy API dla REST Client (produkcja)
+16. `test.local.http` - **NOWY!** Testy API dla localhost
+17. `test.prod.http` - **NOWY!** Testy API dla produkcji (217.182.76.146)
+
+**N8N Integration (2025-10-23):**
+18. `N8N_INTEGRATION.md` - **NOWY!** Integracja z N8N (~600 linii)
+19. `N8N_WORKFLOW_GUIDE.md` - **NOWY!** Przewodnik workflow v2.0 (~800 linii)
+20. `N8N_MEMORY_ONLY_GUIDE.md` - **NOWY!** Przewodnik memory-only v3.0 (~900 linii)
+
+**Status i Historia:**
+21. `PROGRESS_LOG.md` - Ten plik
 
 ---
 
 ## 🔄 Historia Zmian
+
+### 2025-10-23 - Sesja 3: Nginx Reverse Proxy, Firewall & N8N Integration
+- ✅ Rozwiązano problem dostępu do API (corporate proxy blokował port 8001)
+- ✅ Utworzono **`API_DOCUMENTATION.md`** - kompletna dokumentacja API (~900 linii)
+  - Wszystkie 9 endpointów z przykładami curl i HTTP
+  - 3 przykładowe workflow
+  - Modele danych Pydantic
+  - Troubleshooting
+- ✅ Utworzono **`test.local.http`** i **`test.prod.http`** - testy dla różnych środowisk
+- ✅ Utworzono **`check_api.sh`** - narzędzie diagnostyczne (status, porty, testy)
+- ✅ Utworzono **`fix_firewall.sh`** - automatyczna naprawa firewall (ufw, iptables)
+- ✅ Utworzono **`setup_nginx_proxy.sh`** - instalator Nginx reverse proxy
+  - Nginx nasłuchuje na porcie 80 (standardowy HTTP)
+  - Przekierowuje ruch na localhost:8001 (backend)
+  - Timeouty 120s, buffer 50MB
+  - Omija blokady corporate proxy
+- ✅ Utworzono **`N8N_INTEGRATION.md`** - dokumentacja integracji N8N (~600 linii)
+- ✅ Utworzono **`dokumenty_wejsciowe_UPDATED.json`** - N8N workflow v2.0
+  - URL zmienione na http://217.182.76.146 (port 80)
+  - Naprawiony upload (old_file, new_file)
+  - Pobiera wszystkie typy zmian (full, modified, added, deleted)
+- ✅ Utworzono **`N8N_WORKFLOW_GUIDE.md`** - przewodnik workflow (~800 linii)
+- ✅ Utworzono **`n8n_workflow_memory_only.json`** - N8N workflow v3.0 Memory-Only
+  - **Krytyczne wymaganie:** Serwer N8N blokuje zapis na dysku
+  - Wszystkie dane w pamięci RAM (~1.6 MB)
+  - Binary data przepływa przez nodes
+  - Opcjonalny zapis do Dropbox (fileContent, nie binary)
+- ✅ Utworzono **`N8N_MEMORY_ONLY_GUIDE.md`** - przewodnik memory-only (~900 linii)
+  - Architektura memory-only vs disk
+  - Szczegółowa struktura 15 nodes
+  - Performance metrics
+  - Security (brak śladów na dysku)
+- ✅ Zaktualizowano **`DEPLOYMENT.md`** - sekcja "Konfiguracja Firewall"
+  - Automatyczna naprawa (skrypty)
+  - Manualna konfiguracja (ufw, iptables)
+  - Cloud firewall (AWS, Azure, GCP)
+- ✅ Zaktualizowano **`test.http`** - URL produkcyjne (port 80)
+- ✅ Zaktualizowano **`DOCS_INDEX.md`** (wersja 1.2.0)
+  - Dodane 6 nowych plików dokumentacji
+  - Sekcja "Chcę zintegrować z N8N"
+  - Rozszerzona tabela "Szukam informacji o..."
+
+**Łącznie dodano:** 13 nowych plików (11 dokumentacji + 2 workflow JSON), zaktualizowano 3 pliki
+**Łączna dokumentacja:** ~4500 linii kodu + dokumentacji
 
 ### 2025-10-22 - Sesja 2: Konfiguracja Visual Studio Code
 - ✅ Utworzono katalog `.vscode/` z pełną konfiguracją
@@ -693,7 +976,9 @@ uvicorn main:app --port 8000
 - **AI Assistant:** Claude Code (Anthropic)
 - **Python:** 3.11.9
 - **Framework:** FastAPI + Uvicorn
-- **Ostatnia aktualizacja:** 2025-10-22
+- **Reverse Proxy:** Nginx (Port 80 → 8001)
+- **Automation:** N8N Workflow Integration
+- **Ostatnia aktualizacja:** 2025-10-23
 
 ---
 
@@ -703,18 +988,23 @@ uvicorn main:app --port 8000
 - ✅ SecureDocCompare (Frontend)
 - ✅ UslugaDoPorownan (Backend API)
 - ✅ pdf_converter (PDF→DOCX)
-- ✅ **VSCode Configuration** - **NOWY!** (5 plików konfiguracyjnych)
-- ✅ Dokumentacja (15 plików)
+- ✅ **VSCode Configuration** (5 plików konfiguracyjnych)
+- ✅ **Nginx Reverse Proxy** - **NOWY!** (Port 80 → 8001)
+- ✅ **N8N Integration** - **NOWY!** (3 wersje workflow)
+- ✅ Dokumentacja (21 plików)
 - ✅ Testy jednostkowe
-- ✅ Deployment scripts (systemd)
-- ✅ **Development Tools** - **NOWY!** (requirements-dev.txt)
+- ✅ Deployment scripts (systemd, nginx, firewall)
+- ✅ Development Tools (requirements-dev.txt)
+- ✅ Diagnostic Tools (check_api.sh, fix_firewall.sh)
 
 ### Gotowość
 - ✅ **Development:** Gotowy do użycia + **VSCode Setup**
-- ✅ **Production:** Gotowy do wdrożenia
-- ✅ **Documentation:** Kompletna (15 plików)
-- ✅ **Tests:** Podstawowe testy OK + REST Client tests
+- ✅ **Production:** Gotowy do wdrożenia + **Nginx Proxy**
+- ✅ **Documentation:** Kompletna (21 plików)
+- ✅ **Tests:** Podstawowe testy OK + REST Client tests (local + production)
 - ✅ **IDE Support:** Visual Studio Code - pełna konfiguracja
+- ✅ **Automation:** N8N workflow ready (memory-only v3.0)
+- ✅ **Network:** Firewall + Nginx configured
 
 ### Następne Uruchomienie
 
@@ -774,13 +1064,29 @@ uvicorn main:app --port 8000 --reload
 
 ---
 
-**📊 Stan:** ✅ COMPLETED & TESTED + VSCode Development Environment
-**🚀 Status:** Production Ready + Full IDE Support
-**📅 Data:** 2025-10-22
-**⏰ Czas pracy dzisiaj:**
-  - Sesja 1: ~2h (naprawy i testy)
-  - Sesja 2: ~1.5h (konfiguracja VSCode)
-**📦 Wersja:** 1.1.0
+**📊 Stan:** ✅ COMPLETED & TESTED + VSCode + Nginx + N8N Integration
+**🚀 Status:** Production Ready + Full IDE Support + Network Ready + Automation Ready
+**📅 Data:** 2025-10-23
+**⏰ Czas pracy (3 sesje):**
+  - Sesja 1 (2025-10-22): ~2h (naprawy i testy)
+  - Sesja 2 (2025-10-22): ~1.5h (konfiguracja VSCode)
+  - Sesja 3 (2025-10-23): ~3h (Nginx, Firewall, N8N)
+**📦 Wersja:** 1.2.0
+
+### Podsumowanie Sesji 2025-10-23
+
+**Sesja 3 - Nginx, Firewall & N8N Integration:**
+- 🌐 Nginx Reverse Proxy (Port 80 → 8001) - omija blokady firewall proxy
+- 🔥 Konfiguracja Firewall (ufw, iptables) - zautomatyzowane skrypty
+- 🤖 N8N Integration - 3 wersje workflow (v1.0, v2.0, v3.0 memory-only)
+- 📝 API_DOCUMENTATION.md - kompletna dokumentacja API (~900 linii, 9 endpointów)
+- 🛠️ Narzędzia diagnostyczne (check_api.sh, fix_firewall.sh, setup_nginx_proxy.sh)
+- 📋 Przewodniki N8N (N8N_INTEGRATION.md, N8N_WORKFLOW_GUIDE.md, N8N_MEMORY_ONLY_GUIDE.md)
+- 🧪 Testy dla różnych środowisk (test.local.http, test.prod.http)
+- 📖 Zaktualizowano dokumentację (DEPLOYMENT.md, DOCS_INDEX.md v1.2.0)
+- 🎯 **Funkcjonalności:** Memory-only workflow (bez zapisu na dysku), pełny JSON output, Dropbox integration
+
+**Łącznie:** 13 nowych plików, 3 zaktualizowane, ~4500 linii kodu + dokumentacji
 
 ### Podsumowanie Sesji 2025-10-22
 
@@ -801,7 +1107,9 @@ uvicorn main:app --port 8000 --reload
 - ⚙️ Dodano .editorconfig (uniwersalne ustawienia)
 - 🎯 **Funkcjonalności:** Full Stack debugging (F5), auto-format, linting, snippety
 
-**Łącznie:** 10 nowych plików, 4 zaktualizowane
+**Łącznie (2025-10-22):** 10 nowych plików, 4 zaktualizowane
 
 **Projekt w pełni gotowy do użycia! 🎉**
 **Visual Studio Code: Pełna konfiguracja i wsparcie! 💻**
+**N8N Integration: Memory-only workflow gotowy! 🤖**
+**Network: Nginx + Firewall skonfigurowane! 🌐**

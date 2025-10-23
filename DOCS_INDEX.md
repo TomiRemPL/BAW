@@ -9,13 +9,19 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 | Plik | Opis | Dla kogo |
 |------|------|----------|
 | [README.md](README.md) | **Start tutaj!** Ogólny opis projektu, architektura, instalacja | Wszyscy |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Szczegółowe instrukcje wdrożenia na Debian z pyenv, systemd, nginx | DevOps, Admin |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Szczegółowe instrukcje wdrożenia na Debian z pyenv, systemd, nginx, firewall | DevOps, Admin |
 | [DOCS_INDEX.md](DOCS_INDEX.md) | Ten plik - indeks całej dokumentacji | Wszyscy |
-| [VSCODE_SETUP.md](VSCODE_SETUP.md) | **NOWY!** Konfiguracja Visual Studio Code, debugowanie, tasks | Developer |
+| [VSCODE_SETUP.md](VSCODE_SETUP.md) | Konfiguracja Visual Studio Code, debugowanie, tasks | Developer |
 | [PROGRESS_LOG.md](PROGRESS_LOG.md) | Historia postępu prac i stan projektu | Manager, Developer |
 | [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) | Podsumowanie implementacji konwersji PDF→DOCX | Developer |
+| [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | **NOWY!** Kompletna dokumentacja API (~900 linii) | Developer, API User |
+| [N8N_INTEGRATION.md](N8N_INTEGRATION.md) | **NOWY!** Integracja z N8N, workflow automation | DevOps, Automation |
+| [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) | **NOWY!** Przewodnik workflow N8N v2.0 | DevOps, Automation |
+| [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) | **NOWY!** Przewodnik memory-only workflow N8N v3.0 | DevOps, Security |
 | [requirements.txt](requirements.txt) | Wspólne zależności Python dla całego projektu | Developer |
-| [test.http](test.http) | **NOWY!** Testy API dla REST Client (VSCode) | Developer, API User |
+| [test.http](test.http) | Testy API dla REST Client (produkcja) | Developer, API User |
+| [test.local.http](test.local.http) | **NOWY!** Testy API dla localhost | Developer |
+| [test.prod.http](test.prod.http) | **NOWY!** Testy API dla produkcji (217.182.76.146) | Developer, API User |
 | [CLAUDE.md](CLAUDE.md) | Instrukcje dla Claude Code AI | Developer |
 
 ### SecureDocCompare (`/SecureDocCompare`)
@@ -79,6 +85,14 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 2. Zainstaluj rekomendowane rozszerzenia (`.vscode/extensions.json`)
 3. Użyj debugowania (`F5`) i tasków (`Ctrl+Shift+P` → Tasks)
 4. Testuj API przez [test.http](test.http) z rozszerzeniem REST Client
+
+### Chcę zintegrować z N8N
+
+1. [N8N_INTEGRATION.md](N8N_INTEGRATION.md) - **Start tutaj!** Wprowadzenie do integracji N8N
+2. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - Pełna lista endpointów z przykładami
+3. [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) - Workflow v2.0 (podstawowy)
+4. [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) - Workflow v3.0 (bez zapisu na dysku)
+5. [test.prod.http](test.prod.http) - Testowanie endpointów produkcyjnych
 
 ---
 
@@ -250,10 +264,16 @@ Szybki start backendu API:
 | Rate limiting | [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) sekcja "Rate Limiting" |
 | HTTPS i SSL | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "HTTPS z Let's Encrypt" |
 | systemd auto-start | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Automatyzacja" |
-| nginx konfiguracja | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Nginx" |
+| **Nginx reverse proxy** | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Nginx", `setup_nginx_proxy.sh` |
+| **Firewall (ufw, iptables)** | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Konfiguracja Firewall", `fix_firewall.sh` |
+| **API - Kompletna dokumentacja** | [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - 9 endpointów |
 | API endpointy | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) |
-| Przykłady curl | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) |
-| Testowanie API (REST Client) | [test.http](test.http) |
+| Przykłady curl | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md), [API_DOCUMENTATION.md](API_DOCUMENTATION.md) |
+| Testowanie API (REST Client) | [test.http](test.http), [test.local.http](test.local.http), [test.prod.http](test.prod.http) |
+| **N8N Integracja** | [N8N_INTEGRATION.md](N8N_INTEGRATION.md) |
+| **N8N Workflow v2.0** | [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) |
+| **N8N Memory-Only v3.0** | [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) |
+| **Diagnostyka API** | `check_api.sh`, [API_DOCUMENTATION.md](API_DOCUMENTATION.md) sekcja "Troubleshooting" |
 | VSCode konfiguracja | [VSCODE_SETUP.md](VSCODE_SETUP.md) |
 | Debugowanie w VSCode | [VSCODE_SETUP.md](VSCODE_SETUP.md) sekcja "Debugowanie" |
 | Konwersja PDF→DOCX | [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) |
@@ -269,11 +289,17 @@ Szybki start backendu API:
 | Dokument | Status | Ostatnia aktualizacja | Wersja |
 |----------|--------|----------------------|--------|
 | README.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
-| DEPLOYMENT.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
+| DEPLOYMENT.md | ✅ Aktualny | 2025-10-23 | 1.1.0 |
 | VSCODE_SETUP.md | ✅ Aktualny | 2025-10-22 | 1.0.0 |
-| PROGRESS_LOG.md | ✅ Aktualny | 2025-10-22 | 1.0.1 |
+| PROGRESS_LOG.md | ✅ Aktualny | 2025-10-23 | 1.2.0 |
 | PDF_CONVERSION_SUMMARY.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
-| test.http | ✅ Aktualny | 2025-10-22 | 1.0.0 |
+| **API_DOCUMENTATION.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
+| **N8N_INTEGRATION.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
+| **N8N_WORKFLOW_GUIDE.md** | ✅ Aktualny | 2025-10-23 | 2.0.0 |
+| **N8N_MEMORY_ONLY_GUIDE.md** | ✅ Aktualny | 2025-10-23 | 3.0.0 |
+| test.http | ✅ Aktualny | 2025-10-23 | 1.1.0 |
+| **test.local.http** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
+| **test.prod.http** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
 | SecureDocCompare/README.md | ✅ Aktualny | 2025-10-20 | 1.0.0 |
 | SecureDocCompare/QUICK_START.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
 | SecureDocCompare/SECURITY.md | ✅ Aktualny | 2025-10-20 | 1.0.0 |
@@ -302,11 +328,24 @@ Jeśli znajdziesz nieaktualną informację:
 
 ---
 
-**Ostatnia aktualizacja:** 2025-10-22
-**Wersja indeksu:** 1.1.0
+**Ostatnia aktualizacja:** 2025-10-23
+**Wersja indeksu:** 1.2.0
 **Projekt:** BAW - Porównywanie Dokumentów Bankowych
 
-**Changelog 1.1.0:**
+**Changelog 1.2.0 (2025-10-23):**
+- Dodano **API_DOCUMENTATION.md** - kompletna dokumentacja API (~900 linii, 9 endpointów)
+- Dodano **N8N_INTEGRATION.md** - integracja z N8N workflow automation
+- Dodano **N8N_WORKFLOW_GUIDE.md** - przewodnik workflow v2.0
+- Dodano **N8N_MEMORY_ONLY_GUIDE.md** - przewodnik memory-only workflow v3.0
+- Dodano **test.local.http** - testy API dla localhost
+- Dodano **test.prod.http** - testy API dla produkcji (217.182.76.146)
+- Zaktualizowano **DEPLOYMENT.md** - sekcja "Konfiguracja Firewall"
+- Zaktualizowano **test.http** - URL produkcyjne (port 80)
+- Dodano sekcję "Chcę zintegrować z N8N" w ścieżkach nauki
+- Rozszerzona tabela "Szukam informacji o..." (Nginx, Firewall, N8N, Diagnostyka)
+- Zaktualizowana tabela statusu dokumentacji (21 plików)
+
+**Changelog 1.1.0 (2025-10-22):**
 - Dodano VSCODE_SETUP.md - kompletna konfiguracja Visual Studio Code
 - Dodano test.http - testy API dla REST Client
 - Dodano .vscode/ - settings, launch, tasks, extensions, snippets

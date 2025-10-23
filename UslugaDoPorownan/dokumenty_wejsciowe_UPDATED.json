@@ -1,0 +1,485 @@
+{
+  "name": "Pobieranie dokumentów - BAW API Integration (UPDATED)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1878afb1-1a60-4a7a-aa07-9c4f15fa8dc3",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "path": "/Testy/Zal_1_Procedura_CA_110_2020_0.docx",
+        "binaryPropertyName": "new_file"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [450, 200],
+      "id": "download-new-file",
+      "name": "Download New Document",
+      "credentials": {
+        "dropboxApi": {
+          "id": "yn8WsRCOeSLSHsE3",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "path": "/Testy/Zal_1_Procedura_CA_110_2020_1.docx",
+        "binaryPropertyName": "old_file"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [450, 400],
+      "id": "download-old-file",
+      "name": "Download Old Document",
+      "credentials": {
+        "dropboxApi": {
+          "id": "yn8WsRCOeSLSHsE3",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [650, 300],
+      "id": "merge-files",
+      "name": "Merge Files"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://217.182.76.146/api/documents/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "old_document",
+              "inputDataFieldName": "=old_file"
+            },
+            {
+              "name": "new_document",
+              "inputDataFieldName": "=new_file"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "upload-documents",
+      "name": "1. Upload Documents to BAW",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://217.182.76.146/api/process",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={\n  \"document_pair_id\": \"{{ $json.document_pair_id }}\"\n}",
+        "options": {}
+      },
+      "id": "start-processing",
+      "name": "2. Start Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "id": "wait-3sec",
+      "name": "Wait 3 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1250, 300],
+      "webhookId": "wait-initial"
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/status/{{ $('2. Start Processing').item.json.process_id }}",
+        "options": {}
+      },
+      "id": "check-status",
+      "name": "3. Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-completed",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "is-completed",
+      "name": "4. Is Completed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "wait-loop",
+      "name": "Wait 2 Seconds (Loop)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1650, 500],
+      "webhookId": "wait-loop"
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/result/{{ $('2. Start Processing').item.json.process_id }}/full",
+        "options": {}
+      },
+      "id": "get-full-result",
+      "name": "5. Get Full Result (JSON)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1850, 200]
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/result/{{ $('2. Start Processing').item.json.process_id }}/modified",
+        "options": {}
+      },
+      "id": "get-modified",
+      "name": "6. Get Modified (JSON)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2050, 200]
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/result/{{ $('2. Start Processing').item.json.process_id }}/added",
+        "options": {}
+      },
+      "id": "get-added",
+      "name": "7. Get Added (JSON)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2250, 200]
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/result/{{ $('2. Start Processing').item.json.process_id }}/deleted",
+        "options": {}
+      },
+      "id": "get-deleted",
+      "name": "8. Get Deleted (JSON)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2450, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Łączenie wszystkich wyników w jeden obiekt JSON\nconst fullResult = $('5. Get Full Result (JSON)').first().json;\nconst modifiedResult = $('6. Get Modified (JSON)').first().json;\nconst addedResult = $('7. Get Added (JSON)').first().json;\nconst deletedResult = $('8. Get Deleted (JSON)').first().json;\n\nconst finalResult = {\n  metadata: {\n    process_id: fullResult.process_id,\n    document_pair_id: fullResult.document_pair_id,\n    generated_at: fullResult.generated_at,\n    timestamp: new Date().toISOString()\n  },\n  statistics: fullResult.statistics,\n  full_document: {\n    paragraphs: fullResult.paragraphs,\n    tables: fullResult.tables\n  },\n  changes_summary: {\n    modified: {\n      count: modifiedResult.total_count,\n      items: modifiedResult.modified_sentences\n    },\n    added: {\n      count: addedResult.total_count,\n      items: addedResult.added_sentences\n    },\n    deleted: {\n      count: deletedResult.total_count,\n      items: deletedResult.deleted_sentences\n    }\n  }\n};\n\nreturn { json: finalResult };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2650, 200],
+      "id": "combine-results",
+      "name": "9. Combine All Results"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "fileName": "=BAW_Results_{{ $json.metadata.process_id }}.json"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [2850, 200],
+      "id": "convert-to-json-file",
+      "name": "10. Convert to JSON File"
+    },
+    {
+      "parameters": {
+        "path": "=/BAW_Results/{{ $json.metadata.process_id }}.json",
+        "binaryData": true
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [3050, 200],
+      "id": "save-to-dropbox",
+      "name": "11. Save to Dropbox",
+      "credentials": {
+        "dropboxApi": {
+          "id": "yn8WsRCOeSLSHsE3",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Podsumowanie do wyświetlenia\nconst stats = $json.metadata;\nconst summary = $json.changes_summary;\n\nreturn {\n  json: {\n    success: true,\n    message: \"Dokument pomyślnie przetworzony!\",\n    process_id: stats.process_id,\n    total_changes: $json.statistics.modified + $json.statistics.added + $json.statistics.deleted,\n    modified_count: summary.modified.count,\n    added_count: summary.added.count,\n    deleted_count: summary.deleted.count,\n    change_percentage: $json.statistics.change_percentage,\n    file_saved: `BAW_Results/${stats.process_id}.json`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3250, 200],
+      "id": "final-summary",
+      "name": "12. Final Summary"
+    },
+    {
+      "parameters": {
+        "content": "## BAW Document Comparison Workflow\n\n✅ ZAKTUALIZOWANY - 2025-10-23\n\n**Zmiany:**\n1. URL-e zmienione na http://217.182.76.146 (Nginx port 80)\n2. Naprawiony upload dokumentów (old_file, new_file)\n3. Dodane pobieranie wszystkich typów zmian\n4. Połączenie wyników w jeden JSON\n5. Zapis do Dropbox\n6. Podsumowanie końcowe",
+        "height": 300,
+        "width": 400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [200, 100],
+      "id": "sticky-info",
+      "name": "Info"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Download New Document",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Download Old Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download New Document": {
+      "main": [
+        [
+          {
+            "node": "Merge Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Old Document": {
+      "main": [
+        [
+          {
+            "node": "Merge Files",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Files": {
+      "main": [
+        [
+          {
+            "node": "1. Upload Documents to BAW",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Upload Documents to BAW": {
+      "main": [
+        [
+          {
+            "node": "2. Start Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Start Processing": {
+      "main": [
+        [
+          {
+            "node": "Wait 3 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3 Seconds": {
+      "main": [
+        [
+          {
+            "node": "3. Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Check Status": {
+      "main": [
+        [
+          {
+            "node": "4. Is Completed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Is Completed?": {
+      "main": [
+        [
+          {
+            "node": "5. Get Full Result (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 2 Seconds (Loop)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Seconds (Loop)": {
+      "main": [
+        [
+          {
+            "node": "3. Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Get Full Result (JSON)": {
+      "main": [
+        [
+          {
+            "node": "6. Get Modified (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Get Modified (JSON)": {
+      "main": [
+        [
+          {
+            "node": "7. Get Added (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7. Get Added (JSON)": {
+      "main": [
+        [
+          {
+            "node": "8. Get Deleted (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8. Get Deleted (JSON)": {
+      "main": [
+        [
+          {
+            "node": "9. Combine All Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9. Combine All Results": {
+      "main": [
+        [
+          {
+            "node": "10. Convert to JSON File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10. Convert to JSON File": {
+      "main": [
+        [
+          {
+            "node": "11. Save to Dropbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "11. Save to Dropbox": {
+      "main": [
+        [
+          {
+            "node": "12. Final Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}
