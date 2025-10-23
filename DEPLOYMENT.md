@@ -213,6 +213,121 @@ curl http://localhost:8000/health
 
 ---
 
+## 🔥 Konfiguracja Firewall
+
+**WAŻNE:** Aby API było dostępne z zewnątrz (np. z N8N, innych systemów), musisz otworzyć porty w firewallu.
+
+### Automatyczna naprawa (ZALECANE)
+
+Użyj przygotowanego skryptu:
+
+```bash
+cd /home/debian/hack/BAW
+
+# Skopiuj skrypty z repozytorium (jeśli nie masz)
+# lub pobierz z GitHub
+
+# Nadaj uprawnienia
+chmod +x check_api.sh fix_firewall.sh
+
+# Diagnoza problemu
+./check_api.sh
+
+# Automatyczna naprawa
+sudo ./fix_firewall.sh
+```
+
+### Manualna konfiguracja UFW (Ubuntu/Debian)
+
+```bash
+# Sprawdź status
+sudo ufw status
+
+# Otwórz porty
+sudo ufw allow 8001/tcp comment 'BAW Backend API'
+sudo ufw allow 8000/tcp comment 'BAW Frontend'
+
+# Sprawdź ponownie
+sudo ufw status numbered
+
+# Przeładuj (jeśli potrzeba)
+sudo ufw reload
+```
+
+### Manualna konfiguracja iptables
+
+```bash
+# Sprawdź aktualne reguły
+sudo iptables -L INPUT -n
+
+# Dodaj reguły ACCEPT
+sudo iptables -I INPUT -p tcp --dport 8001 -j ACCEPT
+sudo iptables -I INPUT -p tcp --dport 8000 -j ACCEPT
+
+# Zapisz reguły (Debian)
+sudo mkdir -p /etc/iptables
+sudo iptables-save | sudo tee /etc/iptables/rules.v4
+
+# Automatyczne wczytywanie po restarcie
+sudo apt install iptables-persistent
+```
+
+### Weryfikacja dostępu
+
+```bash
+# Test lokalny
+curl http://localhost:8001/health
+
+# Test z serwera (zewnętrzne IP)
+EXTERNAL_IP=$(curl -s ifconfig.me)
+curl http://$EXTERNAL_IP:8001/health
+
+# Test z innego komputera (zastąp IP)
+curl http://217.182.76.146:8001/health
+```
+
+**Oczekiwana odpowiedź:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-10-23T...",
+  "statistics": {...}
+}
+```
+
+### Troubleshooting
+
+Jeśli API nadal nie odpowiada:
+
+1. **Sprawdź czy backend działa:**
+   ```bash
+   sudo systemctl status baw-backend
+   ```
+
+2. **Sprawdź czy port nasłuchuje:**
+   ```bash
+   sudo ss -tlnp | grep 8001
+   # Powinno pokazać: *:8001 (oznacza wszystkie interfejsy)
+   ```
+
+3. **Sprawdź logi:**
+   ```bash
+   sudo journalctl -u baw-backend -n 50
+   ```
+
+4. **Sprawdź cloud firewall:**
+   - AWS: Security Groups
+   - Azure: Network Security Groups
+   - Google Cloud: Firewall Rules
+   - OVH/Hetzner: Firewall w panelu
+
+5. **Użyj narzędzia diagnostycznego:**
+   ```bash
+   ./check_api.sh
+   ```
+
+---
+
 ## 🔄 Automatyzacja z systemd
 
 Aby aplikacje uruchamiały się automatycznie przy starcie systemu.
