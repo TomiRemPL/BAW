@@ -1,0 +1,1604 @@
+{
+  "name": "Pobieranie dokumentów",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2576,
+        224
+      ],
+      "id": "b40d1f74-f920-4ced-bc73-9418d408d64a",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://prebaw.creditagricole/api/Authentication/Login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n\"Login\":\"hackaton\",\n\"Password\":\"hackaton2\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        352
+      ],
+      "id": "7258ce00-a4f8-4dc2-93ef-211323ba80e0",
+      "name": "HTTP Request1",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "waitBetweenTries": 100
+    },
+    {
+      "parameters": {
+        "url": "=https://prebaw.creditagricole/api/file/1/{{ $('insert_do_pobrania').item.json[\"8GIC\"] }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "BearerTokenCookieName",
+              "value": "={{ $json.data }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        624
+      ],
+      "id": "a4d9bd66-2c5a-48ee-b988-dfd6e6b8b729",
+      "name": "HTTP Request2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2576,
+        48
+      ],
+      "id": "3760faee-0d2d-4f01-9388-7c3e2e70deae",
+      "name": "Schedule Trigger",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1712,
+        160
+      ],
+      "id": "14a2c058-3816-40c5-bf37-80f2341f397e",
+      "name": "Loop Over Items",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "## ETAP nr1   (zamokowany warunek czasu dla latwiejszego testowania - to pokazu na zywo nalezy zmienic na wartosc zmiennej z pierwszego kroku\nOdpytujemy BAW aby wyszukać odpowiednie dokumenty. Iterujemy po wynikach i zapisujemy wyniki do bazy\n\nWhere [BAW].[dbo].[Document].CreationDate > '2024-11-20T14:52:00.000Z'\n  \n   Wybieramy tylko opublikowane doksy  AND [BAW].[dbo].[Document].IsPublished = 1\n\n   W ybieramy tylko doksy których liczba wersji w systemie jest wieksza niz 1  AND TRY_CONVERT(decimal(10,2), [BAW].[dbo].[Document].DocumentVersion) > 1\n\n   Ogranicamy wyniki do plikow typu docx   AND [BAW].[dbo].[AttachmentLink].isWordDocument = 1\n\n   Wybieramy tylko doksy o wybranym typie procedura 60 przewodnik 59 regulamin 28 polityka 75 strategia 76 ew. instrukcja powiazana z WB 25 , wniosek 74, zalacznik inny 35   -   wycinamy zarzadzenia 3\n  AND [BAW].[dbo].[Document].LegalActType IN (60, 59, 28, 75, 76)",
+        "height": 592,
+        "width": 1552
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2176,
+        -160
+      ],
+      "id": "bfbd1bd0-7931-4697-81e9-f052a62d62ea",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Triger cron /manual start\n\n\nFlow odpala sie co 30min",
+        "height": 672,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2624,
+        -144
+      ],
+      "id": "085aec4a-ae26-401d-b814-5ef4504561f3",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT TOP (200) [BAW].[dbo].[Document].[Id]\n\t  ,[BAW].[dbo].[Document].[DocumentVersion]\n\t  ,[BAW].[dbo].[Document].[LegalActType]\n      ,[BAW].[dbo].[Document].[ActDate]\n\t  ,[BAW].[dbo].[Document].[ActNumber]\n      ,[BAW].[dbo].[Document].[CreationDate]\n\t  ,[BAW].[dbo].[Document].[PublishedDate]\n\t  ,[BAW].[dbo].[Document].[ValidTo]\n      ,[BAW].[dbo].[Document].[DocumentProceedingStatus]\n      ,[BAW].[dbo].[Document].[IsPublished]\n      ,[BAW].[dbo].[Document].[IsRemoved]\n      ,[BAW].[dbo].[Document].[IsSigned]\n      ,[BAW].[dbo].[Document].[LegalActStatus]   \n      ,[BAW].[dbo].[Document].[Title]\n      ,[BAW].[dbo].[Document].[UpdateDate]\n      ,[BAW].[dbo].[Document].[ValidFrom]\n      ,[BAW].[dbo].[Document].[UnifiedDocumentId]\n      ,[BAW].[dbo].[Document].[WasEverPublished]\n      ,[BAW].[dbo].[Document].[UniqueSharedIdentifier]    \n      ,[BAW].[dbo].[Document].[IsConfidential]\n      ,[BAW].[dbo].[Document].[WasConfidential]\n      ,[BAW].[dbo].[Document].[SystemValidTo]\n      ,[BAW].[dbo].[Document].[PermissionType]\n      ,[BAW].[dbo].[Document].[IsSetPermission]\n      ,[BAW].[dbo].[Document].[LastEditDate]\n\t  ,[BAW].[dbo].[AttachmentLink].id as [id_pliku]\n\t  ,[BAW].[dbo].[AttachmentLink].AttachmentNumber as [AttachmentNumber]\n\t  ,[BAW].[dbo].[AttachmentLink].[CreationDate] as [CreationDateFile]\n\t  ,[BAW].[dbo].[AttachmentLink].[OrginalFileName]\n\t  ,[BAW].[dbo].[AttachmentLink].[FileIdentiefier]\n      ,[BAW].[dbo].[AttachmentLink].[FileName]\n\t  ,[BAW].[dbo].[AttachmentLink].[IsWordDocument]\n\t  ,[BAW].[dbo].[AttachmentLink].[LanguageVersion]\n      ,[BAW].[dbo].[AttachmentLink].[OriginalWordFileId]\n\t  ,[BAW].[dbo].[AttachmentLink].[ParentFileIdentiefier]\n      ,[BAW].[dbo].[AttachmentLink].[ParentId]\n\t  ,[BAW].[dbo].[AttachmentLink].[UniqueSharedIdentifier]\n  FROM [BAW].[dbo].[Document]\n  LEFT JOIN [BAW].[dbo].[AttachmentLink] \n  ON [BAW].[dbo].[Document].Id = [AttachmentLink].DocumentID\n  Where [BAW].[dbo].[Document].CreationDate > '2024-11-20T14:52:00.000Z'\n  \n  /******#Wybieramy tylko opublikowane doksy******/\n  AND [BAW].[dbo].[Document].IsPublished = 1\n\n   /******#Wybieramy tylko doksy których liczba wersji w systemie jest wieksza niz 1******/\n   AND TRY_CONVERT(decimal(10,2), [BAW].[dbo].[Document].DocumentVersion) > 1\n\n   /******#Ogranicamy wyniki do plikow typu docx ******/\n   AND [BAW].[dbo].[AttachmentLink].isWordDocument = 1\n\n   /****** #Wybieramy tylko doksy o wybranym typie procedura 60 przewodnik 59 regulamin 28 polityka 75 strategia 76 ew. instrukcja powiazana z WB 25 , wniosek 74, zalacznik inny 35   -   wycinamy zarzadzenia 3******/\n  AND [BAW].[dbo].[Document].LegalActType IN (60, 59, 28, 75, 76)"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        -2128,
+        160
+      ],
+      "id": "5cc2caa0-d872-403b-bfb1-1c976761326b",
+      "name": "Select_no_1",
+      "credentials": {
+        "microsoftSql": {
+          "id": "JsJdnrO57AclFo35",
+          "name": "Microsoft SQL account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "/****** Krok w którym pobieramy ID pierwotnego pliku  ******/\nSELECT TOP (100) [Id]\n      ,[CreationDate]\n      ,[MasterDocumentId]\n      ,[SlaverDocumentId]\n      ,[Type]\n      ,[UniqueSharedIdentifier]\n      ,[RelationNumber]\n  FROM [BAW].[dbo].[DocumentRelation]\n  where MasterDocumentId = {{$json.iUw3}}\n  and Type = 16"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        -1984,
+        608
+      ],
+      "id": "f61ff47d-201c-47e2-8f83-013d2adda1ab",
+      "name": "Select_no_2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "JsJdnrO57AclFo35",
+          "name": "Microsoft SQL account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "tableName": "Table1",
+        "searchColumn": "baw_file_id",
+        "searchTerm": "={{'Loop Over Items'.item,$json.id_pliku}}",
+        "options": {
+          "insensitive": true,
+          "convert": true
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -1456,
+        176
+      ],
+      "id": "070fda50-3c66-4fd0-a5d0-edbea0084a2d",
+      "name": "Check_if_exist",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "seaTableApi": {
+          "id": "GE6U41x7kJXbArqi",
+          "name": "SeaTable account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "tableName": "Table1",
+        "apply_default": true,
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "Dock_name",
+              "columnValue": "={{ $('Loop Over Items').item.json.OrginalFileName }}"
+            },
+            {
+              "columnName": "is_handled_by_n8n",
+              "columnValue": "0"
+            },
+            {
+              "columnName": "baw_file_id",
+              "columnValue": "={{ $('Loop Over Items').item.json.id_pliku }}"
+            },
+            {
+              "columnName": "Dock_version",
+              "columnValue": "={{ $('Loop Over Items').item.json.DocumentVersion }}"
+            },
+            {
+              "columnName": "baw_doc_date",
+              "columnValue": "={{ $('Loop Over Items').item.json.CreationDateFile }}"
+            },
+            {
+              "columnName": "baw_dock_id",
+              "columnValue": "={{ $('Loop Over Items').item.json.Id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -768,
+        80
+      ],
+      "id": "82115d01-9633-418b-bc79-a8f1ce248831",
+      "name": "Insert_into_db",
+      "alwaysOutputData": true,
+      "credentials": {
+        "seaTableApi": {
+          "id": "GE6U41x7kJXbArqi",
+          "name": "SeaTable account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "get_first_versiondock",
+        "apply_default": true,
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "first_ver_id",
+              "columnValue": "={{ $json.SlaverDocumentId }}"
+            },
+            {
+              "columnName": "baw_dock_id",
+              "columnValue": "={{ $json.MasterDocumentId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -1632,
+        608
+      ],
+      "id": "3c026c9d-e1b7-48ae-8297-6137b6305831",
+      "name": "Insert_into_db2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "seaTableApi": {
+          "id": "GE6U41x7kJXbArqi",
+          "name": "SeaTable account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "items[0].json.globalStorage = {\n    zmienna_mok: $input.first().json.Id,\n    Czas_odciecia: $now\n};\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1936,
+        160
+      ],
+      "id": "40891629-e5df-4c77-a5df-34b714834c1d",
+      "name": "Variable js"
+    },
+    {
+      "parameters": {
+        "jsCode": "items[0].json.globalStorage = {\n    id_pierwszej_wersji: $input.first().json.SlaverDocumentId,\n};\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1824,
+        608
+      ],
+      "id": "87ba1ea9-788a-45c7-87e0-e98c9f49e1e1",
+      "name": "Variable_js2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -608,
+        208
+      ],
+      "id": "5f4581a7-9bce-481a-a647-79e9cbe67e3c",
+      "name": "Wait",
+      "webhookId": "a2ddc6b4-d1e2-4d2d-8572-a11e9a2d81db",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "## ETAP 2\nPobieramy i zapisujemy w naszej bazie ID pierwszego doka i sprawdzamy dwie ostatnie wersje tego dokumentu",
+        "height": 336,
+        "width": 1552
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2176,
+        480
+      ],
+      "id": "379ef632-4827-4c28-8c0c-bbc2ca8a8e21",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "adb78c00-bbbd-4ec2-9e6c-d1cf4a309800",
+              "leftValue": "={{ $json.inserted_row_count }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1456,
+        608
+      ],
+      "id": "c243f6cf-d1a6-475b-a359-3430d5236c4c",
+      "name": "If1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "/****** sprawdzenie pierwtnego pliku  ******/\nSELECT TOP (2) [BAW].[dbo].[DocumentRelation].[Id]\n      ,[BAW].[dbo].[DocumentRelation].[CreationDate]\n      ,[BAW].[dbo].[DocumentRelation].[MasterDocumentId]\n      ,[BAW].[dbo].[DocumentRelation].[SlaverDocumentId]\n      ,[BAW].[dbo].[DocumentRelation].[Type]\n      ,[BAW].[dbo].[DocumentRelation].[UniqueSharedIdentifier]\n      ,[BAW].[dbo].[DocumentRelation].[RelationNumber]\n\t\t,[BAW].[dbo].[AttachmentLink].id as [id_pliku]\n\t\t,[BAW].[dbo].[AttachmentLink].[CreationDate] as [CreationDateFile]\n\t\t,[BAW].[dbo].[AttachmentLink].[FileIdentiefier]\n      \t,[BAW].[dbo].[AttachmentLink].[FileName]\n\t\t,[BAW].[dbo].[AttachmentLink].[IsWordDocument]\n\t\t,[BAW].[dbo].[AttachmentLink].[LanguageVersion]\n      \t,[BAW].[dbo].[AttachmentLink].[OrginalFileName]\n\t\t,[BAW].[dbo].[AttachmentLink].[UniqueSharedIdentifier]\n\t  ,[BAW].[dbo].[Document].Id AS ID_dokumentu_w_BAW\n\t  ,[BAW].[dbo].[Document].DocumentVersion AS WERSJA_DOKUMENTU\n\t  ,CONCAT('https://prebaw.creditagricole/api/file/1/', [BAW].[dbo].[AttachmentLink].id) as LinkDOPliku\n\n  FROM [BAW].[dbo].[DocumentRelation]\n  LEFT JOIN [BAW].[dbo].[AttachmentLink] \n\tON [BAW].[dbo].[DocumentRelation].MasterDocumentId = [AttachmentLink].DocumentID\n\n  LEFT JOIN [BAW].[dbo].[Document]\n\tON [AttachmentLink].DocumentID = [BAW].[dbo].[Document].Id \n\n  WHERE [BAW].[dbo].[DocumentRelation].SlaverDocumentId = 22170\n  AND [BAW].[dbo].[DocumentRelation].Type = 16\n  AND [BAW].[dbo].[AttachmentLink].[IsWordDocument] = 1\n  \n  ORDER BY CreationDate DESC\n"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        -1216,
+        672
+      ],
+      "id": "ff3f809d-dbe1-4352-82cd-c893955e5dfd",
+      "name": "Select_no3",
+      "credentials": {
+        "microsoftSql": {
+          "id": "JsJdnrO57AclFo35",
+          "name": "Microsoft SQL account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "items[0].json.globalStorage = {\n  id_pliku_Last: $input.first().json.id_pliku,\n  id_pliku_pre: $input.all()[1].json.id_pliku,\n  link_pliku_Last: $input.first().json.LinkDOPliku,\n  link_pliku_pre: $input.all()[1].json.LinkDOPliku\n};\nreturn items;;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        672
+      ],
+      "id": "8cf11507-7316-49cd-b369-3dc9817f5bb1",
+      "name": "Variable_js3"
+    },
+    {
+      "parameters": {
+        "content": "## ETAP 3 - Oznaczenie rekordow jako przeprocesowane / pozniej do przeniesienia na koniec flow\n",
+        "width": 1552
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2176,
+        864
+      ],
+      "id": "646673e7-6e88-41b9-a81d-56dc9d2085e7",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Wystawienie plikow\n",
+        "height": 896,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -64
+      ],
+      "id": "fde18597-9290-4842-a94b-14ee200317e7",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "tableName": "error_log",
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "Error_message",
+              "columnValue": "='Dokument '{{ $json.id }} był już procesowany. Rekord został pominięty w tej iteracji."
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        240
+      ],
+      "id": "cdc38b17-b5f5-496d-b281-97a4efa9586b",
+      "name": "Event_log",
+      "alwaysOutputData": false,
+      "credentials": {
+        "seaTableApi": {
+          "id": "GE6U41x7kJXbArqi",
+          "name": "SeaTable account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "97975db6-f26e-4d09-a815-c6fad21374df",
+                    "leftValue": "={{ $input.item.json }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "new"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $input.item.json }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "4e72d6b1-a197-4dbc-947c-58d43d50e338"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "exist"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1248,
+        176
+      ],
+      "id": "40ede656-4ccd-454b-b49a-1bf837a168d2",
+      "name": "Switch",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "['8GIC']",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        80
+      ],
+      "id": "cb82bff9-07e7-4702-9a93-6a263e6ac429",
+      "name": "Split Out",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "tableName": "error_log",
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "Error_message",
+              "columnValue": "='Dla niektorych dokumentow nie znaleziono dokumentow pierwotnych"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        496
+      ],
+      "id": "2086ba0b-eb6e-4527-847e-c0e20237b621",
+      "name": "Event_log1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "seaTableApi": {
+          "id": "GE6U41x7kJXbArqi",
+          "name": "SeaTable account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentTime = new Date();\nconst newTime = new Date(currentTime.getTime() + 90 * 60000);\n// Formatowanie wyniku (opcjonalne)\nconst formattedTime = newTime.toISOString(); // Format: 2023-10-05T12:30:00.000Z\n\nreturn [{ json: { originalTime: currentTime, minus30Minutes: newTime, formatted: formattedTime } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2320,
+        160
+      ],
+      "id": "94cb766d-6554-46dd-bc6f-d20850e680ef",
+      "name": "Obliczanie_zakresu_czasu"
+    },
+    {
+      "parameters": {
+        "tableName": "dock_to_process_info",
+        "apply_default": true,
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "first_ver_ID",
+              "columnValue": "={{ $json.SlaverDocumentId }}"
+            },
+            {
+              "columnName": "dock_id",
+              "columnValue": "={{ $json.MasterDocumentId }}"
+            },
+            {
+              "columnName": "dock_version",
+              "columnValue": "={{ $json.WERSJA_DOKUMENTU }}"
+            },
+            {
+              "columnName": "file_id",
+              "columnValue": "={{ $json.id_pliku }}"
+            },
+            {
+              "columnName": "dock_name",
+              "columnValue": "={{ $json.OrginalFileName }}"
+            },
+            {
+              "columnName": "dock_link",
+              "columnValue": "={{ $json.LinkDOPliku }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        672
+      ],
+      "id": "be900cb4-6d9b-4a3e-a188-d25faa6965bb",
+      "name": "insert_do_pobrania",
+      "alwaysOutputData": true,
+      "credentials": {
+        "seaTableApi": {
+          "id": "GE6U41x7kJXbArqi",
+          "name": "SeaTable account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "filePath": "C:\\documents\\old_document.docx",
+        "dataPropertyName": "old_file"
+      },
+      "id": "8ac0ec4b-f3ae-4aa6-a127-9e7d433da79e",
+      "name": "Read Old Document",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        288,
+        1392
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "filePath": "C:\\documents\\new_document.docx",
+        "dataPropertyName": "new_file"
+      },
+      "id": "ada7325b-21bc-4668-aeb3-2148eac7316b",
+      "name": "Read New Document",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        288,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/api/documents/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "old_document",
+              "value": "={{ $binary.data1 }}"
+            },
+            {
+              "name": "new_document",
+              "value": "={{ $binary.data0 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dc089642-d7fe-4685-8fbf-987c89b5bb05",
+      "name": "Upload Documents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        736,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/api/process",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "document_pair_id",
+              "value": "={{ $('Upload Documents').item.json.document_pair_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "94d52ed2-6e52-4a36-ae5d-cacf090e87b4",
+      "name": "Start Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        928,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "id": "94741f96-d80f-43e9-8e20-c680c5a0cc9f",
+      "name": "Wait 3 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        368
+      ],
+      "webhookId": "3cd338b3-3618-4b32-aea4-bfd1e53c5168"
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:8001/api/status/{{ $('Start Processing').item.json.process_id }}",
+        "options": {}
+      },
+      "id": "f3a6fc67-822c-40bd-8991-ee1466a60258",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1328,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "operation": "equals",
+              "value2": "completed"
+            }
+          ]
+        }
+      },
+      "id": "1a85f879-2a31-4b9b-97e5-ba782086db7a",
+      "name": "Is Completed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "88ca94d5-84a5-4e1e-8452-a756d6116a3e",
+      "name": "Wait 2 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        560
+      ],
+      "webhookId": "9a60473b-b3c8-4aed-9055-405989dc3286"
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:8001/api/result/{{ $('Start Processing').item.json.process_id }}/full",
+        "options": {}
+      },
+      "id": "781e1d94-2a54-4d85-9325-945ffdef3ab0",
+      "name": "Get Full Result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1728,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:8001/api/result/{{ $('Start Processing').item.json.process_id }}/modified",
+        "options": {}
+      },
+      "id": "7b1368b4-fa01-4de0-b5c9-800ab49ace40",
+      "name": "Get Modified",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1936,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fullResult = $input.item.json;\nconst stats = fullResult.statistics;\n\nconst summary = {\n  timestamp: new Date().toISOString(),\n  process_id: fullResult.process_id,\n  total_changes: stats.total_changes,\n  modified: stats.modified_paragraphs,\n  added: stats.added_paragraphs,\n  deleted: stats.deleted_paragraphs,\n  severity: stats.total_changes > 10 ? 'HIGH' : 'LOW'\n};\n\nreturn { json: summary };"
+      },
+      "id": "244bb000-186e-47e0-a1c6-1f2f4ab1e1a3",
+      "name": "Process Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2128,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a5be2152-b7b0-4f5a-8c79-0a94acfe1a75",
+              "name": "File_1",
+              "value": "=fileName = {{ $binary.data}}_item_{{ $itemIndex }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1056,
+        1200
+      ],
+      "id": "33518954-3600-493f-99c0-78a700230097",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newItems = [];\n\nfor (const item of items) {\n  // jeśli masz w jednym itemie oba pliki pod różnymi kluczami w odpowiedzi HTTP, odpowiednio je wydziel\n  if (item.binary && item.binary.data) {\n    // przykładowo robimy duplikat binary i nadajemy własne key\n    const plik1 = {\n      json: {},\n      binary: {\n        file1: item.binary.data  // pierwszy plik\n      }\n    };\n    const plik2 = {\n      json: {},\n      binary: {\n        file2: item.binary.data2 // drugi plik; tu musisz wskazać drugi field\n      }\n    };\n    newItems.push(plik1, plik2);\n  }\n}\n\nreturn newItems;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        1360
+      ],
+      "id": "670607c8-020a-47fd-8ece-ede4390b53cc",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\nfor (const item of items) {\n  if (item.binary.file1) {\n    results.push({ json: {}, binary: { data: item.binary.file1 } });\n  }\n  if (item.binary.file2) {\n    results.push({ json: {}, binary: { data: item.binary.file2 } });\n  }\n}\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        1360
+      ],
+      "id": "4723d593-5355-498b-bf79-d0233fd29fa8",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "path": "=/Testy/{{ $binary.data.fileName.replace('.docx', '_' + $itemIndex +'.docx') }}",
+        "binaryData": true
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        1312
+      ],
+      "id": "154019d7-d3f4-4f35-b34a-ab983be28020",
+      "name": "Upload a file",
+      "credentials": {
+        "dropboxApi": {
+          "id": "yn8WsRCOeSLSHsE3",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "path": "/Testy/Zal_1_Procedura_CA_110_2020_0.docx",
+        "binaryPropertyName": "new_file"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        32,
+        1728
+      ],
+      "id": "99974419-67c4-4aee-9b64-5fd9696b2caa",
+      "name": "Download a file",
+      "credentials": {
+        "dropboxApi": {
+          "id": "yn8WsRCOeSLSHsE3",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        960,
+        736
+      ],
+      "id": "7a2f7f19-94ba-4f74-ba8e-567dbc38dfc8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "id": "1878afb1-1a60-4a7a-aa07-9c4f15fa8dc3",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        1824
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "path": "/Testy/Zal_1_Procedura_CA_110_2020_1.docx",
+        "binaryPropertyName": "old_file"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        96,
+        1936
+      ],
+      "id": "62bf988a-2571-4bf7-a654-59c9a42d7960",
+      "name": "Download a file1",
+      "credentials": {
+        "dropboxApi": {
+          "id": "yn8WsRCOeSLSHsE3",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn [\n  {\n    json:{},\n    binary: {\n      data0: items[0].binary.data,\n      data1: items[1].binary.data,\n      \n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        384
+      ],
+      "id": "8e7a97ef-9ae2-4ccc-9e18-f6d7385d305b",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Przeanalizuj załączony plik z wynikami porównania dokumentów.\n\nPlik JSON zawiera:\n- statistics: zagregowane statystyki zmian\n- paragraphs: lista wszystkich paragrafów z nowego dokumentu oraz usuniętych ze starego\n- tables: lista tabel ze zmianami w komórkach\n\nKażdy paragraf ma:\n- index: pozycja\n- text: aktualna treść (z nowego dokumentu)\n- type: unchanged/modified/added/deleted\n- old_text: poprzednia treść (dla modified i deleted)\n- changes: szczegółowe zmiany słowo po słowie (dla modified)\n\nPrzygotuj szczegółowy raport zawierający:\n\n1. EXECUTIVE SUMMARY\n   - Łącznie zmian: [liczba]\n   - Charakterystyka: [głównie co?]\n   - Ocena: [istotne/drobne]\n\n2. ZMIANY KRYTYCZNE\n   Lista zmian wymagających natychmiastowej uwagi (definicje, liczby, wymagania prawne)\n   Format: Paragraf #X: [opis] | Stare: [...] | Nowe: [...] | Wpływ: [...]\n\n3. ZMIANY ISTOTNE\n   Lista ważnych zmian (nazwy, terminy, procedury)\n   Format: Paragraf #X: [opis zmiany]\n\n4. ZMIANY MNIEJSZE\n   Lista mniejszych zmian (stylistyka, formatowanie)\n\n5. DODANE TREŚCI\n   Lista nowych paragrafów (type=\"added\")\n   Format: Paragraf #X: [treść]\n\n6. USUNIĘTE TREŚCI\n   Lista usuniętych paragrafów (type=\"deleted\")\n   Format: Paragraf #X: [treść]\n\n7. ZMIANY W TABELACH\n   Lista zmian w komórkach tabel\n   Format: Tabela #X, Wiersz Y, Kolumna Z: [stara] → [nowa]\n\n8. REKOMENDACJE\n   - Działania do podjęcia\n   - Obszary wymagające weryfikacji\n   - Potencjalne ryzyka\n\nZwróć szczególną uwagę na:\n- Zmiany w liczbach i wartościach liczbowych\n- Zmiany w nazwach departamentów, ról, stanowisk\n- Zmiany w definicjach i terminach\n- Zmiany w wymaganiach i procedurach\n- Usunięte wymagania (potencjalne problemy compliance)\n- Dodane wymagania (nowe obowiązki)\n\n\nPlik JSON:\nWejście:\n{{ JSON.stringify($json.data) }}",
+        "options": {
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        3344,
+        464
+      ],
+      "id": "0febf816-1899-4094-aa38-0c5445fe99f0",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "azure-gpt-5-chat",
+          "mode": "list",
+          "cachedResultName": "azure-gpt-5-chat"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3424,
+        688
+      ],
+      "id": "b5c0e394-d357-4594-89c3-feccf7db5f86",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vl73hQzqmpMHKQva",
+          "name": "OpenAi account 10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "GPT - analiza dwóch wersji dokumentu i przygotowanie raportu zmian.",
+        "height": 112,
+        "width": 166,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3360,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "0fd854c5-0f41-402d-bfa7-01cddf3a1e11",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        2912,
+        480
+      ],
+      "id": "e1c483ef-98b9-4eaf-8f54-206afa7dd080",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Przeanalizuj plik JSON, który zawiera porównanie starej i nowej wersji dokumentu. \nSkup się wyłącznie na zmianach o merytorycznym znaczeniu. Pomiń zmiany stylistyczne, redakcyjne, formatowanie oraz drobne korekty językowe.\n\nTwoim zadaniem jest przygotowanie krótkiego podsumowania zarządczego w formie kilku wypunktowanych sekcji:\n\n1. **Najważniejsze zmiany** – maksymalnie 5–7 punktów, każdy krótko opisuje zmianę i wskazuje jej typ (np. nowy obowiązek, zmiana wartości liczbowej, usunięcie wymogu, zmiana terminu).\n2. **Potencjalny wpływ** – jedno–dwa zdania przy każdej zmianie, opisujące możliwe konsekwencje biznesowo/prawne.\n3. **Obszary wymagające decyzji lub weryfikacji** – lista kluczowych miejsc w dokumencie, gdzie potrzebne jest zatwierdzenie, analiza ryzyka lub zmiana procedur.\n\n**Dodatkowe zasady:**\n- Grupuj podobne zmiany razem (np. wszystkie zmiany dotyczące terminów w jednym punkcie).\n- Nie przytaczaj pełnych paragrafów ani długich cytatów, podawaj tylko zwięzły opis.\n- Jeśli zmiana dotyczy liczb lub wartości – podaj starą i nową wartość w jednym zdaniu.\n- Jeżeli nie ma żadnych istotnych zmian – zwróć komunikat „Brak zmian merytorycznych wpływających na procesy lub obowiązki”.\n\nPlik JSON:\n{{ JSON.stringify($json.data) }}",
+        "options": {
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        3408,
+        -96
+      ],
+      "id": "35bc9b5e-fb45-43bc-8f21-0745501c92b3",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "azure-gpt-5-chat",
+          "mode": "list",
+          "cachedResultName": "azure-gpt-5-chat"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3488,
+        128
+      ],
+      "id": "ba7904a5-610b-4467-8e1d-ddfbd0b2cf9a",
+      "name": "OpenAI Chat Model5",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vl73hQzqmpMHKQva",
+          "name": "OpenAi account 10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "GPT - analiza dwóch wersji dokumentu i przygotowanie raportu zmian.",
+        "height": 112,
+        "width": 166,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3424,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "674b4d93-1325-41b3-b4c5-6d52bffbf5e7",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "path": "/Testy/Results_reklamacje.json"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        480
+      ],
+      "id": "2af32e91-10d2-4844-82df-4ab7c15836a3",
+      "name": "Download a file2",
+      "credentials": {
+        "dropboxApi": {
+          "id": "yn8WsRCOeSLSHsE3",
+          "name": "Dropbox account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Obliczanie_zakresu_czasu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Obliczanie_zakresu_czasu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check_if_exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select_no_1": {
+      "main": [
+        [
+          {
+            "node": "Variable js",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select_no_2": {
+      "main": [
+        [
+          {
+            "node": "Variable_js2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check_if_exist": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert_into_db": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variable js": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variable_js2": {
+      "main": [
+        [
+          {
+            "node": "Insert_into_db2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Select_no_2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert_into_db2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Event_log1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select_no3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select_no3": {
+      "main": [
+        [
+          {
+            "node": "Variable_js3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variable_js3": {
+      "main": [
+        [
+          {
+            "node": "insert_do_pobrania",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Insert_into_db",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Event_log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obliczanie_zakresu_czasu": {
+      "main": [
+        [
+          {
+            "node": "Select_no_1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert_do_pobrania": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Old Document": {
+      "main": [
+        []
+      ]
+    },
+    "Read New Document": {
+      "main": [
+        []
+      ]
+    },
+    "Upload Documents": {
+      "main": [
+        [
+          {
+            "node": "Start Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Processing": {
+      "main": [
+        [
+          {
+            "node": "Wait 3 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Is Completed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Completed?": {
+      "main": [
+        [
+          {
+            "node": "Get Full Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 2 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Full Result": {
+      "main": [
+        [
+          {
+            "node": "Get Modified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Modified": {
+      "main": [
+        [
+          {
+            "node": "Process Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a file": {
+      "main": [
+        []
+      ]
+    },
+    "Download a file": {
+      "main": [
+        []
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Download a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download a file1": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Upload Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download a file2": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b84c6b0c-bee0-4a63-a584-cf4bc413f743",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b4b616b7f91cba1190de30bf997b6d4fd23ae83518f98bc8ef9db895a05f1179"
+  },
+  "id": "fqmBPbK8WcXEvmEP",
+  "tags": []
+}

@@ -1,18 +1,13 @@
-### BAW API Test File
+### BAW API Test File - LOCAL ENVIRONMENT
 ### Wymaga rozszerzenia REST Client (humao.rest-client) w VSCode
 ### Użycie: Kliknij "Send Request" nad każdym requestem
 
 #############################################
-# KONFIGURACJA
+# KONFIGURACJA - LOCALHOST
 #############################################
 
-# Serwer produkcyjny
-@backend_url = http://217.182.76.146:8001
-@frontend_url = http://217.182.76.146:8000
-
-# Localhost (do testów lokalnych - zakomentowane)
-# @backend_url = http://localhost:8001
-# @frontend_url = http://localhost:8000
+@backend_url = http://localhost:8001
+@frontend_url = http://localhost:8000
 
 #############################################
 # BACKEND API - UslugaDoPorownan (Port 8001)
@@ -185,23 +180,13 @@ Content-Type: application/pdf
 #    - <session_cookie> - Cookie z odpowiedzi login
 #    - <file_id_1>, <file_id_2> - ID plików
 
-# 4. Upewnij się, że serwisy są uruchomione na serwerze 217.182.76.146:
-#    - Backend: http://217.182.76.146:8001
-#    - Frontend: http://217.182.76.146:8000
+# 4. Upewnij się, że serwisy są uruchomione lokalnie:
+#    - Backend: uvicorn main:app --port 8001 --reload
+#    - Frontend: uvicorn main:app --port 8000 --reload
 
 # 5. Przykładowe pliki do testów:
 #    - Umieść pliki DOCX/PDF w ./stara_wersja/ i ./nowa_wersja/
 
-# 6. Środowiska (environments):
-#    Możesz definiować różne środowiska w settings.json:
-#    "rest-client.environmentVariables": {
-#        "local": {
-#            "backend_url": "http://localhost:8001",
-#            "frontend_url": "http://localhost:8000"
-#        },
-#        "prod": {
-#            "backend_url": "http://217.182.76.146:8001",
-#            "frontend_url": "http://217.182.76.146:8000"
-#        }
-#    }
-#    Przełączanie: Ctrl+Shift+P → "Rest Client: Switch Environment"
+# 6. Środowisko: LOCALHOST
+#    Backend: http://localhost:8001
+#    Frontend: http://localhost:8000
