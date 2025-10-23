@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-10-23T19:15:46.378044",
+  "old_doc": "testy/stary.docx",
+  "new_doc": "testy/nowy.docx",
+  "runs": 3,
+  "results": {
+    "original_avg": 0.18229778607686362,
+    "optimized_avg": 0.020874579747517902,
+    "speedup": 88.54918636328561,
+    "extract_time": 0.3361043930053711
+  }
+}
