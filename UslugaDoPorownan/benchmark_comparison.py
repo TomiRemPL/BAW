@@ -2,16 +2,25 @@
 
 Usage:
     python benchmark_comparison.py --old-doc stara_wersja/dokument.docx --new-doc nowa_wersja/dokument.docx
+
+Note: comparator_original.py zawiera backup oryginalnej wersji
+      comparator.py to obecnie zoptymalizowana wersja (wdrożona)
 """
 import time
 import argparse
 import sys
+import importlib.util
 from pathlib import Path
 
-# Import obu wersji
-from comparator import DocumentComparator as OriginalComparator
-from comparator_optimized import DocumentComparator as OptimizedComparator
+# Import zoptymalizowanej wersji (obecnie w comparator.py)
+from comparator import DocumentComparator as OptimizedComparator
 from extractor import DocumentExtractor
+
+# Import oryginalnej wersji z backupu
+spec = importlib.util.spec_from_file_location("comparator_original", "comparator_original.py")
+comparator_original = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(comparator_original)
+OriginalComparator = comparator_original.DocumentComparator
 
 
 def benchmark_single(comparator, old_content, new_content, name: str) -> dict:

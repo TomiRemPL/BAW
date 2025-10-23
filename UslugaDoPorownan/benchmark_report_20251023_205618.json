@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-10-23T20:56:18.494448",
+  "old_doc": "../stara_wersja/Polityka_Zarzadzania_Ryzykiem_ICT_DORA.docx",
+  "new_doc": "../nowa_wersja/Polityka_Zarzadzania_Ryzykiem_ICT_DORA.docx",
+  "runs": 3,
+  "results": {
+    "original_avg": 0.11100093523661296,
+    "optimized_avg": 0.015509843826293945,
+    "speedup": 86.02728545193543,
+    "extract_time": 0.195296049118042
+  }
+}

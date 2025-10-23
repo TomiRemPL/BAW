@@ -19,7 +19,11 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nDodano pełną konfigurację Visual Studio Code\n\nImplementacja:\n- Konfiguracja workspace (.vscode/): settings, launch, tasks, extensions, snippets\n- Dokumentacja VSCODE_SETUP.md (600+ linii)\n- Testy API (test.http) dla REST Client\n- Narzędzia deweloperskie (requirements-dev.txt)\n- Uniwersalna konfiguracja edytora (.editorconfig)\n- Zaktualizowano dokumentację (DOCS_INDEX.md v1.1.0, PROGRESS_LOG.md v1.1.0)\n\nFunkcjonalności:\n- Full Stack debugging (F5 - oba serwisy jednocześnie)\n- Auto-formatowanie (Black) i linting (Flake8)\n- 15 snippetów kodu dla FastAPI i Pydantic\n- 11 tasków (Run, Test, Format, Lint, Clean)\n- ~20 rekomendowanych rozszerzeń VSCode\n\nPliki: 10 nowych, 4 zaktualizowane\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(PYTHONIOENCODING=utf-8 python:*)",
       "Bash(cat:*)",
-      "Bash(env PYTHONIOENCODING=utf-8 python benchmark_comparison.py --old-doc testy/stary.docx --new-doc testy/nowy.docx --runs 3)"
+      "Bash(env PYTHONIOENCODING=utf-8 python benchmark_comparison.py --old-doc testy/stary.docx --new-doc testy/nowy.docx --runs 3)",
+      "Bash(copy comparator.py comparator_original.py)",
+      "Bash(for file in comparator.py extractor.py models.py storage.py)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

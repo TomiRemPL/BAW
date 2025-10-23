@@ -5,12 +5,14 @@ Optymalizacje:
 - Fast similarity pre-screen (40-60% szybciej)
 - Usunięcie duplikacji diff (15-25% szybciej)
 - Dynamiczny search range (10-20% szybciej dla dużych dokumentów)
+- Normalizacja white-space (ignorowanie zmian w wielokrotnych spacjach)
 
 Łącznie: 50-70% szybciej niż oryginalna wersja
 """
 import logging
 from typing import List, Tuple, Set, Optional
 import os
+import re
 
 from diff_match_patch import diff_match_patch
 
@@ -39,6 +41,35 @@ class DocumentComparator:
         # Statystyki cache (dla debugowania)
         self._cache_hits = 0
         self._cache_misses = 0
+
+    def _normalize_whitespace(self, text: str) -> str:
+        """
+        Normalizacja white-space w tekście.
+
+        Optymalizacja 5: Ignorowanie zmian kosmetycznych (wielokrotne spacje, taby).
+
+        Args:
+            text: Tekst do normalizacji
+
+        Returns:
+            Znormalizowany tekst
+        """
+        if not text:
+            return text
+
+        # 1. Zamień taby na spacje
+        text = text.replace('\t', ' ')
+
+        # 2. Usuń wielokrotne spacje → pojedyncze
+        text = re.sub(r' +', ' ', text)
+
+        # 3. Trim spacje z początku i końca
+        text = text.strip()
+
+        # 4. Normalizuj spacje wokół znaków interpunkcyjnych (opcjonalne)
+        # text = re.sub(r'\s+([.,;:!?])', r'\1', text)  # Usuń spacje przed interpunkcją
+
+        return text
 
     def _get_cached_diff(self, text1: str, text2: str) -> list:
         """
@@ -228,9 +259,13 @@ class DocumentComparator:
         # Mapowanie: new_index -> (old_index, diffs)
         modifications = {}
 
-        # Krok 1: Znajdź dokładne dopasowania (hash-based, O(n))
-        old_set = {p: i for i, p in enumerate(old_paragraphs)}
-        new_set = {p: i for i, p in enumerate(new_paragraphs)}
+        # Normalizuj paragrafy dla porównania (Optymalizacja 5)
+        old_normalized = [self._normalize_whitespace(p) for p in old_paragraphs]
+        new_normalized = [self._normalize_whitespace(p) for p in new_paragraphs]
+
+        # Krok 1: Znajdź dokładne dopasowania (hash-based, O(n)) - używamy znormalizowanych tekstów
+        old_set = {p: i for i, p in enumerate(old_normalized)}
+        new_set = {p: i for i, p in enumerate(new_normalized)}
 
         for para, old_idx in old_set.items():
             if para in new_set:
@@ -241,7 +276,7 @@ class DocumentComparator:
         # Krok 2: Znajdź podobne paragrafy (modyfikacje) - ZOPTYMALIZOWANE
         search_range = self._calculate_search_range(len(new_paragraphs))
 
-        for old_idx, old_para in enumerate(old_paragraphs):
+        for old_idx, old_para_norm in enumerate(old_normalized):
             if old_idx in matched_old:
                 continue
 
@@ -257,11 +292,11 @@ class DocumentComparator:
                 if new_idx in matched_new:
                     continue
 
-                new_para = new_paragraphs[new_idx]
+                new_para_norm = new_normalized[new_idx]
 
-                # Optymalizacja 2 + 3: Fast check + zwraca diff
+                # Optymalizacja 2 + 3 + 5: Fast check + zwraca diff (na znormalizowanych tekstach)
                 is_similar, diffs, similarity = self._are_similar_with_diff(
-                    old_para, new_para, threshold=0.3
+                    old_para_norm, new_para_norm, threshold=0.3
                 )
 
                 if is_similar and similarity > best_similarity:
@@ -398,9 +433,13 @@ class DocumentComparator:
                     old_cell = old_row[col_idx] if col_idx < len(old_row) else ""
                     new_cell = new_row[col_idx] if col_idx < len(new_row) else ""
 
-                    if old_cell != new_cell:
-                        # Użyj cache dla diff (Optymalizacja 1)
-                        diffs = self._get_cached_diff(old_cell, new_cell)
+                    # Normalizuj komórki przed porównaniem (Optymalizacja 5)
+                    old_cell_norm = self._normalize_whitespace(old_cell)
+                    new_cell_norm = self._normalize_whitespace(new_cell)
+
+                    if old_cell_norm != new_cell_norm:
+                        # Użyj cache dla diff (Optymalizacja 1) - na znormalizowanych tekstach
+                        diffs = self._get_cached_diff(old_cell_norm, new_cell_norm)
                         self.dmp.diff_cleanupSemantic(diffs)
 
                         cell_changes = [
