@@ -23,7 +23,10 @@
       "Bash(copy comparator.py comparator_original.py)",
       "Bash(for file in comparator.py extractor.py models.py storage.py)",
       "Bash(do echo \"=== $file ===\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(find:*)",
+      "Bash(while read line)",
+      "Bash(do echo \"  • $line\")"
     ],
     "deny": [],
     "ask": []
