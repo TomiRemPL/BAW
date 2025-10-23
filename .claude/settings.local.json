@@ -14,7 +14,9 @@
       "Bash(powershell:*)",
       "Bash(pip install:*)",
       "Bash(where python)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nDodano pełną konfigurację Visual Studio Code\n\nImplementacja:\n- Konfiguracja workspace (.vscode/): settings, launch, tasks, extensions, snippets\n- Dokumentacja VSCODE_SETUP.md (600+ linii)\n- Testy API (test.http) dla REST Client\n- Narzędzia deweloperskie (requirements-dev.txt)\n- Uniwersalna konfiguracja edytora (.editorconfig)\n- Zaktualizowano dokumentację (DOCS_INDEX.md v1.1.0, PROGRESS_LOG.md v1.1.0)\n\nFunkcjonalności:\n- Full Stack debugging (F5 - oba serwisy jednocześnie)\n- Auto-formatowanie (Black) i linting (Flake8)\n- 15 snippetów kodu dla FastAPI i Pydantic\n- 11 tasków (Run, Test, Format, Lint, Clean)\n- ~20 rekomendowanych rozszerzeń VSCode\n\nPliki: 10 nowych, 4 zaktualizowane\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
