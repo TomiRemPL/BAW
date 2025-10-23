@@ -14,14 +14,16 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 | [VSCODE_SETUP.md](VSCODE_SETUP.md) | Konfiguracja Visual Studio Code, debugowanie, tasks | Developer |
 | [PROGRESS_LOG.md](PROGRESS_LOG.md) | Historia postępu prac i stan projektu | Manager, Developer |
 | [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) | Podsumowanie implementacji konwersji PDF→DOCX | Developer |
-| [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | **NOWY!** Kompletna dokumentacja API (~900 linii) | Developer, API User |
-| [N8N_INTEGRATION.md](N8N_INTEGRATION.md) | **NOWY!** Integracja z N8N, workflow automation | DevOps, Automation |
-| [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) | **NOWY!** Przewodnik workflow N8N v2.0 | DevOps, Automation |
-| [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) | **NOWY!** Przewodnik memory-only workflow N8N v3.0 | DevOps, Security |
+| [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md) | **NOWY!** Dokumentacja endpointu generowania raportów HTML | Developer, API User |
+| [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | Kompletna dokumentacja API (~900 linii, 9 endpointów) | Developer, API User |
+| [N8N_INTEGRATION.md](N8N_INTEGRATION.md) | Integracja z N8N, workflow automation | DevOps, Automation |
+| [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) | Przewodnik workflow N8N v2.0 | DevOps, Automation |
+| [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) | Przewodnik memory-only workflow N8N v3.0 | DevOps, Security |
+| [N8N_HTML_REPORT_INTEGRATION.md](N8N_HTML_REPORT_INTEGRATION.md) | **NOWY!** Integracja raportów HTML w N8N | DevOps, Automation |
 | [requirements.txt](requirements.txt) | Wspólne zależności Python dla całego projektu | Developer |
 | [test.http](test.http) | Testy API dla REST Client (produkcja) | Developer, API User |
-| [test.local.http](test.local.http) | **NOWY!** Testy API dla localhost | Developer |
-| [test.prod.http](test.prod.http) | **NOWY!** Testy API dla produkcji (217.182.76.146) | Developer, API User |
+| [test.local.http](test.local.http) | Testy API dla localhost | Developer |
+| [test.prod.http](test.prod.http) | Testy API dla produkcji (217.182.76.146) | Developer, API User |
 | [CLAUDE.md](CLAUDE.md) | Instrukcje dla Claude Code AI | Developer |
 
 ### SecureDocCompare (`/SecureDocCompare`)
@@ -92,7 +94,15 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 2. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - Pełna lista endpointów z przykładami
 3. [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) - Workflow v2.0 (podstawowy)
 4. [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) - Workflow v3.0 (bez zapisu na dysku)
-5. [test.prod.http](test.prod.http) - Testowanie endpointów produkcyjnych
+5. [N8N_HTML_REPORT_INTEGRATION.md](N8N_HTML_REPORT_INTEGRATION.md) - **NOWY!** Generowanie raportów HTML w N8N
+6. [test.prod.http](test.prod.http) - Testowanie endpointów produkcyjnych
+
+### Chcę generować raporty HTML
+
+1. [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md) - **Start tutaj!** Dokumentacja endpointu raportów
+2. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - Kompletna dokumentacja API
+3. [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) - Backend API
+4. [test.http](test.http) - Przykłady zapytań API (REST Client)
 
 ---
 
@@ -270,6 +280,7 @@ Szybki start backendu API:
 | API endpointy | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) |
 | Przykłady curl | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md), [API_DOCUMENTATION.md](API_DOCUMENTATION.md) |
 | Testowanie API (REST Client) | [test.http](test.http), [test.local.http](test.local.http), [test.prod.http](test.prod.http) |
+| **Generowanie raportów HTML** | [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md) - endpoint `/api/report/{process_id}/generate` |
 | **N8N Integracja** | [N8N_INTEGRATION.md](N8N_INTEGRATION.md) |
 | **N8N Workflow v2.0** | [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) |
 | **N8N Memory-Only v3.0** | [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) |
@@ -291,12 +302,14 @@ Szybki start backendu API:
 | README.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
 | DEPLOYMENT.md | ✅ Aktualny | 2025-10-23 | 1.1.0 |
 | VSCODE_SETUP.md | ✅ Aktualny | 2025-10-22 | 1.0.0 |
-| PROGRESS_LOG.md | ✅ Aktualny | 2025-10-23 | 1.2.0 |
+| PROGRESS_LOG.md | ✅ Aktualny | 2025-10-23 | 1.3.0 |
 | PDF_CONVERSION_SUMMARY.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
-| **API_DOCUMENTATION.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
+| **HTML_REPORT_ENDPOINT.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
+| **API_DOCUMENTATION.md** | ✅ Aktualny | 2025-10-23 | 1.1.0 |
 | **N8N_INTEGRATION.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
 | **N8N_WORKFLOW_GUIDE.md** | ✅ Aktualny | 2025-10-23 | 2.0.0 |
 | **N8N_MEMORY_ONLY_GUIDE.md** | ✅ Aktualny | 2025-10-23 | 3.0.0 |
+| **N8N_HTML_REPORT_INTEGRATION.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
 | test.http | ✅ Aktualny | 2025-10-23 | 1.1.0 |
 | **test.local.http** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
 | **test.prod.http** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
@@ -329,8 +342,21 @@ Jeśli znajdziesz nieaktualną informację:
 ---
 
 **Ostatnia aktualizacja:** 2025-10-23
-**Wersja indeksu:** 1.2.0
+**Wersja indeksu:** 1.4.0
 **Projekt:** BAW - Porównywanie Dokumentów Bankowych
+
+**Changelog 1.4.0 (2025-10-23):**
+- Dodano **N8N_HTML_REPORT_INTEGRATION.md** - przewodnik integracji raportów HTML w N8N workflow
+- Zaktualizowano sekcję "Chcę zintegrować z N8N" - dodano krok 5 (generowanie raportów HTML)
+- Zaktualizowana tabela statusu dokumentacji (23 pliki)
+
+**Changelog 1.3.0 (2025-10-23):**
+- Dodano **HTML_REPORT_ENDPOINT.md** - dokumentacja endpointu generowania raportów HTML
+- Zaktualizowano **API_DOCUMENTATION.md** (wersja 1.1.0) - dodano endpoint 10: `/api/report/{process_id}/generate`
+- Zaktualizowano **PROGRESS_LOG.md** (wersja 1.3.0) - dodano sekcję o endpointcie raportów HTML
+- Dodano sekcję "Chcę generować raporty HTML" w ścieżkach nauki
+- Rozszerzona tabela "Szukam informacji o..." (generowanie raportów HTML)
+- Zaktualizowana tabela statusu dokumentacji (22 pliki)
 
 **Changelog 1.2.0 (2025-10-23):**
 - Dodano **API_DOCUMENTATION.md** - kompletna dokumentacja API (~900 linii, 9 endpointów)

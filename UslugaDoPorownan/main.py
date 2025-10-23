@@ -9,6 +9,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from models import (
     UploadResponse, ProcessRequest, ProcessResponse, ProcessingStatus,
@@ -49,8 +50,9 @@ app.add_middleware(
 )
 
 
-# Katalog uploads
+# Katalogi
 UPLOADS_DIR = Path("uploads")
+REPORTS_DIR = Path("output/reports")
 
 
 @app.on_event("startup")
@@ -58,11 +60,18 @@ async def startup():
     """Inicjalizacja przy starcie aplikacji."""
     logger.info("Uruchamianie usługi porównywania dokumentów")
 
-    # Utworzenie katalogu uploads
+    # Utworzenie katalogów
     UPLOADS_DIR.mkdir(exist_ok=True)
     logger.info(f"Katalog uploads: {UPLOADS_DIR.absolute()}")
 
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Katalog reports: {REPORTS_DIR.absolute()}")
+
     logger.info("Usługa gotowa do działania")
+
+
+# Montowanie statycznych plików dla raportów HTML
+app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
 
 
 @app.get("/")
@@ -79,7 +88,8 @@ async def root():
             "full": "GET /api/result/{process_id}/full",
             "modified": "GET /api/result/{process_id}/modified",
             "added": "GET /api/result/{process_id}/added",
-            "deleted": "GET /api/result/{process_id}/deleted"
+            "deleted": "GET /api/result/{process_id}/deleted",
+            "generate_report": "GET /api/report/{process_id}/generate"
         }
     }
 
@@ -457,6 +467,93 @@ async def get_deleted_sentences(process_id: str):
         total_count=len(deleted_sentences),
         generated_at=datetime.now()
     )
+
+
+@app.get("/api/report/{process_id}/generate")
+async def generate_html_report(process_id: str):
+    """
+    Generuje statyczną stronę HTML z raportem na podstawie wyników procesu.
+
+    Args:
+        process_id: ID procesu
+
+    Returns:
+        JSON z linkiem do wygenerowanego raportu HTML
+    """
+    import json
+
+    # Pobierz wynik z storage
+    result = storage.get_result(process_id)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Nie znaleziono wyników dla procesu: {process_id}"
+        )
+
+    # Wczytaj template HTML
+    template_path = Path(__file__).parent / "report_viewer_offline.html"
+    if not template_path.exists():
+        raise HTTPException(
+            status_code=500,
+            detail="Template report_viewer_offline.html nie istnieje"
+        )
+
+    with open(template_path, 'r', encoding='utf-8') as f:
+        html_template = f.read()
+
+    # Przygotuj dane JSON
+    result_dict = result.model_dump(mode='json')
+    result_json = json.dumps(result_dict, ensure_ascii=False, indent=2)
+
+    # Osadź dane JSON w HTML (zastąp mechanizm upload danymi)
+    # Znajdź miejsce gdzie zdefiniowana jest zmienna fullData i wstaw dane
+    html_with_data = html_template.replace(
+        'let fullData = null;',
+        f'let fullData = {result_json};'
+    )
+
+    # Dodaj auto-display przy ładowaniu strony
+    html_with_data = html_with_data.replace(
+        '</script>',
+        '''
+        // Auto-display przy ładowaniu strony
+        window.addEventListener('DOMContentLoaded', function() {
+            if (fullData) {
+                document.getElementById('uploadArea').classList.add('hidden');
+                document.getElementById('resultsSection').classList.remove('hidden');
+                displayResults();
+            }
+        });
+        </script>'''
+    )
+
+    # Zapisz do pliku
+    reports_dir = Path(__file__).parent / "output" / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    # Nazwa pliku z timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"report_{process_id}_{timestamp}.html"
+    report_path = reports_dir / filename
+
+    with open(report_path, 'w', encoding='utf-8') as f:
+        f.write(html_with_data)
+
+    logger.info(f"Wygenerowano raport HTML: {report_path}")
+
+    # Zwróć URL do raportu
+    # URL względny: /reports/{filename}
+    report_url = f"/reports/{filename}"
+
+    return {
+        "success": True,
+        "process_id": process_id,
+        "report_url": report_url,
+        "report_filename": filename,
+        "report_path": str(report_path),
+        "generated_at": datetime.now().isoformat(),
+        "message": "Raport HTML został wygenerowany pomyślnie"
+    }
 
 
 # Funkcja pomocnicza do przetwarzania w tle

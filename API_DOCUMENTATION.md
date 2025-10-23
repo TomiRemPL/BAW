@@ -1,6 +1,6 @@
 # 📚 Dokumentacja API - UslugaDoPorownan
 
-**Wersja:** 1.0.0
+**Wersja:** 1.1.0
 **Port:** 8001
 **URL Base:** `http://localhost:8001`
 **Format:** JSON
@@ -60,7 +60,8 @@ Accept: application/json
     "full": "GET /api/result/{process_id}/full",
     "modified": "GET /api/result/{process_id}/modified",
     "added": "GET /api/result/{process_id}/added",
-    "deleted": "GET /api/result/{process_id}/deleted"
+    "deleted": "GET /api/result/{process_id}/deleted",
+    "generate_report": "GET /api/report/{process_id}/generate"
   }
 }
 ```
@@ -582,6 +583,77 @@ Accept: application/json
 
 ---
 
+### 10. GET `/api/report/{process_id}/generate` - Generuj raport HTML
+
+Generuje statyczny raport HTML z osadzonymi danymi JSON. Raport jest zapisywany na serwerze i dostępny przez URL. Działa w trybie offline (nie wymaga serwera do wyświetlenia).
+
+**Parametry URL:**
+- `process_id` (string, **required**) - UUID procesu
+
+**Przykład curl:**
+```bash
+curl http://localhost:8001/api/report/f1e2d3c4-b5a6-7890-cdef-1234567890ab/generate
+```
+
+**Przykład HTTP:**
+```http
+GET http://localhost:8001/api/report/f1e2d3c4-b5a6-7890-cdef-1234567890ab/generate
+Accept: application/json
+```
+
+**Odpowiedź (200 OK):**
+```json
+{
+  "success": true,
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "report_url": "/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
+  "report_filename": "report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
+  "report_path": "C:\\Projects\\BAW\\UslugaDoPorownan\\output\\reports\\report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
+  "generated_at": "2025-10-23T23:14:38.123456",
+  "message": "Raport HTML został wygenerowany pomyślnie"
+}
+```
+
+**Dostęp do raportu:**
+```bash
+# Lokalnie
+curl http://localhost:8001/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html > raport.html
+
+# Produkcyjnie
+curl http://217.182.76.146/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html > raport.html
+```
+
+**Funkcjonalności raportu HTML:**
+- ✅ Pełne dane JSON osadzone w HTML (nie wymaga zewnętrznego ładowania)
+- ✅ Auto-display przy otwarciu (nie wymaga akcji użytkownika)
+- ✅ Interaktywne filtry (wszystkie/modified/added/deleted/unchanged)
+- ✅ Summary box z metrykami
+- ✅ Responsive design (desktop/tablet/mobile)
+- ✅ Print-ready styles
+- ✅ Działa offline (bez serwera, bez internetu)
+
+**Use cases:**
+- Archiwizacja wyników jako pojedynczy plik HTML
+- Udostępnianie offline (email, pendrive)
+- Prezentacje (otwórz plik bezpośrednio w przeglądarce)
+- Backup alternatywny do JSON
+- Integracja z systemami workflow (N8N, zapier)
+
+**Błędy:**
+- `404 Not Found` - Nie znaleziono wyników dla podanego process_id
+- `500 Internal Server Error` - Błąd podczas generowania raportu (brak uprawnień zapisu, brak miejsca)
+
+**Uwagi:**
+- Raport jest generowany na żądanie (nie automatycznie)
+- Pliki są zapisywane w `output/reports/` na serwerze
+- Format nazwy: `report_{process_id}_{timestamp}.html`
+- Raporty NIE są usuwane automatycznie (wymagane ręczne cleanup)
+- Raport ma ~55+ KB (zawiera HTML + CSS + JS + JSON)
+
+**Pełna dokumentacja:** Zobacz [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md) dla szczegółów i zaawansowanych przykładów.
+
+---
+
 ## 🔄 Przykładowy Workflow
 
 ### Scenariusz 1: Porównanie dwóch plików DOCX
@@ -614,9 +686,19 @@ curl http://localhost:8001/api/status/f1e2d3c4-b5a6-7890-cdef-1234567890ab
 # Odpowiedź (processing): {"status": "processing", "progress": 50, ...}
 # Czekaj aż status = "completed"
 
-# Krok 5: Pobierz wyniki
+# Krok 5: Pobierz wyniki JSON
 curl http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/full > wynik.json
 curl http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/modified > zmiany.json
+
+# Krok 6 (OPCJONALNIE): Wygeneruj raport HTML
+curl http://localhost:8001/api/report/f1e2d3c4-b5a6-7890-cdef-1234567890ab/generate
+
+# Odpowiedź: {"success": true, "report_url": "/reports/report_..._20251023_231438.html"}
+
+# Krok 7 (OPCJONALNIE): Pobierz raport HTML
+curl http://localhost:8001/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html > raport.html
+
+# Teraz możesz otworzyć raport.html w przeglądarce (działa offline!)
 ```
 
 ### Scenariusz 2: Porównanie dwóch plików PDF
@@ -676,9 +758,19 @@ while true; do
   sleep 2
 done
 
-# Pobierz wyniki
+# Pobierz wyniki JSON
 curl -s http://localhost:8001/api/result/$PROCESS_ID/full > result.json
-echo "Wyniki zapisane w result.json"
+echo "Wyniki JSON zapisane w result.json"
+
+# (OPCJONALNIE) Wygeneruj raport HTML
+REPORT_RESPONSE=$(curl -s http://localhost:8001/api/report/$PROCESS_ID/generate)
+REPORT_URL=$(echo $REPORT_RESPONSE | jq -r '.report_url')
+echo "Raport HTML wygenerowany: $REPORT_URL"
+
+# Pobierz raport HTML
+curl -s http://localhost:8001$REPORT_URL > report.html
+echo "Raport HTML zapisany w report.html"
+echo "Otwórz report.html w przeglądarce aby zobaczyć wyniki!"
 ```
 
 ---
@@ -909,6 +1001,33 @@ Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.doc
 }
 ```
 
+### GenerateReportResponse
+
+```json
+{
+  "success": "boolean",
+  "process_id": "string (UUID)",
+  "report_url": "string (relatywny URL: /reports/{filename})",
+  "report_filename": "string (report_{process_id}_{timestamp}.html)",
+  "report_path": "string (pełna ścieżka na serwerze)",
+  "generated_at": "string (ISO 8601)",
+  "message": "string"
+}
+```
+
+**Przykład:**
+```json
+{
+  "success": true,
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "report_url": "/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
+  "report_filename": "report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
+  "report_path": "C:\\Projects\\BAW\\UslugaDoPorownan\\output\\reports\\report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
+  "generated_at": "2025-10-23T23:14:38.123456",
+  "message": "Raport HTML został wygenerowany pomyślnie"
+}
+```
+
 ---
 
 ## 🔧 Konfiguracja i Limity
@@ -977,6 +1096,7 @@ API akceptuje requesty z dowolnego źródła (`allow_origins=["*"]`). W produkcj
 ## 📚 Powiązane Dokumenty
 
 - **[README.md](README.md)** - Główna dokumentacja projektu
+- **[HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md)** - **NOWY!** Szczegółowa dokumentacja endpointu raportów HTML
 - **[PROGRESS_LOG.md](PROGRESS_LOG.md)** - Historia rozwoju projektu
 - **[DOCS_INDEX.md](DOCS_INDEX.md)** - Indeks całej dokumentacji
 - **[test.http](test.http)** - Testy API dla REST Client
@@ -1004,4 +1124,20 @@ FastAPI automatycznie generuje interaktywną dokumentację:
 ---
 
 **Ostatnia aktualizacja:** 2025-10-23
-**Wersja dokumentu:** 1.0.0
+**Wersja dokumentu:** 1.1.0
+
+## 📝 Changelog
+
+### v1.1.0 (2025-10-23)
+- ✅ **Dodano endpoint 10:** `GET /api/report/{process_id}/generate` - Generowanie raportów HTML
+- ✅ Zaktualizowano odpowiedź endpointu `/` (dodano `generate_report`)
+- ✅ Rozszerzono Scenariusz 1 i 3 o generowanie raportów HTML
+- ✅ Dodano model `GenerateReportResponse` do sekcji "Modele Danych"
+- ✅ Dodano link do szczegółowej dokumentacji: [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md)
+
+### v1.0.0 (2025-10-23)
+- 🎉 Pierwsze wydanie dokumentacji API
+- 📝 9 endpointów (health, upload, process, status, full, modified, added, deleted)
+- 📖 Przykładowe workflow i scenariusze
+- 🧪 Instrukcje testowania w VSCode (REST Client)
+- 📊 Pełne modele danych (Pydantic)
