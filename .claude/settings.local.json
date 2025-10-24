@@ -26,7 +26,8 @@
       "Bash(done)",
       "Bash(find:*)",
       "Bash(while read line)",
-      "Bash(do echo \"  • $line\")"
+      "Bash(do echo \"  • $line\")",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

@@ -10,6 +10,7 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 |------|------|----------|
 | [README.md](README.md) | **Start tutaj!** Ogólny opis projektu, architektura, instalacja | Wszyscy |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Szczegółowe instrukcje wdrożenia na Debian z pyenv, systemd, nginx, firewall | DevOps, Admin |
+| [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) | **NOWY!** Przewodnik po skryptach zarządzania usługami (start/stop/status) | DevOps, Admin |
 | [DOCS_INDEX.md](DOCS_INDEX.md) | Ten plik - indeks całej dokumentacji | Wszyscy |
 | [VSCODE_SETUP.md](VSCODE_SETUP.md) | Konfiguracja Visual Studio Code, debugowanie, tasks | Developer |
 | [PROGRESS_LOG.md](PROGRESS_LOG.md) | Historia postępu prac i stan projektu | Manager, Developer |
@@ -58,8 +59,9 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 
 1. Przeczytaj [README.md](README.md) - sekcja "Wymagania"
 2. Podążaj za [DEPLOYMENT.md](DEPLOYMENT.md) krok po kroku
-3. Skonfiguruj [SecureDocCompare/.env](SecureDocCompare/.env.example)
-4. Zobacz [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) dla checklisty bezpieczeństwa
+3. Użyj skryptów z [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) do zarządzania usługami (start/stop/status)
+4. Skonfiguruj [SecureDocCompare/.env](SecureDocCompare/.env.example)
+5. Zobacz [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) dla checklisty bezpieczeństwa
 
 ### Chcę rozwijać funkcje
 
@@ -121,13 +123,36 @@ README.md → SecureDocCompare/QUICK_START.md → Testowanie
 ### Deployment na Debian
 
 ```
-README.md → DEPLOYMENT.md → SecureDocCompare/SECURITY.md
+README.md → DEPLOYMENT.md → SCRIPTS_GUIDE.md → SecureDocCompare/SECURITY.md
 ```
 
 **Pliki:**
 1. [README.md](README.md) - sekcja "Wymagania - Debian"
 2. [DEPLOYMENT.md](DEPLOYMENT.md) - pełna instrukcja
-3. [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) - checklist
+3. [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) - zarządzanie usługami (start/stop/status)
+4. [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) - checklist
+
+### Zarządzanie Usługami (Screen Mode)
+
+```
+SCRIPTS_GUIDE.md → start_services.sh → status_services.sh → stop_services.sh
+```
+
+**Pliki:**
+1. [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) - **Start tutaj!** Kompletny przewodnik skryptów
+2. `start_services.sh` - Uruchomienie Backend + Frontend w screen
+3. `stop_services.sh` - Zatrzymanie wszystkich usług
+4. `status_services.sh` - Kompleksowy status i health check
+
+**Szybki start:**
+```bash
+cd /home/debian/hack/BAW
+chmod +x *.sh
+./start_services.sh      # Uruchom usługi
+./status_services.sh     # Sprawdź status
+screen -r baw-backend    # Zobacz logi
+./stop_services.sh       # Zatrzymaj usługi
+```
 
 ### Konfiguracja Zabezpieczeń
 
@@ -270,6 +295,9 @@ Szybki start backendu API:
 | Instalacja Windows | [README.md](README.md) sekcja "Instalacja - Windows" |
 | Instalacja Debian/Linux | [DEPLOYMENT.md](DEPLOYMENT.md) |
 | Python 3.11.9 + pyenv | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Instalacja Python" |
+| **Uruchamianie usług (screen)** | [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md), `start_services.sh` |
+| **Zatrzymywanie usług** | [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md), `stop_services.sh` |
+| **Status usług i health check** | [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md), `status_services.sh` |
 | Hasło i logowanie | [SecureDocCompare/README.md](SecureDocCompare/README.md), [SECURITY.md](SecureDocCompare/SECURITY.md) |
 | Rate limiting | [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) sekcja "Rate Limiting" |
 | HTTPS i SSL | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "HTTPS z Let's Encrypt" |
@@ -289,7 +317,7 @@ Szybki start backendu API:
 | Debugowanie w VSCode | [VSCODE_SETUP.md](VSCODE_SETUP.md) sekcja "Debugowanie" |
 | Konwersja PDF→DOCX | [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) |
 | Historia zmian | [PROGRESS_LOG.md](PROGRESS_LOG.md) |
-| Troubleshooting | [README.md](README.md), [QUICK_START.md](SecureDocCompare/QUICK_START.md), [VSCODE_SETUP.md](VSCODE_SETUP.md) |
+| Troubleshooting | [README.md](README.md), [QUICK_START.md](SecureDocCompare/QUICK_START.md), [VSCODE_SETUP.md](VSCODE_SETUP.md), [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) |
 | Bezpieczeństwo | [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) |
 | Konfiguracja .env | [SecureDocCompare/.env.example](SecureDocCompare/.env.example) |
 
@@ -300,9 +328,11 @@ Szybki start backendu API:
 | Dokument | Status | Ostatnia aktualizacja | Wersja |
 |----------|--------|----------------------|--------|
 | README.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
-| DEPLOYMENT.md | ✅ Aktualny | 2025-10-23 | 1.1.0 |
+| **DEPLOYMENT.md** | ✅ Aktualny | 2025-10-24 | 1.2.0 |
+| **SCRIPTS_GUIDE.md** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
+| **DOCS_INDEX.md** | ✅ Aktualny | 2025-10-24 | 1.5.0 |
 | VSCODE_SETUP.md | ✅ Aktualny | 2025-10-22 | 1.0.0 |
-| PROGRESS_LOG.md | ✅ Aktualny | 2025-10-23 | 1.3.0 |
+| **PROGRESS_LOG.md** | ✅ Aktualny | 2025-10-24 | 1.4.0 |
 | PDF_CONVERSION_SUMMARY.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
 | **HTML_REPORT_ENDPOINT.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
 | **API_DOCUMENTATION.md** | ✅ Aktualny | 2025-10-23 | 1.1.0 |
@@ -319,6 +349,9 @@ Szybki start backendu API:
 | UslugaDoPorownan/README.md | ✅ Aktualny | 2025-10-15 | 1.0.0 |
 | requirements.txt | ✅ Aktualny | 2025-10-21 | Python 3.11-3.13 |
 | .vscode/ (konfiguracja) | ✅ Aktualny | 2025-10-22 | 1.0.0 |
+| **start_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
+| **stop_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
+| **status_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
 
 ---
 
@@ -341,9 +374,19 @@ Jeśli znajdziesz nieaktualną informację:
 
 ---
 
-**Ostatnia aktualizacja:** 2025-10-23
-**Wersja indeksu:** 1.4.0
+**Ostatnia aktualizacja:** 2025-10-24
+**Wersja indeksu:** 1.5.0
 **Projekt:** BAW - Porównywanie Dokumentów Bankowych
+
+**Changelog 1.5.0 (2025-10-24):**
+- Dodano **SCRIPTS_GUIDE.md** - kompletny przewodnik po skryptach zarządzania usługami (~800 linii)
+- Utworzono 3 nowe skrypty: `start_services.sh`, `stop_services.sh`, `status_services.sh`
+- Zaktualizowano **DEPLOYMENT.md** (wersja 1.2.0) - dodano sekcję "Opcja 1: Automatyczne Uruchomienie (ZALECANE) - Screen Mode"
+- Zaktualizowano **PROGRESS_LOG.md** (wersja 1.4.0) - dodano sekcję o skryptach zarządzania usługami (2025-10-24)
+- Rozszerzona sekcja "Chcę wdrożyć na serwer" - dodano krok 3 (skrypty zarządzania)
+- Dodano nową sekcję "Zarządzanie Usługami (Screen Mode)" w częstych scenariuszach
+- Rozszerzona tabela "Szukam informacji o..." - dodano 3 wpisy o zarządzaniu usługami
+- Zaktualizowana tabela statusu dokumentacji (dodano 3 skrypty .sh)
 
 **Changelog 1.4.0 (2025-10-23):**
 - Dodano **N8N_HTML_REPORT_INTEGRATION.md** - przewodnik integracji raportów HTML w N8N workflow

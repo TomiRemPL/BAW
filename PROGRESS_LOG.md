@@ -1,7 +1,7 @@
 # 📊 Log Postępu Prac - Projekt BAW
 
-**Ostatnia aktualizacja:** 2025-10-23 (wieczór)
-**Status projektu:** ✅ Production Ready + Nginx + N8N + HTML Reports + **⚡ WDROŻONA OPTYMALIZACJA (86% szybciej!)**
+**Ostatnia aktualizacja:** 2025-10-24 (rano)
+**Status projektu:** ✅ Production Ready + Nginx + N8N + HTML Reports + **⚡ WDROŻONA OPTYMALIZACJA (86% szybciej!)** + **🎬 SKRYPTY ZARZĄDZANIA (Screen Mode)**
 
 ---
 
@@ -29,7 +29,10 @@ BAW/
 ├── check_api.sh              # Diagnostic tool ✅ NOWY! (2025-10-23)
 ├── fix_firewall.sh           # Firewall auto-fix ✅ NOWY! (2025-10-23)
 ├── setup_nginx_proxy.sh      # Nginx installer ✅ NOWY! (2025-10-23)
-└── Dokumentacja (21 plików)  ✅
+├── start_services.sh         # Start services (screen) ✅ NOWY! (2025-10-24)
+├── stop_services.sh          # Stop services ✅ NOWY! (2025-10-24)
+├── status_services.sh        # Status & health check ✅ NOWY! (2025-10-24)
+└── Dokumentacja (24 pliki)   ✅
 ```
 
 ### Komponenty Działające
@@ -657,6 +660,165 @@ Workflow zwraca kompletny JSON z:
 
 **Łącznie dodano:** 13 nowych plików, 3 zaktualizowane
 **Łączna dokumentacja:** ~4500 linii kodu + dokumentacji
+
+---
+
+## ✅ Ukończone Dzisiaj (2025-10-24)
+
+### 🎬 **SKRYPTY ZARZĄDZANIA USŁUGAMI - SCREEN MODE** (NAJNOWSZE)
+
+**Status:** ✅ **UTWORZONE I UDOKUMENTOWANE**
+
+**Cel:** Automatyzacja uruchamiania, zatrzymywania i monitorowania usług BAW w screen sessions na serwerze Debian.
+
+**Co zrobiono:**
+1. ✅ Utworzono 3 skrypty zarządzania usługami
+2. ✅ Zaktualizowano dokumentację DEPLOYMENT.md (dodano sekcję Screen Mode)
+3. ✅ Utworzono kompletny przewodnik SCRIPTS_GUIDE.md (~800 linii)
+4. ✅ Pełna dokumentacja z przykładami użycia i troubleshooting
+
+**Utworzone pliki (4 nowe):**
+
+1. **`start_services.sh`** - Uruchamia usługi w screen (~250 linii):
+   - ✅ Sprawdzenie wymagań (virtualenv, screen)
+   - ✅ Weryfikacja portów (8000, 8001)
+   - ✅ Weryfikacja istniejących screen sesji
+   - ✅ Uruchomienie Backend → screen: `baw-backend` (port 8001)
+   - ✅ Uruchomienie Frontend → screen: `baw-frontend` (port 8000)
+   - ✅ Health check po starcie
+   - ✅ Kompleksowe komunikaty błędów
+   - ✅ Automatyczne rollback przy błędzie
+   - ✅ Instrukcje użytkowania w outputcie
+
+2. **`stop_services.sh`** - Zatrzymuje usługi screen (~90 linii):
+   - ✅ Bezpieczne zamknięcie Frontend
+   - ✅ Bezpieczne zamknięcie Backend
+   - ✅ Weryfikacja zatrzymania
+   - ✅ Komunikaty o statusie
+   - ✅ Lista pozostałych screen sesji
+
+3. **`status_services.sh`** - Kompleksowy status usług (~200 linii):
+   - ✅ Status screen sesji (aktywny/nieaktywny)
+   - ✅ Status portów (otwarty/zamknięty)
+   - ✅ Health check HTTP (zdrowy/niedostępny)
+   - ✅ Timestamp i status z API
+   - ✅ Lista wszystkich screen sesji
+   - ✅ Lista zajętych portów (8000/8001)
+   - ✅ Inteligentne sugerowane akcje
+   - ✅ Kolorowy output dla czytelności
+
+4. **`SCRIPTS_GUIDE.md`** - Kompletny przewodnik (~800 linii):
+   - Dokumentacja wszystkich 6 skryptów (.sh)
+   - Szczegółowe opisy funkcji każdego skryptu
+   - Przykłady output dla różnych scenariuszy
+   - 5 scenariuszy użycia (pierwsze uruchomienie, restart, diagnoza, logi, wdrożenie)
+   - Troubleshooting (8 problemów z rozwiązaniami)
+   - Szybki przegląd komend
+   - Pełna integracja z dokumentacją projektu
+
+**Kluczowe funkcjonalności:**
+
+**start_services.sh:**
+```bash
+# Automatyczne sprawdzenia:
+✓ Katalog projektu istnieje
+✓ Virtualenv (.venv) istnieje
+✓ Screen zainstalowany
+✓ Porty 8000, 8001 wolne
+✓ Screen sesje nie istnieją
+
+# Uruchamia w screen:
+Screen: baw-backend  → Backend API (port 8001)
+Screen: baw-frontend → Frontend (port 8000)
+
+# Health check:
+curl http://localhost:8001/health
+curl http://localhost:8000/health
+```
+
+**status_services.sh:**
+```bash
+# Wyświetla:
+━━━ Backend (UslugaDoPorownan) ━━━
+  Screen Session: ✅ Aktywny (baw-backend)
+  Port 8001:      ✅ Otwarty
+  Health Check:   ✅ Zdrowy
+  Status:         healthy
+  Timestamp:      2025-10-24T...
+
+━━━ Frontend (SecureDocCompare) ━━━
+  Screen Session: ✅ Aktywny (baw-frontend)
+  Port 8000:      ✅ Otwarty
+  Health Check:   ✅ Zdrowy
+  Status:         healthy
+  Timestamp:      2025-10-24T...
+
+💡 Dostępne Akcje
+  ✅ Wszystkie usługi działają
+  Zatrzymaj:    ./stop_services.sh
+  Podłącz:      screen -r baw-backend
+  Odłącz:       Ctrl+A, D
+```
+
+**Przykład użycia:**
+```bash
+cd /home/debian/hack/BAW
+
+# Pierwszy raz (nadaj uprawnienia)
+chmod +x *.sh
+
+# Uruchom usługi
+./start_services.sh
+
+# Sprawdź status
+./status_services.sh
+
+# Podłącz się do backendu (zobacz logi na żywo)
+screen -r baw-backend
+# Odłącz się: Ctrl+A, potem D
+
+# Zatrzymaj usługi
+./stop_services.sh
+```
+
+**Scenariusze użycia (5 udokumentowanych):**
+1. Pierwsze uruchomienie na serwerze
+2. Restart usług po aktualizacji kodu
+3. Diagnoza problemów z dostępem
+4. Przeglądanie logów na żywo
+5. Wdrożenie produkcyjne z Nginx
+
+**Troubleshooting (8 problemów):**
+1. Permission denied → `chmod +x`
+2. screen: command not found → `apt install screen`
+3. Port już zajęty → zatrzymaj proces
+4. Screen sesja istnieje ale nie działa → `screen -X -S ... quit`
+5. Health check timeout → sprawdź logi
+6. Nie mogę odłączyć od screen → `Ctrl+A, D`
+7. Screen "Attached" → `screen -d -r`
+8. Błędy w kodzie → sprawdź logi w screen
+
+**Dokumentacja zaktualizowana:**
+- ✅ `DEPLOYMENT.md` - dodano sekcję "Opcja 1: Automatyczne Uruchomienie (ZALECANE) - Screen Mode"
+- ✅ `SCRIPTS_GUIDE.md` - nowy kompletny przewodnik
+
+**Wszystkie skrypty w projekcie (6 total):**
+1. ✅ `start_services.sh` - **NOWY** - Uruchamia usługi
+2. ✅ `stop_services.sh` - **NOWY** - Zatrzymuje usługi
+3. ✅ `status_services.sh` - **NOWY** - Status usług
+4. ✅ `check_api.sh` - Diagnoza API
+5. ✅ `fix_firewall.sh` - Naprawa firewall
+6. ✅ `setup_nginx_proxy.sh` - Instalacja Nginx
+
+**Korzyści:**
+- ✅ Jeden prosty komand do uruchomienia wszystkiego
+- ✅ Automatyczne sprawdzanie warunków wstępnych
+- ✅ Bezpieczne zatrzymywanie z weryfikacją
+- ✅ Kompleksowy monitoring statusu
+- ✅ Łatwy dostęp do logów (screen -r)
+- ✅ Nie wymaga systemd (działa od razu)
+- ✅ Idealny dla development i produkcji
+- ✅ Kolorowy output dla czytelności
 
 ---
 

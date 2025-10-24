@@ -178,7 +178,67 @@ Skopiuj wygenerowany klucz do `SECRET_KEY` w pliku `.env`.
 
 ## 🎮 Uruchomienie Aplikacji
 
-### Test Manualny
+### Opcja 1: Automatyczne Uruchomienie (ZALECANE) - Screen Mode
+
+Użyj przygotowanych skryptów do zarządzania usługami w screen:
+
+```bash
+cd /home/debian/hack/BAW
+
+# Nadaj uprawnienia wykonywalne (tylko raz)
+chmod +x start_services.sh stop_services.sh status_services.sh
+
+# Uruchom wszystkie usługi
+./start_services.sh
+
+# Sprawdź status
+./status_services.sh
+
+# Zatrzymaj wszystkie usługi
+./stop_services.sh
+```
+
+**Dostępne skrypty:**
+
+- **`start_services.sh`** - Uruchamia Backend i Frontend w screen
+  - Screen Backend: `baw-backend` (port 8001)
+  - Screen Frontend: `baw-frontend` (port 8000)
+  - Automatyczne sprawdzenie portów i sesji
+  - Health check po uruchomieniu
+
+- **`stop_services.sh`** - Zatrzymuje wszystkie usługi screen
+  - Bezpieczne zamknięcie obu sesji
+  - Weryfikacja zatrzymania
+
+- **`status_services.sh`** - Kompleksowy status usług
+  - Status screen sesji
+  - Status portów
+  - Health check
+  - Zajęte porty
+  - Sugerowane akcje
+
+**Zarządzanie screen sesjami:**
+
+```bash
+# Lista wszystkich sesji screen
+screen -list
+
+# Podłącz się do backendu (zobaczysz logi na żywo)
+screen -r baw-backend
+
+# Podłącz się do frontendu
+screen -r baw-frontend
+
+# Odłącz się od sesji (NIE zamykaj!)
+# W sesji screen naciśnij: Ctrl+A, potem D
+
+# Sprawdź logi w sesji (przewijanie)
+# Ctrl+A, potem [
+# Używaj strzałek / PgUp / PgDn
+# Naciśnij ESC aby wyjść z trybu przewijania
+```
+
+### Opcja 2: Test Manualny (2 terminale)
 
 #### Terminal 1 - Backend (UslugaDoPorownan)
 
@@ -206,6 +266,9 @@ curl http://localhost:8001/health
 
 # Health check frontendu
 curl http://localhost:8000/health
+
+# Lub użyj skryptu status
+./status_services.sh
 
 # Z przeglądarki (jeśli firewall pozwala)
 # http://IP_SERWERA:8000
