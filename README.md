@@ -30,6 +30,19 @@ Usługa REST API do przetwarzania dokumentów:
 
 **Szczegóły:** Zobacz `UslugaDoPorownan/README.md`
 
+### 3. **Analiza LLM** (Opcjonalna)
+**Lokalizacja:** `UslugaDoPorownan/prompt_*.txt`
+
+Prompty systemowe do analizy zmian przez LLM (Claude/Gemini):
+- 🤖 **Eliminacja halucynacji** - 5 zasad + 6-punktowa kontrola jakości
+- 🏦 **Kontekst polski bank** - KNF, polskie regulacje
+- ⚠️ **5 typów ryzyka** - kredytowe, operacyjne, finansowe, compliance, ESG
+- 📋 **11 grup regulacji** - DORA, AML, KYC, FATCA, CRS, RODO, MiFID II, Bazylea, KNF, Prawo Bankowe, PSD2
+- 📊 **Matryca zgodności** - dla każdej regulacji ocena ryzyka (H/M/L)
+- ⏰ **Priorytetowe działania** - Top 5 z deadline (PILNE/7/14/30 dni)
+
+**Szczegóły:** Zobacz `UslugaDoPorownan/PROMPTS_CHANGELOG.md`
+
 ## 🎯 Architektura
 
 ```

@@ -1,61 +1,354 @@
-Przeanalizuj załączony plik full_result.json z wynikami porównania dokumentów.
+Przeanalizuj załączony plik JSON z wynikami porównania dwóch wersji dokumentu bankowego.
 
-Plik JSON zawiera:
-- statistics: zagregowane statystyki zmian
-- paragraphs: lista wszystkich paragrafów z nowego dokumentu oraz usuniętych ze starego
-- tables: lista tabel ze zmianami w komórkach
+═══════════════════════════════════════════════════════════════════════════════
+📋 KONTEKST DOKUMENTU
+═══════════════════════════════════════════════════════════════════════════════
 
-Każdy paragraf ma:
-- index: pozycja
-- text: aktualna treść (z nowego dokumentu)
-- type: unchanged/modified/added/deleted
-- old_text: poprzednia treść (dla modified i deleted)
-- changes: szczegółowe zmiany słowo po słowie (dla modified)
+Instytucja: Bank działający w Polsce
+Organ nadzorczy: Komisja Nadzoru Finansowego (KNF)
+Typ dokumentu: [UZUPEŁNIJ - np. "Polityka Zarządzania Ryzykiem ICT", "Procedura AML/KYC", "Regulamin Kredytów", "Strategia ESG"]
+Obszar funkcjonalny: [UZUPEŁNIJ - np. "IT i Bezpieczeństwo", "Compliance", "Retail Banking", "Risk Management"]
+Główne regulacje: [UZUPEŁNIJ - np. "DORA, RODO, Rekomendacja H KNF", "AML, FATCA, KYC", "Bazylea III, CRR/CRD IV"]
 
-Przygotuj szczegółowy raport zawierający:
+Uwagi dodatkowe:
+[OPCJONALNE - dodaj kontekst specyficzny dla dokumentu, np. "Dokument wprowadzony w odpowiedzi na wymogi DORA", "Aktualizacja po audycie KNF", "Implementacja nowych wytycznych EBA"]
 
-1. EXECUTIVE SUMMARY
-   - Łącznie zmian: [liczba]
-   - Charakterystyka: [głównie co?]
-   - Ocena: [istotne/drobne]
+═══════════════════════════════════════════════════════════════════════════════
+📊 STRUKTURA PLIKU JSON
+═══════════════════════════════════════════════════════════════════════════════
 
-2. ZMIANY KRYTYCZNE
-   Lista zmian wymagających natychmiastowej uwagi (definicje, liczby, wymagania prawne)
-   Format: Paragraf #X: [opis] | Stare: [...] | Nowe: [...] | Wpływ: [...]
+Plik JSON zawiera następującą strukturę (FullDocumentResult):
 
-3. ZMIANY ISTOTNE
-   Lista ważnych zmian (nazwy, terminy, procedury)
-   Format: Paragraf #X: [opis zmiany]
+{
+  "process_id": "uuid",
+  "document_pair_id": "uuid",
+  "generated_at": "timestamp",
 
-4. ZMIANY MNIEJSZE
-   Lista mniejszych zmian (stylistyka, formatowanie)
+  "statistics": {
+    "total_paragraphs": int,       // Wszystkie paragrafy w nowym dokumencie
+    "unchanged_paragraphs": int,   // Paragrafy bez zmian
+    "modified_paragraphs": int,    // Paragrafy ze zmianami
+    "added_paragraphs": int,       // Nowe paragrafy
+    "deleted_paragraphs": int,     // Usunięte paragrafy
+    "total_changes": int,          // Suma: modified + added + deleted
+    "tables_count": int,           // Liczba tabel
+    "modified_cells": int          // Zmodyfikowane komórki w tabelach
+  },
 
-5. DODANE TREŚCI
-   Lista nowych paragrafów (type="added")
-   Format: Paragraf #X: [treść]
+  "paragraphs": [
+    {
+      "index": int,                // Pozycja w dokumencie (0-based)
+      "text": str,                 // AKTUALNA treść (nowy dokument)
+      "type": "unchanged|modified|added|deleted",
+      "old_text": str | null,      // Tylko dla modified i deleted
+      "changes": [                 // Tylko dla modified - lista operacji diff
+        {
+          "operation": "equal|delete|insert",
+          "text": str
+        }
+      ]
+    }
+  ],
 
-6. USUNIĘTE TREŚCI
-   Lista usuniętych paragrafów (type="deleted")
-   Format: Paragraf #X: [treść]
+  "tables": [
+    {
+      "index": int,                // Pozycja tabeli
+      "rows": [[str]],             // Dane tabeli (nowy dokument)
+      "changes": [                 // Lista zmian w komórkach
+        {
+          "table_index": int,
+          "row_index": int,
+          "col_index": int,
+          "old_value": str,
+          "new_value": str,
+          "changes": [...]
+        }
+      ]
+    }
+  ]
+}
 
-7. ZMIANY W TABELACH
-   Lista zmian w komórkach tabel
-   Format: Tabela #X, Wiersz Y, Kolumna Z: [stara] → [nowa]
+═══════════════════════════════════════════════════════════════════════════════
+🎯 ZADANIE ANALIZY
+═══════════════════════════════════════════════════════════════════════════════
 
-8. REKOMENDACJE
-   - Działania do podjęcia
-   - Obszary wymagające weryfikacji
-   - Potencjalne ryzyka
+Przygotuj szczegółowy raport analizy zmian według poniższego formatu (8 SEKCJI).
+
+KRYTYCZNE WYMAGANIA:
+✓ Odpowiadaj WYŁĄCZNIE na podstawie danych z JSON - NIE halucynuj!
+✓ Cytuj dokładne fragmenty: "old_text" i "text" zamiast parafrazować
+✓ Każdą zmianę oznacz numerem paragrafu (index) z JSON
+✓ NIE dodawaj ryzyk/rekomendacji bez podstawy w konkretnych zmianach
+✓ Jeśli dane nie są w JSON, napisz: "Brak danych w JSON"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+1. EXECUTIVE SUMMARY 📈
+
+Przeanalizuj "statistics" i podaj:
+
+- Łączna liczba zmian: [total_changes] z czego:
+  - Zmodyfikowane paragrafy: [modified_paragraphs]
+  - Dodane paragrafy: [added_paragraphs]
+  - Usunięte paragrafy: [deleted_paragraphs]
+
+- Skala zmian: [X%] dokumentu
+  Oblicz: (total_changes / total_paragraphs) × 100
+
+- Charakterystyka głównych zmian:
+  [Opisz ogólnie co się zmieniło - na podstawie analizy paragraphs]
+
+- Rozkład wpływu (po analizie treści zmian):
+  - 🔴 Zmiany KRYTYCZNE: [liczba]
+  - 🟠 Zmiany ISTOTNE: [liczba]
+  - 🟡 Zmiany MNIEJSZE: [liczba]
+
+- Ocena ogólna ryzyka: [Wysokie / Średnie / Niskie]
+  Uzasadnienie: [dlaczego taka ocena]
+
+- Główne obszary ryzyka (Top 3):
+  1. [np. Ryzyko operacyjne]
+  2. [np. Ryzyko compliance]
+  3. [np. Ryzyko kredytowe]
+
+- Główne regulacje dotknięte zmianami (Top 3):
+  1. [np. DORA]
+  2. [np. RODO]
+  3. [np. Rekomendacja H KNF]
+
+═══════════════════════════════════════════════════════════════════════════════
+
+2. ZMIANY KRYTYCZNE 🔴
+
+[DEFINICJA: Zmiany w definicjach, wartościach liczbowych, wymogach prawnych, uprawnieniach, usunięciach kontroli]
+
+[Jeśli nie znalazłeś żadnych, napisz: "Brak zmian krytycznych wykrytych w JSON"]
+
+Dla każdej zmiany krytycznej:
+
+---
+Paragraf #[index] | Typ: [modified/added/deleted] | Ryzyko: [kredytowe/operacyjne/finansowe/compliance/ESG] | Regulacja: [DORA/AML/KYC/FATCA/RODO/MiFID/Bazylea/KNF/inna]
+
+ZMIANA:
+Stare: "[old_text - cytat bezpośredni]"
+Nowe: "[text - cytat bezpośredni]"
+
+[lub dla added:]
+Dodano: "[text - cytat bezpośredni]"
+
+[lub dla deleted:]
+Usunięto: "[old_text - cytat bezpośredni]"
+
+WPŁYW NA BANK:
+[Opisz konkretnie co to oznacza dla banku - np. "Zwiększenie limitu ekspozycji z 10 mln PLN do 50 mln PLN oznacza wzrost ryzyka kredytowego i wymaga aktualizacji polityki akceptacji ryzyka"]
+
+WPŁYW NA REGULACJE:
+[Opisz czy zmiana wpływa na zgodność z regulacją - np. "Zmiana może naruszać Rekomendację D KNF punkt 3.2 dotyczący limitów koncentracji"]
+
+REKOMENDACJA:
+[Konkretna akcja - np. "PILNE: Weryfikacja prawna zgodności z Rekomendacją D KNF, konsultacja z Zarządem Ryzyka, aktualizacja limitów w systemie transakcyjnym. Deadline: 7 dni"]
+---
+
+═══════════════════════════════════════════════════════════════════════════════
+
+3. ZMIANY ISTOTNE 🟠
+
+[DEFINICJA: Zmiany w nazwach stanowisk/departamentów, terminach, procedurach, nowych wymaganiach]
+
+[Jeśli nie znalazłeś żadnych, napisz: "Brak zmian istotnych wykrytych w JSON"]
+
+Format listy:
+- Paragraf #[index]: [krótki opis zmiany] | Ryzyko: [typ] | Regulacja: [nazwa lub "nie dotyczy"]
+
+Przykład:
+- Paragraf #23: Zmiana nazwy departamentu z "Dział IT" na "Dział Bezpieczeństwa ICT" | Ryzyko: operacyjne | Regulacja: DORA
+- Paragraf #45: Wydłużenie terminu raportowania z 24h do 72h | Ryzyko: compliance | Regulacja: DORA (Art. 19)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+4. ZMIANY MNIEJSZE 🟡
+
+[DEFINICJA: Poprawki stylistyczne, formatowanie, doprecyzowania bez wpływu merytorycznego]
+
+[Jeśli nie znalazłeś żadnych, napisz: "Brak zmian mniejszych wykrytych w JSON"]
+
+Format listy:
+- Paragraf #[index]: [krótki opis]
+
+Przykład:
+- Paragraf #12: Korekta językowa "powinien" → "musi"
+- Paragraf #34: Doprecyzowanie zapisu bez zmiany znaczenia
+
+═══════════════════════════════════════════════════════════════════════════════
+
+5. DODANE TREŚCI ➕
+
+[Przeszukaj "paragraphs" i znajdź wszystkie z type="added"]
+
+[Jeśli nie ma, napisz: "Brak dodanych paragrafów w JSON"]
+
+Format:
+- Paragraf #[index]: "[text - cytat]" | Ocena wpływu: [krytyczne/istotne/mniejsze] | Ryzyko: [typ] | Regulacja: [nazwa]
+
+Dla każdego dodania oceń:
+- Czy dodaje nowe obowiązki/wymagania? → KRYTYCZNE lub ISTOTNE
+- Czy jest to tylko doprecyzowanie istniejących? → MNIEJSZE
+- Którego obszaru ryzyka dotyczy?
+- Której regulacji dotyczy?
+
+═══════════════════════════════════════════════════════════════════════════════
+
+6. USUNIĘTE TREŚCI ➖
+
+[Przeszukaj "paragraphs" i znajdź wszystkie z type="deleted"]
+
+[Jeśli nie ma, napisz: "Brak usuniętych paragrafów w JSON"]
+
+Format:
+- Paragraf #[index]: "[old_text - cytat]" | Ocena wpływu: [krytyczne/istotne/mniejsze] | Ryzyko: [typ] | Regulacja: [nazwa]
+
+  RYZYKO USUNIĘCIA: [opisz dlaczego usunięcie jest ryzykowne - np. "Usunięcie wymagania może prowadzić do niezgodności z Art. 15 DORA"]
+
+UWAGA KRYTYCZNA:
+Każde usunięcie wymogów, kontroli, procedur powinno być oznaczone jako KRYTYCZNE i wymaga weryfikacji prawnej!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+7. ZMIANY W TABELACH 📊
+
+[Przeszukaj "tables" i znajdź wszystkie z niepustą listą "changes"]
+
+[Jeśli tables.changes puste lub brak tables, napisz: "Brak zmian w tabelach w JSON"]
+
+Format:
+- Tabela #[table_index], Wiersz [row_index], Kolumna [col_index]:
+  Stare: "[old_value - cytat]"
+  Nowe: "[new_value - cytat]"
+  Wpływ: [oceń czy krytyczne/istotne/mniejsze - szczególnie jeśli to wartości liczbowe, limity, definicje]
 
 Zwróć szczególną uwagę na:
-- Zmiany w liczbach i wartościach liczbowych
-- Zmiany w nazwach departamentów, ról, stanowisk
-- Zmiany w definicjach i terminach
-- Zmiany w wymaganiach i procedurach
-- Usunięte wymagania (potencjalne problemy compliance)
-- Dodane wymagania (nowe obowiązki)
+- Zmiany wartości liczbowych (limity, wskaźniki)
+- Zmiany definicji i terminologii
+- Zmiany odpowiedzialności i stanowisk
 
-Kontekst: [opisz domenę dokumentu, np. "Polityka Zarządzania Ryzykiem ICT - dokument bankowy, wymogi DORA"]
+═══════════════════════════════════════════════════════════════════════════════
 
-Plik JSON:
-[WKLEJ TUTAJ ZAWARTOŚĆ full_result.json]
+8. REKOMENDACJE I ANALIZA RYZYKA 🎯
+
+A. MATRYCA ZGODNOŚCI REGULACYJNEJ
+
+[Dla każdej regulacji, której dotyczyły zmiany (na podstawie wcześniejszej analizy)]
+
+Regulacja: [nazwa - np. DORA]
+- Liczba zmian dotyczących tej regulacji: [X]
+- Paragrafy: [lista index - np. #12, #34, #56]
+- Typ zmian: [modified: X, added: Y, deleted: Z]
+- Ocena ryzyka niezgodności: [Wysokie / Średnie / Niskie]
+  Uzasadnienie: [dlaczego - odnieś się do konkretnych zmian]
+- Status zgodności: [wybierz jeden]
+  • ⚠️ WYMAGA WERYFIKACJI PRAWNEJ - zmiany mogą wpływać na zgodność
+  • ✅ OK - zmiany nie wpływają na zgodność
+  • 🚨 RYZYKO NIEZGODNOŚCI - zidentyfikowano potencjalne naruszenie
+- Priorytetowe działania:
+  1. [konkretna akcja]
+  2. [konkretna akcja]
+
+[Powtórz dla każdej dotknietej regulacji: DORA, AML, KYC, FATCA, RODO, MiFID, Bazylea, KNF, inne]
+
+---
+
+B. PRIORYTETOWE DZIAŁANIA (Top 5)
+
+[Uszereguj według pilności - na podstawie konkretnych zmian z JSON]
+
+1. [Najważniejsze działanie - odnieś się do konkretnego paragrafu]
+   Źródło: Paragraf #[index]
+   Ryzyko: [typ]
+   Regulacja: [nazwa]
+   Deadline: [PILNE (24-48h) / 7 dni / 14 dni / 30 dni]
+
+2. [Drugie w kolejności]
+   Źródło: Paragraf #[index]
+   Ryzyko: [typ]
+   Regulacja: [nazwa]
+   Deadline: [...]
+
+[kontynuuj do 5]
+
+---
+
+C. OBSZARY WYMAGAJĄCE WERYFIKACJI PRAWNEJ
+
+[Lista obszarów gdzie potrzebna konsultacja z działem prawnym/compliance - na podstawie zmian z JSON]
+
+1. [Obszar - np. "Zgodność nowych limitów z Rekomendacją D KNF"]
+   Źródło: Paragrafy #[lista]
+   Powód: [dlaczego wymaga weryfikacji]
+
+2. [kolejny obszar...]
+
+---
+
+D. RYZYKA ZIDENTYFIKOWANE
+
+[Dla każdego typu ryzyka - wymień tylko te, które wynikają z konkretnych zmian w JSON]
+
+RYZYKO KREDYTOWE:
+[Jeśli nie zidentyfikowano, napisz: "Nie zidentyfikowano na podstawie zmian w JSON"]
+- [Opis ryzyka] | Źródło: Paragraf #[index] | Prawdopodobieństwo: [H/M/L] | Wpływ: [H/M/L]
+
+RYZYKO OPERACYJNE:
+[Jeśli nie zidentyfikowano, napisz: "Nie zidentyfikowano na podstawie zmian w JSON"]
+- [Opis ryzyka] | Źródło: Paragraf #[index] | Prawdopodobieństwo: [H/M/L] | Wpływ: [H/M/L]
+
+RYZYKO FINANSOWE:
+[Jeśli nie zidentyfikowano, napisz: "Nie zidentyfikowano na podstawie zmian w JSON"]
+- [Opis ryzyka] | Źródło: Paragraf #[index] | Prawdopodobieństwo: [H/M/L] | Wpływ: [H/M/L]
+
+RYZYKO COMPLIANCE (Zgodność):
+[Jeśli nie zidentyfikowano, napisz: "Nie zidentyfikowano na podstawie zmian w JSON"]
+- [Opis ryzyka] | Źródło: Paragraf #[index] | Prawdopodobieństwo: [H/M/L] | Wpływ: [H/M/L]
+
+RYZYKO ESG:
+[Jeśli nie zidentyfikowano, napisz: "Nie zidentyfikowano na podstawie zmian w JSON"]
+- [Opis ryzyka] | Źródło: Paragraf #[index] | Prawdopodobieństwo: [H/M/L] | Wpływ: [H/M/L]
+
+---
+
+E. MONITOROWANIE I KONTROLA
+
+[Sugestie KPI i metryk do monitorowania PO wdrożeniu zmian - na podstawie zidentyfikowanych zmian]
+
+Metryki do wdrożenia:
+1. [Metryka - np. "Liczba incydentów ICT raportowanych w nowym terminie 72h"]
+   Powód: [powiąż z konkretną zmianą - Paragraf #X]
+   Częstotliwość: [dzienna/tygodniowa/miesięczna]
+
+2. [Kolejna metryka...]
+
+Kontrole do przeprowadzenia:
+1. [Kontrola - np. "Weryfikacja czy wszyscy użytkownicy mają zaktualizowane uprawnienia"]
+   Powód: [powiąż z konkretną zmianą - Paragraf #X]
+   Termin: [kiedy wykonać]
+
+2. [Kolejna kontrola...]
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ PRZYPOMNIENIE PRZED WYSŁANIEM ⚠️
+═══════════════════════════════════════════════════════════════════════════════
+
+SPRAWDŹ:
+✓ Czy każda zmiana, ryzyko, rekomendacja odnosi się do konkretnego paragrafu z JSON?
+✓ Czy zacytowałeś dokładne fragmenty (old_text/text) zamiast parafrazować?
+✓ Czy wszystkie numery paragrafów (index) są poprawne?
+✓ Czy NIE dodałeś ryzyk, które nie wynikają bezpośrednio ze zmian w JSON?
+✓ Czy NIE spekulowałeś o treściach, których nie ma w JSON?
+✓ Czy dla sekcji bez danych napisałeś "Brak... w JSON" zamiast zmyślać?
+
+Jeśli na któreś pytanie odpowiedź to NIE - popraw raport przed wysłaniem!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PLIK JSON DO ANALIZY:
+
+[WKLEJ PONIŻEJ ZAWARTOŚĆ full_result.json]

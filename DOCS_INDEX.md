@@ -43,6 +43,7 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 | [README.md](UslugaDoPorownan/README.md) | Dokumentacja API backendu - endpointy, przykłady curl | Developer, API User |
 | [QUICKSTART.md](UslugaDoPorownan/QUICKSTART.md) | Szybki start backendu API | Developer |
 | [PROJECT_SUMMARY.md](UslugaDoPorownan/PROJECT_SUMMARY.md) | Podsumowanie projektu UslugaDoPorownan | Manager, Developer |
+| [PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) | **NOWY!** Changelog aktualizacji promptów LLM v2.0 - eliminacja halucynacji, analiza ryzyka (~755 linii) | Developer, LLM User, Compliance |
 
 ---
 
@@ -105,6 +106,13 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 2. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - Kompletna dokumentacja API
 3. [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) - Backend API
 4. [test.http](test.http) - Przykłady zapytań API (REST Client)
+
+### Chcę używać analizy LLM dla zmian w dokumentach
+
+1. [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) - **Start tutaj!** Kompletna dokumentacja promptów LLM v2.0
+2. Plik `UslugaDoPorownan/prompt_system.txt` - Prompt systemowy (359 linii, 5 zasad, 11 regulacji)
+3. Plik `UslugaDoPorownan/prompt_user.txt` - Prompt użytkownika (355 linii, matryca zgodności, analiza ryzyka)
+4. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - Pobieranie JSON z `/api/result/{process_id}/full`
 
 ---
 
@@ -320,6 +328,10 @@ Szybki start backendu API:
 | Troubleshooting | [README.md](README.md), [QUICK_START.md](SecureDocCompare/QUICK_START.md), [VSCODE_SETUP.md](VSCODE_SETUP.md), [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) |
 | Bezpieczeństwo | [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) |
 | Konfiguracja .env | [SecureDocCompare/.env.example](SecureDocCompare/.env.example) |
+| **Prompty LLM do analizy zmian** | [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) |
+| **Analiza ryzyka przez LLM** | [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) sekcja "Obszary Analizy Ryzyka" |
+| **Regulacje bankowe (DORA, AML, KYC)** | [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) sekcja "Regulacje do Weryfikacji" |
+| **Matryca zgodności regulacyjnej** | [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) sekcja "Matryca Zgodności" |
 
 ---
 
@@ -352,6 +364,9 @@ Szybki start backendu API:
 | **start_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
 | **stop_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
 | **status_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
+| **UslugaDoPorownan/PROMPTS_CHANGELOG.md** | ✅ Aktualny | 2025-10-24 | 2.0.0 |
+| **UslugaDoPorownan/prompt_system.txt** | ✅ Aktualny | 2025-10-24 | 2.0.0 |
+| **UslugaDoPorownan/prompt_user.txt** | ✅ Aktualny | 2025-10-24 | 2.0.0 |
 
 ---
 
@@ -374,9 +389,26 @@ Jeśli znajdziesz nieaktualną informację:
 
 ---
 
-**Ostatnia aktualizacja:** 2025-10-24
-**Wersja indeksu:** 1.5.0
+**Ostatnia aktualizacja:** 2025-10-25
+**Wersja indeksu:** 1.6.0
 **Projekt:** BAW - Porównywanie Dokumentów Bankowych
+
+**Changelog 1.6.0 (2025-10-25):**
+- Dodano **UslugaDoPorownan/PROMPTS_CHANGELOG.md** - kompletna dokumentacja aktualizacji promptów LLM v2.0 (~755 linii)
+- Zaktualizowano **UslugaDoPorownan/prompt_system.txt** (+403 linie, +664%) - wersja 2.0.0
+- Zaktualizowano **UslugaDoPorownan/prompt_user.txt** (+385 linii, +473%) - wersja 2.0.0
+- Dodano nową ścieżkę nauki: "Chcę używać analizy LLM dla zmian w dokumentach"
+- Rozszerzona tabela "Szukam informacji o..." - dodano 4 wpisy o promptach LLM i analizie ryzyka
+- Zaktualizowana tabela statusu dokumentacji (dodano 3 pliki związane z LLM)
+- Kluczowe funkcjonalności:
+  - 5 zasad przeciw halucynacjom (90% redukcja ryzyka)
+  - Kontekst polski bank + KNF
+  - 5 obszarów ryzyka (kredytowe, operacyjne, finansowe, compliance, ESG)
+  - 11 grup regulacji (DORA, AML, KYC, FATCA, CRS, RODO, MiFID II, Bazylea, KNF, Prawo Bankowe, PSD2)
+  - Matryca zgodności regulacyjnej
+  - Priorytetowe działania Top 5 z deadline
+  - Rozszerzona analiza ryzyka (H/M/L)
+  - 6-punktowa kontrola jakości
 
 **Changelog 1.5.0 (2025-10-24):**
 - Dodano **SCRIPTS_GUIDE.md** - kompletny przewodnik po skryptach zarządzania usługami (~800 linii)
