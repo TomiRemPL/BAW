@@ -1,0 +1,2134 @@
+{
+  "name": "API 04",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -6288,
+        852
+      ],
+      "id": "3ba1078a-a612-486b-8624-c53fcbe8b53e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://prebaw.creditagricole/api/Authentication/Login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n\"Login\":\"hackaton\",\n\"Password\":\"hackaton2\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2480,
+        932
+      ],
+      "id": "bc4d62ae-5b8f-44ca-989a-37144dafae13",
+      "name": "HTTP Request1",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "waitBetweenTries": 100
+    },
+    {
+      "parameters": {
+        "url": "=https://prebaw.creditagricole/api/file/1/{{ $('insert_do_pobrania').item.json[\"8GIC\"] }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "BearerTokenCookieName",
+              "value": "={{ $json.data }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2256,
+        932
+      ],
+      "id": "e8f428a2-3c08-4a31-aa94-588f71d102d4",
+      "name": "HTTP Request2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -6288,
+        660
+      ],
+      "id": "4f3b676a-3d9c-4bcb-ad2c-d43a04e1cdd9",
+      "name": "Schedule Trigger",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -5392,
+        756
+      ],
+      "id": "7a1154a1-fff2-42f9-8a13-fb0cb86c4f23",
+      "name": "Loop Over Items",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "## ETAP nr1   (zamokowany warunek czasu dla latwiejszego testowania - to pokazu na zywo nalezy zmienic na wartosc zmiennej z pierwszego kroku\nOdpytujemy BAW aby wyszukać odpowiednie dokumenty. Iterujemy po wynikach i zapisujemy wyniki do bazy\n\nWhere [BAW].[dbo].[Document].CreationDate > '2024-11-20T14:52:00.000Z'\n  \n   Wybieramy tylko opublikowane doksy  AND [BAW].[dbo].[Document].IsPublished = 1\n\n   W ybieramy tylko doksy których liczba wersji w systemie jest wieksza niz 1  AND TRY_CONVERT(decimal(10,2), [BAW].[dbo].[Document].DocumentVersion) > 1\n\n   Ogranicamy wyniki do plikow typu docx   AND [BAW].[dbo].[AttachmentLink].isWordDocument = 1\n\n   Wybieramy tylko doksy o wybranym typie procedura 60 przewodnik 59 regulamin 28 polityka 75 strategia 76 ew. instrukcja powiazana z WB 25 , wniosek 74, zalacznik inny 35   -   wycinamy zarzadzenia 3\n  AND [BAW].[dbo].[Document].LegalActType IN (60, 59, 28, 75, 76)",
+        "height": 592,
+        "width": 1552
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6008,
+        420
+      ],
+      "id": "e5f80610-fec3-4c74-af6f-a9745c6f6bdf",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Triger cron /manual start\n\n\nFlow odpala sie co 30min",
+        "height": 672,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6384,
+        340
+      ],
+      "id": "eb1255a9-097c-4c3e-958d-f3a5cfdc6fd4",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT TOP (200) [BAW].[dbo].[Document].[Id]\n\t  ,[BAW].[dbo].[Document].[DocumentVersion]\n\t  ,[BAW].[dbo].[Document].[LegalActType]\n      ,[BAW].[dbo].[Document].[ActDate]\n\t  ,[BAW].[dbo].[Document].[ActNumber]\n      ,[BAW].[dbo].[Document].[CreationDate]\n\t  ,[BAW].[dbo].[Document].[PublishedDate]\n\t  ,[BAW].[dbo].[Document].[ValidTo]\n      ,[BAW].[dbo].[Document].[DocumentProceedingStatus]\n      ,[BAW].[dbo].[Document].[IsPublished]\n      ,[BAW].[dbo].[Document].[IsRemoved]\n      ,[BAW].[dbo].[Document].[IsSigned]\n      ,[BAW].[dbo].[Document].[LegalActStatus]   \n      ,[BAW].[dbo].[Document].[Title]\n      ,[BAW].[dbo].[Document].[UpdateDate]\n      ,[BAW].[dbo].[Document].[ValidFrom]\n      ,[BAW].[dbo].[Document].[UnifiedDocumentId]\n      ,[BAW].[dbo].[Document].[WasEverPublished]\n      ,[BAW].[dbo].[Document].[UniqueSharedIdentifier]    \n      ,[BAW].[dbo].[Document].[IsConfidential]\n      ,[BAW].[dbo].[Document].[WasConfidential]\n      ,[BAW].[dbo].[Document].[SystemValidTo]\n      ,[BAW].[dbo].[Document].[PermissionType]\n      ,[BAW].[dbo].[Document].[IsSetPermission]\n      ,[BAW].[dbo].[Document].[LastEditDate]\n\t  ,[BAW].[dbo].[AttachmentLink].id as [id_pliku]\n\t  ,[BAW].[dbo].[AttachmentLink].AttachmentNumber as [AttachmentNumber]\n\t  ,[BAW].[dbo].[AttachmentLink].[CreationDate] as [CreationDateFile]\n\t  ,[BAW].[dbo].[AttachmentLink].[OrginalFileName]\n\t  ,[BAW].[dbo].[AttachmentLink].[FileIdentiefier]\n      ,[BAW].[dbo].[AttachmentLink].[FileName]\n\t  ,[BAW].[dbo].[AttachmentLink].[IsWordDocument]\n\t  ,[BAW].[dbo].[AttachmentLink].[LanguageVersion]\n      ,[BAW].[dbo].[AttachmentLink].[OriginalWordFileId]\n\t  ,[BAW].[dbo].[AttachmentLink].[ParentFileIdentiefier]\n      ,[BAW].[dbo].[AttachmentLink].[ParentId]\n\t  ,[BAW].[dbo].[AttachmentLink].[UniqueSharedIdentifier]\n  FROM [BAW].[dbo].[Document]\n  LEFT JOIN [BAW].[dbo].[AttachmentLink] \n  ON [BAW].[dbo].[Document].Id = [AttachmentLink].DocumentID\n  Where [BAW].[dbo].[Document].CreationDate > '2025-10-23T19:30:00.000Z'\n  \n  /******#Wybieramy tylko opublikowane doksy******/\n  AND [BAW].[dbo].[Document].IsPublished = 1\n\n   /******#Wybieramy tylko doksy których liczba wersji w systemie jest wieksza niz 1******/\n   AND TRY_CONVERT(decimal(10,2), [BAW].[dbo].[Document].DocumentVersion) > 1\n\n   /******#Ogranicamy wyniki do plikow typu docx ******/\n   AND [BAW].[dbo].[AttachmentLink].isWordDocument = 0\n\n   /****** #Wybieramy tylko doksy o wybranym typie procedura 60 przewodnik 59 regulamin 28 polityka 75 strategia 76 ew. instrukcja powiazana z WB 25 , wniosek 74, zalacznik inny 35   -   wycinamy zarzadzenia 3******/\n  AND [BAW].[dbo].[Document].LegalActType IN (60, 59, 28, 75, 76)"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        -5840,
+        756
+      ],
+      "id": "78771d74-8f78-4b3f-8f09-7d7b63a2d3d5",
+      "name": "Select_no_1",
+      "credentials": {
+        "microsoftSql": {
+          "id": "KkMqS8dzjjINjHK7",
+          "name": "Microsoft SQL account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "/****** Krok w którym pobieramy ID pierwotnego pliku  ******/\nSELECT TOP (100) [Id]\n      ,[CreationDate]\n      ,[MasterDocumentId]\n      ,[SlaverDocumentId]\n      ,[Type]\n      ,[UniqueSharedIdentifier]\n      ,[RelationNumber]\n  FROM [BAW].[dbo].[DocumentRelation]\n  where MasterDocumentId = {{$json.iUw3}}\n  and Type = 16"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        -4272,
+        660
+      ],
+      "id": "b3d67730-5abf-4d2b-8f72-85379bbd6caa",
+      "name": "Select_no_2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "KkMqS8dzjjINjHK7",
+          "name": "Microsoft SQL account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "tableName": "Table1",
+        "searchColumn": "baw_file_id",
+        "searchTerm": "={{'Loop Over Items'.item,$json.id_pliku}}",
+        "options": {
+          "insensitive": true,
+          "convert": true
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -5168,
+        684
+      ],
+      "id": "8798afaa-edce-43e7-b949-fe948ee4104d",
+      "name": "Check_if_exist",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "tableName": "Table1",
+        "apply_default": true,
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "Dock_name",
+              "columnValue": "={{ $('Loop Over Items').item.json.OrginalFileName }}"
+            },
+            {
+              "columnName": "is_handled_by_n8n",
+              "columnValue": "0"
+            },
+            {
+              "columnName": "baw_file_id",
+              "columnValue": "={{ $('Loop Over Items').item.json.id_pliku }}"
+            },
+            {
+              "columnName": "Dock_version",
+              "columnValue": "={{ $('Loop Over Items').item.json.DocumentVersion }}"
+            },
+            {
+              "columnName": "baw_doc_date",
+              "columnValue": "={{ $('Loop Over Items').item.json.CreationDateFile }}"
+            },
+            {
+              "columnName": "baw_dock_id",
+              "columnValue": "={{ $('Loop Over Items').item.json.Id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -4720,
+        660
+      ],
+      "id": "06f01550-672a-45d9-98ee-06d9c01cf165",
+      "name": "Insert_into_db",
+      "alwaysOutputData": true,
+      "credentials": {
+        "seaTableApi": {
+          "id": "308kg9y7cDXLbrvU",
+          "name": "SeaTable account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "get_first_versiondock",
+        "apply_default": true,
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "first_ver_id",
+              "columnValue": "={{ $json.SlaverDocumentId }}"
+            },
+            {
+              "columnName": "baw_dock_id",
+              "columnValue": "={{ $json.MasterDocumentId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -3824,
+        660
+      ],
+      "id": "d245f75f-35a5-4dcb-9441-3952206d0f6e",
+      "name": "Insert_into_db2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "seaTableApi": {
+          "id": "308kg9y7cDXLbrvU",
+          "name": "SeaTable account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "items[0].json.globalStorage = {\n    zmienna_mok: $input.first().json.Id,\n    Czas_odciecia: $now\n};\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5616,
+        756
+      ],
+      "id": "29c404ad-ccb2-458a-aed8-d49414f2a6f2",
+      "name": "Variable js"
+    },
+    {
+      "parameters": {
+        "jsCode": "items[0].json.globalStorage = {\n    id_pierwszej_wersji: $input.first().json.SlaverDocumentId,\n};\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4048,
+        660
+      ],
+      "id": "7a2f5456-4023-413e-8f44-bc0a44ce7e75",
+      "name": "Variable_js2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -4496,
+        660
+      ],
+      "id": "658fe696-6d9a-4a74-814c-c193032affe5",
+      "name": "Wait",
+      "webhookId": "419cc087-051f-4352-beeb-1b42977009b7",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "## ETAP 2\nPobieramy i zapisujemy w naszej bazie ID pierwszego doka i sprawdzamy dwie ostatnie wersje tego dokumentu",
+        "height": 656,
+        "width": 1552
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4336,
+        416
+      ],
+      "id": "9ad4e0ae-80c3-4c1f-9b04-f0c74692247b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "adb78c00-bbbd-4ec2-9e6c-d1cf4a309800",
+              "leftValue": "={{ $json.inserted_row_count }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3600,
+        660
+      ],
+      "id": "8c107f5a-22c1-4e5a-9042-89c5cefdf5a4",
+      "name": "If1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "/****** sprawdzenie pierwtnego pliku  ******/\nSELECT TOP (2) [BAW].[dbo].[DocumentRelation].[Id]\n      ,[BAW].[dbo].[DocumentRelation].[CreationDate]\n      ,[BAW].[dbo].[DocumentRelation].[MasterDocumentId]\n      ,[BAW].[dbo].[DocumentRelation].[SlaverDocumentId]\n      ,[BAW].[dbo].[DocumentRelation].[Type]\n      ,[BAW].[dbo].[DocumentRelation].[UniqueSharedIdentifier]\n      ,[BAW].[dbo].[DocumentRelation].[RelationNumber]\n\t\t,[BAW].[dbo].[AttachmentLink].id as [id_pliku]\n\t\t,[BAW].[dbo].[AttachmentLink].[CreationDate] as [CreationDateFile]\n\t\t,[BAW].[dbo].[AttachmentLink].[FileIdentiefier]\n      \t,[BAW].[dbo].[AttachmentLink].[FileName]\n\t\t,[BAW].[dbo].[AttachmentLink].[IsWordDocument]\n\t\t,[BAW].[dbo].[AttachmentLink].[LanguageVersion]\n      \t,[BAW].[dbo].[AttachmentLink].[OrginalFileName]\n\t\t,[BAW].[dbo].[AttachmentLink].[UniqueSharedIdentifier]\n\t  ,[BAW].[dbo].[Document].Id AS ID_dokumentu_w_BAW\n\t  ,[BAW].[dbo].[Document].DocumentVersion AS WERSJA_DOKUMENTU\n\t  ,CONCAT('https://prebaw.creditagricole/api/file/1/', [BAW].[dbo].[AttachmentLink].id) as LinkDOPliku\n\n  FROM [BAW].[dbo].[DocumentRelation]\n  LEFT JOIN [BAW].[dbo].[AttachmentLink] \n\tON [BAW].[dbo].[DocumentRelation].MasterDocumentId = [AttachmentLink].DocumentID\n\n  LEFT JOIN [BAW].[dbo].[Document]\n\tON [AttachmentLink].DocumentID = [BAW].[dbo].[Document].Id \n\n  WHERE [BAW].[dbo].[DocumentRelation].SlaverDocumentId = {{ $json.RM9C }}\n  AND [BAW].[dbo].[DocumentRelation].Type = 16\n  AND [BAW].[dbo].[AttachmentLink].[IsWordDocument] = 0\n  \nOR ([BAW].[dbo].Document.id = {{ $json.RM9C }}\n  AND [BAW].[dbo].[AttachmentLink].[IsWordDocument] = 0)\n  \n  ORDER BY CreationDate DESC\n"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        -3376,
+        932
+      ],
+      "id": "7c27a013-91e8-4ad5-b1d8-37f6e8154e57",
+      "name": "Select_no3",
+      "credentials": {
+        "microsoftSql": {
+          "id": "KkMqS8dzjjINjHK7",
+          "name": "Microsoft SQL account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "items[0].json.globalStorage = {\n  id_pliku_Last: $input.first().json.id_pliku,\n  id_pliku_pre: $input.all()[1].json.id_pliku,\n  link_pliku_Last: $input.first().json.LinkDOPliku,\n  link_pliku_pre: $input.all()[1].json.LinkDOPliku\n};\nreturn items;;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3152,
+        932
+      ],
+      "id": "69f3cb5f-2ad4-435a-99b8-218f6aff3983",
+      "name": "Variable_js3"
+    },
+    {
+      "parameters": {
+        "content": "## ETAP 3 - Oznaczenie rekordow jako przeprocesowane / pozniej do przeniesienia na koniec flow\n",
+        "width": 1552
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -5888,
+        1312
+      ],
+      "id": "ae822054-e519-40fa-8da1-6515ca6aa399",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Wystawienie plikow\n",
+        "height": 352,
+        "width": 464
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2576,
+        756
+      ],
+      "id": "bca2934a-0e91-42ab-9577-c494ee3063ef",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "tableName": "error_log",
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "Error_message",
+              "columnValue": "='Dokument '{{ $json.id }} był już procesowany. Rekord został pominięty w tej iteracji."
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -4720,
+        852
+      ],
+      "id": "195c3a18-1dd0-4ff0-92cf-260fb9164c2b",
+      "name": "Event_log",
+      "alwaysOutputData": false,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "97975db6-f26e-4d09-a815-c6fad21374df",
+                    "leftValue": "={{ $input.item.json }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "new"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $input.item.json }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "4e72d6b1-a197-4dbc-947c-58d43d50e338"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "exist"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -4944,
+        756
+      ],
+      "id": "f112090d-c150-41d6-b801-1d669725ceaf",
+      "name": "Switch",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "['8GIC']",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2704,
+        932
+      ],
+      "id": "29e96ce4-f371-403b-8c26-0cf4df00a907",
+      "name": "Split Out",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "tableName": "error_log",
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "Error_message",
+              "columnValue": "='Dla niektorych dokumentow nie znaleziono dokumentow pierwotnych"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -3376,
+        564
+      ],
+      "id": "abef5513-050f-45c3-855b-bfb31000a37d",
+      "name": "Event_log1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "seaTableApi": {
+          "id": "308kg9y7cDXLbrvU",
+          "name": "SeaTable account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentTime = new Date();\nconst newTime = new Date(currentTime.getTime() + 90 * 60000);\n// Formatowanie wyniku (opcjonalne)\nconst formattedTime = newTime.toISOString(); // Format: 2023-10-05T12:30:00.000Z\n\nreturn [{ json: { originalTime: currentTime, minus30Minutes: newTime, formatted: formattedTime } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6064,
+        756
+      ],
+      "id": "47ab06a5-24b2-49d6-9863-a4bb116e6de3",
+      "name": "Obliczanie_zakresu_czasu"
+    },
+    {
+      "parameters": {
+        "tableName": "dock_to_process_info",
+        "apply_default": true,
+        "columnsUi": {
+          "columnValues": [
+            {
+              "columnName": "first_ver_ID",
+              "columnValue": "={{ $json.SlaverDocumentId }}"
+            },
+            {
+              "columnName": "dock_id",
+              "columnValue": "={{ $json.MasterDocumentId }}"
+            },
+            {
+              "columnName": "dock_version",
+              "columnValue": "={{ $json.WERSJA_DOKUMENTU }}"
+            },
+            {
+              "columnName": "file_id",
+              "columnValue": "={{ $json.id_pliku }}"
+            },
+            {
+              "columnName": "dock_name",
+              "columnValue": "={{ $json.OrginalFileName }}"
+            },
+            {
+              "columnName": "dock_link",
+              "columnValue": "={{ $json.LinkDOPliku }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        -2928,
+        932
+      ],
+      "id": "d1196365-8cc3-4ad3-ae31-97faad5d0a43",
+      "name": "insert_do_pobrania",
+      "alwaysOutputData": true,
+      "credentials": {
+        "seaTableApi": {
+          "id": "308kg9y7cDXLbrvU",
+          "name": "SeaTable account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://217.182.76.146/api/documents/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "old_document",
+              "inputDataFieldName": "data0"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "new_document",
+              "inputDataFieldName": "data1"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "9c099a1d-3ddd-4524-800e-2d609021a0a7",
+      "name": "Upload Documents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1808,
+        564
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://217.182.76.146/api/process",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "document_pair_id",
+              "value": "={{ $json.document_pair_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a0b74ff3-0bff-47b7-86c4-10eeae11e932",
+      "name": "Start Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1584,
+        564
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "id": "23cb1ee9-f1a3-462e-929c-a604c8d4b9fd",
+      "name": "Wait 3 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -1360,
+        564
+      ],
+      "webhookId": "5620b79e-3d44-451f-832e-f323c658c259"
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/status/{{ $('Start Processing').item.json.process_id }}",
+        "options": {}
+      },
+      "id": "1a80bada-fbce-4167-a956-0413669bc5a1",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1136,
+        564
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "completed"
+            }
+          ]
+        }
+      },
+      "id": "cf3db5fc-0adb-4505-8c35-fba4a9e9e648",
+      "name": "Is Completed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        492
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "22aec05e-15d8-4d6a-8a0e-3c08ba9b31a9",
+      "name": "Wait 2 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        740
+      ],
+      "webhookId": "172f4b37-275a-4db6-a3c1-8d1aed5ebf19"
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/result/{{ $('Start Processing').item.json.process_id }}/full",
+        "options": {}
+      },
+      "id": "07c199d5-75e5-4ab2-9443-e297e2e09403",
+      "name": "Get Full Result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -688,
+        444
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Podsumowanie końcowe\nconst stats = $json.statistics;\nconst summary = $json.changes_summary;\n\nreturn {\n  json: {\n    success: true,\n    message: \"Dokument pomyślnie przetworzony!\",\n    process_id: $input.first().json.process_id,\n    total_changes: stats.total_changes,\n    modified_count: stats.modified_paragraphs,\n    added_count: stats.added_paragraphs,\n    deleted_count: stats.deleted_paragraphs,\n    complete_json: $json\n  }\n};"
+      },
+      "id": "ffffcd1a-fed8-4b7a-bd75-74d11d944038",
+      "name": "Final Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        444
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn [\n  {\n    json:{},\n    binary: {\n      data0: items[1].binary.data,\n      data1: items[0].binary.data,\n      \n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2032,
+        932
+      ],
+      "id": "687eae28-4266-459c-9469-3d98c2ba0911",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "fromEmail": "ai_baw@credit-agricole.pl",
+        "toEmail": "trembiasz@credit-agricole.pl",
+        "subject": "Podsumowanie zmian w dokumentach",
+        "html": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1136,
+        756
+      ],
+      "id": "69240b45-2a4c-41c7-bd2c-1ef6a9f1fd55",
+      "name": "Send email",
+      "webhookId": "3df440a8-fd72-4ae9-8a57-f712653335f9",
+      "credentials": {
+        "smtp": {
+          "id": "2joSLF2U4RnAaaXW",
+          "name": "SMTP account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Przeanalizuj załączony plik JSON z porównaniem dokumentów i przygotuj ZWIĘZŁE podsumowanie kluczowych zmian merytorycznych.\n\n⚠️ KRYTYCZNE - WYKRYWANIE I POMIJANIE PRZENIESIONYCH TREŚCI:\nZanim zaczniesz pisać podsumowanie:\n1. Porównaj wszystkie paragrafy typu \"deleted\" z paragrafami typu \"added\"\n2. Jeśli znajdziesz identyczną lub prawie identyczną treść (>90% podobieństwa) - to jest PRZENIESIENIE\n3. POMIŃ całkowicie takie zmiany - NIE uwzględniaj ich w podsumowaniu\n4. Raportuj TYLKO:\n   - Rzeczywiście nową treść (added bez odpowiednika w deleted)\n   - Rzeczywiście usuniętą treść (deleted bez odpowiednika w added)\n   - Istotne modyfikacje treści (modified)\n\nOCZEKIWANY FORMAT:\nMaksymalnie 5-7 najważniejszych zmian w punktach, każdy punkt to jedna zwięzła linia nadająca się do maila.\n\nSKUP SIĘ NA:\n- Nowych rozdziałach/sekcjach (rzeczywiście nowych, nie przeniesionych!)\n- Usuniętych sekcjach (rzeczywiście usuniętych, nie przeniesionych!)\n- Zmianach w kluczowych definicjach lub wymaganiach\n- Zmienionych procedurach lub obowiązkach\n- Istotnych modyfikacjach parametrów, wartości, terminów\n\nPOMIŃ:\n- Przeniesienia treści między różnymi częściami dokumentu\n- Drobne poprawki redakcyjne\n- Zmiany formatowania\n- Aktualizacje dat (chyba że merytorycznie istotne)\n- Kosmetyczne przekształcenia zdań bez zmiany znaczenia\n\nPlik JSON:\n{{ $json.complete_json.toJsonString() }}",
+        "options": {
+          "systemMessage": "Przeanalizuj załączony plik JSON z porównaniem dokumentów i przygotuj ZWIĘZŁE podsumowanie kluczowych zmian merytorycznych.\n\n⚠️ KRYTYCZNE - WYKRYWANIE I POMIJANIE PRZENIESIONYCH TREŚCI:\nZanim zaczniesz pisać podsumowanie:\n1. Porównaj wszystkie paragrafy typu \"deleted\" z paragrafami typu \"added\"\n2. Jeśli znajdziesz identyczną lub prawie identyczną treść (>90% podobieństwa) - to jest PRZENIESIENIE\n3. POMIŃ całkowicie takie zmiany - NIE uwzględniaj ich w podsumowaniu\n4. Raportuj TYLKO:\n   - Rzeczywiście nową treść (added bez odpowiednika w deleted)\n   - Rzeczywiście usuniętą treść (deleted bez odpowiednika w added)\n   - Istotne modyfikacje treści (modified)\n\nOCZEKIWANY FORMAT:\nMaksymalnie 5-7 najważniejszych zmian w punktach, każdy punkt to jedna zwięzła linia nadająca się do maila.\n\nSKUP SIĘ NA:\n- Nowych rozdziałach/sekcjach (rzeczywiście nowych, nie przeniesionych!)\n- Usuniętych sekcjach (rzeczywiście usuniętych, nie przeniesionych!)\n- Zmianach w kluczowych definicjach lub wymaganiach\n- Zmienionych procedurach lub obowiązkach\n- Istotnych modyfikacjach parametrów, wartości, terminów\n\nPOMIŃ:\n- Przeniesienia treści między różnymi częściami dokumentu\n- Drobne poprawki redakcyjne\n- Zmiany formatowania\n- Aktualizacje dat (chyba że merytorycznie istotne)\n- Kosmetyczne przekształcenia zdań bez zmiany znaczenia",
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        592
+      ],
+      "id": "c197cb1b-40d6-4a9c-ae7d-8999fae3077e",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "azure-gpt-5-chat",
+          "mode": "list",
+          "cachedResultName": "azure-gpt-5-chat"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -168,
+        816
+      ],
+      "id": "29eb38d9-114d-4f32-937b-e5c13c8b133b",
+      "name": "OpenAI Chat Model6",
+      "credentials": {
+        "openAiApi": {
+          "id": "im1Fo28cUIM0GySs",
+          "name": "OpenAi account 11"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        112,
+        904
+      ],
+      "id": "05c2b859-a941-459f-9259-eb8f6a62b8fc",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        932
+      ],
+      "id": "80c3e6a5-4a18-4e95-b9d0-2dd17e2caa3a",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1e889496-4eb9-49c5-a1a0-f9e884c477f5",
+              "name": "text_v2",
+              "value": "={{ $json['text']}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1584,
+        1124
+      ],
+      "id": "546aaaa6-d2dd-409e-ac12-1fd99f0853ab",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1e889496-4eb9-49c5-a1a0-f9e884c477f5",
+              "name": "text_v1",
+              "value": "={{ $json['text']}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1584,
+        932
+      ],
+      "id": "6e55efa6-af28-4109-97da-eae013f9767f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        1124
+      ],
+      "id": "14a51ab5-76eb-4e6e-959d-eb04d6ea2c84",
+      "name": "Extract from File2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1360,
+        1028
+      ],
+      "id": "6796929e-f0af-4261-a399-edadb0ac298e",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/report/{{ $json.process_id }}/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        320
+      ],
+      "id": "218e0af0-ccea-4f2f-9d48-ad3f173cb3ad",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        688,
+        756
+      ],
+      "id": "9e88ed5b-af22-4c60-bc68-9f0fd137c49c",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Zweryfikuj poniższe podsumowanie zmian i zwróć poprawioną wersję gotową do wysłania.\n\nPODSUMOWANIE DO WERYFIKACJI:\n{{ $json.output }}\n\nSTARY DOKUMENT:\n{{ $json[\"text_v1\"] }}\n\nNOWY DOKUMENT:\n{{ $json[\"text_v2\"] }}\n\nZwróć TYLKO poprawione podsumowanie w punktach (bez komentarzy, bez wyjaśnień). Usuń punkty dotyczące przeformułowań, przeniesień i zmian nieistotnych merytorycznie. Zachowaj tylko zmiany wpływające na wartości, zakresy, procedury, prawa i obowiązki.",
+        "options": {
+          "systemMessage": "Jesteś ekspertem w weryfikacji analiz dokumentów. Otrzymujesz podsumowanie zmian między dwoma wersjami dokumentu oraz pełne treści obu dokumentów.\n\nTWOJE ZADANIE:\nZweryfikuj podsumowanie i zwróć TYLKO poprawioną wersję podsumowania - gotową do wysłania w mailu.\n\nPROCES WERYFIKACJI:\n\n1. SPRAWDŹ PRAWDZIWOŚĆ\n   - Czy każda opisana zmiana faktycznie występuje w dokumentach?\n   - Usuń punkty opisujące nieistniejące zmiany\n\n2. SPRAWDŹ ISTOTNOŚĆ MERYTORYCZNĄ\n   \n   USUŃ punkty dotyczące:\n   - Przeformułowań bez zmiany znaczenia\n     ❌ \"reklamacji podlegających ustawie\" → \"spraw wynikających z ustawy\" (to samo, inne słowa)\n   - Zmian struktury zdania bez zmiany treści\n   - Doprecyzowań nie zmieniających istoty\n   - Przeniesień tekstu (ten sam tekst w innym miejscu dokumentu)\n   \n   ZACHOWAJ punkty dotyczące:\n   - Zmian wartości liczbowych (terminy, kwoty, limity, wskaźniki)\n   - Zmian zakresu zastosowania (kto, co, gdzie, kiedy)\n   - Nowych/usuniętych sekcji, wymagań, procedur, obowiązków\n   - Zmian definicji wpływających na interpretację\n\n3. POPRAW NIEŚCISŁOŚCI\n   - Jeśli punkt jest nieprecyzyjny lub mylący → popraw jego sformułowanie\n   - Upewnij się że każdy punkt jest konkretny i zrozumiały\n\nPYTANIE TESTOWE dla każdego punktu:\n\"Czy ta zmiana wymaga od użytkownika/organizacji innych działań lub wpływa na prawa i obowiązki?\"\n- Jeśli NIE → usuń z podsumowania\n- Jeśli TAK → zachowaj w podsumowaniu\n\nFORMAT ODPOWIEDZI:\nZwróć TYLKO listę punktów (maksymalnie 5-7), bez żadnych komentarzy, ocen czy wyjaśnień.\n\nJeśli wszystkie punkty są poprawne - przepisz je bez zmian.\nJeśli niektóre punkty wymagają usunięcia/poprawy - zwróć tylko poprawioną wersję.\nJeśli żaden punkt nie jest merytorycznie istotny - zwróć: \"Brak istotnych zmian merytorycznych. Wprowadzono jedynie zmiany redakcyjne i reorganizację struktury dokumentu.\"\n\nPRZYKŁAD ODPOWIEDZI:\n- Wydłużono termin rozpatrywania reklamacji z 15 do 30 dni roboczych\n- Dodano nowy rozdział 5: Procedury bezpieczeństwa danych\n- Zmieniono definicję \"Danych osobowych\" - rozszerzono o dane biometryczne\n- Usunięto możliwość odwołania od decyzji w sprawach pilnych",
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        904
+      ],
+      "id": "dece5155-9aca-45f1-8377-c2489f553185",
+      "name": "AI Agent4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "azure-gpt-5-chat",
+          "mode": "list",
+          "cachedResultName": "azure-gpt-5-chat"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        408,
+        1128
+      ],
+      "id": "b387ac51-d771-4fc8-9185-ad3d99202e3d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "im1Fo28cUIM0GySs",
+          "name": "OpenAi account 11"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1️⃣ Pobierz treść z node ChatGPT\nlet content = $input.first().json.output || \"\";\nlet fileid = $input.last().json.report_filename || \"\";\n// 2️⃣ Sformatuj treść — zamień myślniki na listę punktowaną, dodaj nagłówek i akapity\n// Usuwamy ewentualny nagłówek \"Podsumowanie kluczowych zmian:\"\ncontent = content\n  .replace(/^Podsumowanie kluczowych zmian:\\s*/i, \"\")\n  .trim();\n\n// Sprawdzamy czy mamy punkty numerowane (1. 2. 3. itd) czy myślniki\nif (content.match(/^\\d+\\./m)) {\n  // Obsługa punktów numerowanych\n  content = content\n    .split(/\\n*\\d+\\.\\s+/)\n    .filter(line => line.trim() !== \"\")\n    .map(line => `<li>${line.trim()}</li>`)\n    .join(\"\\n\");\n} else if (content.includes('-')) {\n  // Obsługa myślników\n  content = content\n    .split(/\\s*-\\s+/)\n    .filter(line => line.trim() !== \"\")\n    .map(line => `<li>${line.trim()}</li>`)\n    .join(\"\\n\");\n} else {\n  // Jeśli nie ma ani numerów ani myślników, dzielimy po nowych liniach\n  content = content\n    .split(/\\n+/)\n    .filter(line => line.trim() !== \"\")\n    .map(line => `<li>${line.trim()}</li>`)\n    .join(\"\\n\");\n}\n\nlet formattedContent = `\n<p><b>Podsumowanie kluczowych zmian:</b></p>\n<ul style=\"color:#707173; font-size:11pt; padding-left:20px;\">\n${content}\n</ul>\n`;\n// Możemy dodać sekcję \"Uwagi\", jeśli występuje\nif ($input.first().json.output.includes(\"Uwagi:\")) {\n  let uwagiPart = $input.first().json.output.split(\"Uwagi:\")[1]?.trim();\n  if (uwagiPart) {\n    formattedContent += `\n      <p><b>Uwagi:</b></p>\n      <p style=\"color:#707173; font-size:11pt; text-align:justify;\">\n        ${uwagiPart}\n      </p>\n    `;\n  }\n}\n// 3️⃣ Twój oryginalny layout HTML z placeholderami\nlet htmlTemplate = `\n<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n<tbody>\n<tr>\n<td style=\"width: 220px; text-align: center; vertical-align: middle;\">\n<div style=\"text-align: center; padding: 10px;\">\n<img src=\"data:image/png;base64,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\" \n     width=\"80\" \n     height=\"80\"\n     style=\"width: 80px !important; height: 80px !important; max-width: 80px !important; max-height: 80px !important; display: inline-block;\">\n</div>\n</td>\n<td>\n<p><span style=\"color: #009795;font-size: 12pt;\"><b>Dzień dobry, zapoznaj się z nowym aktem wewnętrznym/Check out the new internal act</b></span></p>\n</td>\n</tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Typ aktu/Type of act</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\">Zarządzenie</span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Numer aktu/Number of act</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\">676/2025</span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Organ wydający/Issued by</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\">Wiceprezes Zarządu</span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Przedmiot regulacji/concerning</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\">w sprawie: aktualizacji Ogłoszenia nr CA/TO/39 Zasady rozpatrywania reklamacji w Credit Agricole Bank Polska S.A. na tablicy ogłoszeń</span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Dostępne/Available</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\"><a href=\"[Link do dokumentu]\" target=\"_blank\" style=\"color: #009795;\">[Link do dokumentu]</a></span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Data aktu/Release date</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\">26.10.2025</span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Data wejścia w życie/Date of entry into force</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\">31.10.2025</span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Opublikowane przez/Published by</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\">Tomasz</span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n \n<tr><td colspan=\"2\" style=\"height:15px;\"></td></tr>\n \n<tr>\n<td><p><span style=\"color: #707173;font-size: 11pt;\">Podsumowanie zmian/Summary of changes</span></p></td>\n<td style=\"padding-left: 15px;\"><p style=\"text-align: justify; white-space: normal;\">${formattedContent}</p></td>\n</tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr>\n<td><p><span style=\"color: #707173;font-size: 11pt;\">Szczegółowa analiza zmian</span></p></td>\n<td style=\"padding-left: 15px;\"><p><a href=\"http://217.182.76.146/reports/${fileid}\" target=\"_blank\" style=\"color: #009795;\">Link do podsumowania zmian</a></p></td>\n</tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n \n</tbody>\n</table>\n \n<p><span style=\"color: #009795;font-size: 12pt;\"><b>Wiadomość wygenerowana automatycznie, nie odpowiadaj na nią / Automatically generated message, please do not reply to it.</b></span></p>\n<p><span style=\"color: #009795;font-size: 12pt;\"><b>Więcej o nas / More about us: \n<a href=\"http://bok.creditagricole/index.php\" target=\"_blank\" style=\"color: #009795;\">http://bok.creditagricole/index.php</a></b></span></p>\n`;\n// 4️⃣ Zwróć wynik jako JSON\nreturn [{ json: { html: htmlTemplate } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        756
+      ],
+      "id": "85d0de99-923a-4470-b8d8-d1cc757bf665",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://217.182.76.146/api/summary",
+        "sendBody": true,
+        "contentType": "application/json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "process_id",
+              "value": "={{ $('Start Processing').item.json.process_id }}"
+            },
+            {
+              "name": "summary_text",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ { \"source\": \"n8n\", \"ai_model\": \"azure-gpt-5\", \"created_at\": $now.toISO() } }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -16,
+        592
+      ],
+      "id": "create-summary-node-001",
+      "name": "Create Summary"
+    },
+    {
+      "parameters": {
+        "fromEmail": "ai_baw@credit-agricole.pl",
+        "toEmail": "trembiasz@credit-agricole.pl",
+        "subject": "=⏳ Podsumowanie dokumentu wymaga zatwierdzenia - {{ $('Start Processing').item.json.process_id }}",
+        "html": "=<html>\n<head>\n  <meta charset=\"UTF-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; color: #333;\">\n  <h2 style=\"color: #009795;\">📝 Podsumowanie wymaga zatwierdzenia</h2>\n  \n  <p>Dzień dobry,</p>\n  \n  <p>System BAW wygenerował automatyczne podsumowanie zmian w dokumencie:</p>\n  \n  <table style=\"border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px 0;\">\n    <tr style=\"background-color: #f5f5f5;\">\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Process ID:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $('Start Processing').item.json.process_id }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Summary ID:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.summary_id }}</td>\n    </tr>\n    <tr style=\"background-color: #f5f5f5;\">\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Status:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">⏳ Oczekuje na zatwierdzenie</td>\n    </tr>\n  </table>\n  \n  <div style=\"background-color: #f0f9f9; border-left: 4px solid #009795; padding: 15px; margin: 20px 0;\">\n    <h3 style=\"margin-top: 0; color: #009795;\">Wygenerowane podsumowanie:</h3>\n    <div style=\"white-space: pre-wrap;\">{{ $('AI Agent3').item.json.output }}</div>\n  </div>\n  \n  <div style=\"margin: 30px 0;\">\n    <a href=\"http://217.182.76.146/summary/{{ $json.summary_id }}\" \n       style=\"display: inline-block; background-color: #009795; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;\">\n      📝 Edytuj i zatwierdź podsumowanie\n    </a>\n  </div>\n  \n  <p style=\"color: #666; font-size: 14px;\">\n    Po zatwierdzeniu, system automatycznie wyśle finalne podsumowanie do wszystkich zainteresowanych stron.\n  </p>\n  \n  <hr style=\"border: none; border-top: 1px solid #ddd; margin: 30px 0;\">\n  \n  <p style=\"color: #999; font-size: 12px;\">\n    <b>Wiadomość wygenerowana automatycznie przez system BAW AI.</b><br>\n    Nie odpowiadaj na tego maila.\n  </p>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        592
+      ],
+      "id": "send-edit-link-email-001",
+      "name": "Send Edit Link Email",
+      "credentials": {
+        "smtp": {
+          "id": "2joSLF2U4RnAaaXW",
+          "name": "SMTP account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        432,
+        592
+      ],
+      "id": "wait-for-user-001",
+      "name": "Wait for User",
+      "webhookId": "wait-for-user-webhook-001"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "counter-init-001",
+              "name": "iteration_count",
+              "value": "0",
+              "type": "number"
+            },
+            {
+              "id": "summary-id-001",
+              "name": "summary_id",
+              "value": "={{ $('Create Summary').item.json.summary_id }}",
+              "type": "string"
+            },
+            {
+              "id": "process-id-001",
+              "name": "process_id",
+              "value": "={{ $('Start Processing').item.json.process_id }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        592
+      ],
+      "id": "init-counter-001",
+      "name": "Init Counter"
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/summary/{{ $json.summary_id }}/status",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        592
+      ],
+      "id": "check-summary-status-001",
+      "name": "Check Summary Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "counter-increment-001",
+              "name": "iteration_count",
+              "value": "={{ $('Init Counter').item.json.iteration_count + 1 }}",
+              "type": "number"
+            },
+            {
+              "id": "summary-id-keep-001",
+              "name": "summary_id",
+              "value": "={{ $('Init Counter').item.json.summary_id }}",
+              "type": "string"
+            },
+            {
+              "id": "process-id-keep-001",
+              "name": "process_id",
+              "value": "={{ $('Init Counter').item.json.process_id }}",
+              "type": "string"
+            },
+            {
+              "id": "status-keep-001",
+              "name": "status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        592
+      ],
+      "id": "increment-counter-001",
+      "name": "Increment Counter"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "id": "rule-approved-001",
+              "outputKey": "approved",
+              "conditions": {
+                "conditions": [
+                  {
+                    "id": "condition-approved-001",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "approved",
+                    "operator": "equals"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "rule-rejected-001",
+              "outputKey": "rejected",
+              "conditions": {
+                "conditions": [
+                  {
+                    "id": "condition-rejected-001",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "rejected",
+                    "operator": "equals"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "rule-timeout-001",
+              "outputKey": "timeout",
+              "conditions": {
+                "conditions": [
+                  {
+                    "id": "condition-timeout-001",
+                    "leftValue": "={{ $json.iteration_count }}",
+                    "rightValue": "60",
+                    "operator": "gte"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "continue_polling"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1328,
+        592
+      ],
+      "id": "is-approved-or-timeout-001",
+      "name": "Is Approved or Timeout?"
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        816
+      ],
+      "id": "wait-10-seconds-001",
+      "name": "Wait 10 Seconds",
+      "webhookId": "wait-10-seconds-webhook-001"
+    },
+    {
+      "parameters": {
+        "url": "=http://217.182.76.146/api/summary/{{ $json.summary_id }}/approved",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1552,
+        368
+      ],
+      "id": "get-approved-summary-001",
+      "name": "Get Approved Summary"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1776,
+        480
+      ],
+      "id": "merge-final-data-001",
+      "name": "Merge Final Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pobranie zatwierdzonego podsumowania\nconst summaryText = $input.first().json.summary_text || \"\";\nconst fileid = $input.last().json.report_filename || \"\";\nconst processId = $input.first().json.process_id || \"\";\nconst approvedBy = $input.first().json.metadata?.approved_by || \"Użytkownik\";\nconst approvedAt = $input.first().json.metadata?.approved_at || \"\";\n\n// Formatowanie podsumowania\nlet content = summaryText.trim();\n\n// Obsługa różnych formatów\nif (content.match(/^\\d+\\./m)) {\n  content = content\n    .split(/\\n*\\d+\\.\\s+/)\n    .filter(line => line.trim() !== \"\")\n    .map(line => `<li>${line.trim()}</li>`)\n    .join(\"\\n\");\n} else if (content.includes('-')) {\n  content = content\n    .split(/\\s*-\\s+/)\n    .filter(line => line.trim() !== \"\")\n    .map(line => `<li>${line.trim()}</li>`)\n    .join(\"\\n\");\n} else {\n  content = content\n    .split(/\\n+/)\n    .filter(line => line.trim() !== \"\")\n    .map(line => `<li>${line.trim()}</li>`)\n    .join(\"\\n\");\n}\n\nconst formattedContent = `\n<p><b>Podsumowanie kluczowych zmian:</b></p>\n<ul style=\"color:#707173; font-size:11pt; padding-left:20px;\">\n${content}\n</ul>\n\n<p style=\"color:#009795; font-size:9pt; margin-top:20px;\">\n  ✅ Zatwierdzone przez: <b>${approvedBy}</b><br>\n  📅 Data zatwierdzenia: <b>${new Date(approvedAt).toLocaleString('pl-PL')}</b>\n</p>\n`;\n\nconst htmlTemplate = `\n<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n<tbody>\n<tr>\n<td style=\"width: 220px; text-align: center; vertical-align: middle;\">\n<div style=\"text-align: center; padding: 10px;\">\n<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKoAAACqCAYAAAFKceQUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAIdUAACHVAQSctJ0AABTHSURBVHhe7Z0LkBzFecf3QEKyiQ0u7Bg74IRyxY5NsBPHIVUBTGyIJFx+xGWq7CSVWEmFmDjlJJROt7OvO4FjKKcSYweDJCSEJCQhgYQM6AEWiiSDjAQSSEhIOvSwZEunh0FvcSd2djf99Xw92zPTuzs9O7vXs/f9qr7ane6enm/+89/ZntnZmVT7sLKFUNESMrlKKleo4FSMQMdA7J2LjlOprlShL8bOqx075AplfNeYioJSqTSDV+Z7K57QkQT7aghvPGnSxfw1DDhfQ3hjIzpOTb2/IoJ3IL3e9ORP3fe8rW7HvzdvrtvhDUufqFw+e5bTmRyAbscAvD7Sv8vT2W1r1/BXXg909sbD+RrCG1PHAG+s07EWoTruu6sSKToI1TexKrTwf9XUImw7TvjGXeHb6nQKWNkQ7XU7BRrOgw3wwxOAtwH838Z1O27QqR8+D9BZnRaLxV3ie0sgT3u+x4AwnZbL5Un+TsR7YM/Jk5UfvbZVr1PgoulTeQeHz571dOpZkCBsp3zOBmBT6rTjOtWi7nyqb8uwQYQGtkGcke8NfyyoDSwgLkRf8D0M326xE3+y4jveGZXEer6gdclWgfJYzkP4ksV9lYdSqbQIq+sDfU3OHkmlM0cDYbGA+qaUDpGsLmzl1rCXoMJwqOJbnh4tSFYGu3WgZGMEu3WIO1n+YWJjQTFeBMQYUcDHilhWKpe9Y0gWB86cqU7LxJ0sGy1fAwsZzZLdfOxoZeL/rXaTAVTvVa8Qaw8dbG2yHFyYHCKJ/hPH+Xtg3NNPeeoEnnlkWpEsX0pMYJcOlGyMYJcOlGyMYJcOrUi2ZcSSrP+UUCujneIQnUPvFPV556iRyVyHPcfMlLuCh8/NRrd1M/YeI5AofCLjoNB7xE3WssZhaUzEnWg2X0llc7t5sj3Z8VgTA61IFMiJZHv+kk83TasSBUSyuVwMNmhlooBVeCMeG7Q6UUAo293MB6wdiQJWfg9P1spF3HX5EmWjtInOYK2KbdtD7MDw09ikNpAoJKM6HQQBdTzZKMr6EmUJXYb5hYK1/yzOmkr19R3jfdULSLQnN4BzaKDY9JhDU7AVeBd256XQVzYqURns1oESjQHs1oESjQHs1mHEJipOhMknxASHz53zlPnfi+mbnnrSmZZpRaKC318wL5DMJTMfdMvgtWjb7nu5/K2hodYnCtf7ydf8CeRExCvEFXNnV/508ePBeplWJAone9cPDLiJAL/7yBxPIndv3lQZYmrKbeB1+1tvVadlWrnpATkJf8jlAPv69NbJtPrDdO2Sx52F4sIFYlq0E8D7ubt2Oe9l4k40TrBbB0o0BrBbB0o0BrBbhzgTZcdIR3EZsYDdOsSZKPwcicuIBezWIc5E2Q77DlxGLGC3DjEneh0uIxawW4eYE70YlxEL2K1DnIkCuIxYwC4d4k60ZYyMROE0CyTbjoh8SueeH6gvlWxlWNkTuHSCIIgmEHtaUwMuEs1kPo/ZJgQhKvw2Y2X/OdWT+bYRkSuc9IgLlw039WNWO5HHBCYhftuCSFv72Aav5hnrr9utwHRRnV83nUuy0+n9rtDObiGmX+PjJkmiCsT1GBAwbM8UbsIaQ0iiqA5dKctyfot3xDVot5BcUauk897dwrCL2wmiCqz8PldcWJ507gtY02YaiFoqlX6I53Q4tm2fYmXPlcvlj2GT1uAVVY9M4TVXXL5baPcXWgNR4zh/yTbCg6yfa7HLcAhR44ps7gj23AZCfPxRm7bBNsKCNf39f5T6x8nvaSoymQ84owO2fpHOl0XFQFF1KBaLg5hmEPgLAYkaDUwzCIkaHUwzCIkaHUwzCIkaHUwzCIkaHUwziMmism/YE5D81O3blPH8wKHKm4ODfAXrIc8jI8oe2rEDSxzeYn3Wmmfg3Dm3HNMMYrhT18KKiKvQLmAx+RfreVz3xBK3HOKSh2ZA0wByG4hZO6sCPrZnt1suI7evVXfZrJnJFJUNxu+TV0T++7/g4hnTa9bdu+VVd15AvB8sFvk0IMqW7tvHp9ceOuSWibh64QJeB4gy/r4WJovKDjG/LK9IrfiLJ5bylZQZtItuveCOF54PlOU3bvCU+evl6ffitcZwiS+AaQYx/OP/Pp48rpjKjYCoPzE0hCXVsnohENP/sT4o+qVstwLTf/zYwkAdphnEZFEBnjyujF/UX585U+nCOgjmbF5eq71A1H/g4Yf59J8sfswtg/Aj131o9iws7RBRVQGXWh86e5avJHDNwkfdunqINv/16iueafgy9POVFcvdehlMMUgSRDUVTDEIiRodTDEIiRodTDEIiRodTDEIiRodTDGI6aLatv0yroNxYIpBTBeVHar+D66DcWCKQRLg1G/gOhgHphjEdFHZUdJVuA7GgSkGMV1UANfBODC9ICRqdDC9IEkQNXGQqC3gxhtHDa+onR5tFZUgCIIgiJFEOvc591bBJkZvLzxyL9yfKIzByvYpx3QmRTa3F7NNCEkQFcIq7MGME4AsajozL/BP5uGKdOZfPaJC5PL9mLXhyKLCypjCd787xiOoCPg3tfEkQVQrc5af7OHvs3Br8N3YylCSIeoO/hd0+OeeW5aHfayho4JEiGrt4mVwI/AcOhbCGRUYKGySRAUmZ27yODZn4nAraaIC8IgQsY916g0bbiVRVAD2sbKwRo0KkioqkM2Or+4K2KgAnsVhBEkWFei2JniGW86oYJhJuqhAT894584/2H7YdwWdICoANwHrnVIV1tkVDNNwq1NEBeCWHvKX17Cd3eokUQEYx8rCZoZD2BCi4pU1LrZt7yyXy3dgdWuQRe3J7sTScGQyN3iOvKxMm0cFEUStBRN7K4t4xPaIahU9z69qHIdT6ew77vzVUUGb9rExilqLYrH4OnP2P7EYg102RhY1juA3AIvrKX2NaIOotWCuPsCEvpW9fT8uqgqICvvGZsMjarvuTTWMotYC7t7DxP7mf6976UrlbZHCxne+81ts/eaTqA1gYsMl8qMxtcZYuTkkagQwTTUkajQwTTUkajQwTTWmisq+pbdg/kaCaaoxVVS4mSHmbySYphqDP/6Wk76ZYJpqTBWVDWPGY/5GgmmqMVjUj2P+RoJpqjH44/8RJ30zwTTVGOzU38b8jQTTVGOwqLE+qi5uME01Bn/8u5z0zQTTVGOqqADm77lDpBzwgORGvHLsmNteBu5lpSoHRHm9utRPfjwB0wySBFHFjbZqhXynST9yu2sXO89gFojyEt55TSDPc0S6kRjg1t33w89gmkGSJKp8m88/f2JxdQVZ1EJu428nyiaufg5LHOT21y9dgqUObl09kiSqClF30Oco4JpF1ZseioAbzgounPYAL5NvRfcevHXohdgeQvD1Z1a6ZZiimk4RVYWoW7J3r/teFjC38UW3XCCmd588EaiDeWH6irlzOkdUuG+piI/g0/4hvrxiObascuTcObce2PLmb9xpNlzjZYDcBpCnxXtxi2Yx/cLhgc4RtVa89uab2LKK+GiPfXAallT7kb+wRNnLR49WtvymKjzwiUcX8PefZK+wIeQ6TFFNkkTdfOyoGzN2vF65UnLr/Df6sTX/Tckt33/qFJZWKr8zd7ZbLhDTH1swz33/N6t+xutgOaLswOnT7nsAU1ST9H3qpXDDbV/9l5Yvc8tqxc7jzhj39nVrA3Wnz5/ndYC/Dm6Cy8vrkXRRPzyntvsaBTBk28pygb/uVXYwwcvrkWRRv/5sdYjzQbyt8QAbWomyYqnEy2Tm9/e79QIx7S8Hbn32GWUdpqimE76oIASqMj+i/ovLn/ZMQ9y71fvT2MmhIU+9AFNUk2RRr2TjxdzGDdjKQdTBreZrMWb6VLcd8LWVK9xpW+FuUSfaA5iimiSIaiKYohqTRbVtex2ug3FgimpMFrVUKv0I18E4MEU1JovKBvG34ToYB6aoxnBRjf1FFVNUY7ioY3AdjANTVGOyqCz30c4qmAemqMZwUUc5q2AemKIaw0W9wFkF88AU1ZgsKoDrYByYnhoSNRqYnhoSNRqYnhoSNRqYnhoSNRqYnhoSNRqYnhoSNRqYnhoSNRqYnhrTRbVtu/rgaIPA9NQkQNTg5XwGgOmpSYCo/Bn/poHpqTFd1ERCorYAErUFDLuo3em/x9LOwcrNGF5RYcGqO+YkOeR1GxZROznaKmo6c3eq765Kx8ed/8lEzd6Ca00QBEEQBEEQBEEQBNFG4ATMPT9Qn7SgaBx3fq/CH0Fi5cahokRLgNOvU5jgqlOWFOEDTu9mc79M9WTHo7JErNQyapYJnyuUU7leCk8wTfxayQHPfYOnwMITtRL3GHOTURkVfl3rxJ9h46Cv76JUoXfAo5cqwLDwuDfn4S5k2KapZdROvAgjDuChOoXeIx69RGTzziOd/GXp/H7+oDKiCcioeqiMCmacnN2ZyjAzZvL9/FmPsmHhfaGvzMawMCRo02UKnQYZVY9aRq0+BrKLXzMDTyCEAyy5HQQ8pRDqyLCakFH1qG9UeSzaxZ+kaxX2cHPK7SFA48nZvfz50EQIyKh6hDeqgO1hs+NTOTYkAF3l+SDgoCvP6rIFOq1VFzKqHvpGrZJlhrWyv1QaFsrS1n48D0tnCQKQUfVoxqgC+BULTl2pDAvDBHgmvPNLFxnWhYyqRxxGFWTYQReYEs4IBM8SsFc2vqXTWggZVY84jSrozt3M+tmrPEuQ7y2nMuygK1MY4YYlo+rRCqM6wFmCm/m5VtWQwCnbzZYzQi9+IaPq0TqjCrr4dQL1zhJkCrtGnmHJqHq03qiCLn6WAMaw6iEBW+ZIulorBqOWSqV5eLuTim3be9j0tHK5fCuLz7Ci92GzzqB9Rq0CZgTDqvawUMav1up0w8ZgVGbOHsem+hSLxUEwOjP111hcxeK92K2ZqIwK0WP9KjWp5xZuGCs3Id6wJqTSuS+k0pl7U5n86cCyIdyrtfgtD1rzgRlWYjAqM9d49F1bYMZ+hi3zqyzgyQSjMI32UMuoELBnbWWolukPfn+OHFwg8weYcYcQj1E/4VjILNie/m0Wx5ixV7Ec4cEw78aUo1PPqCaEY9QB3LN2EDEdTDnWSDbM1GdY9DNjr2bG7mZxNa5elRtvHMX2bv/L9lizhjXS2ZlsG81NTc7sZtus+q8DMmp9cFuPKNj4+jwz9lZm7CXstYcZ+7MoR3v41rfGMsPO5r9skVHDgduOaADssdnLbGbq21n8GXs/FiXUZ9Kki9nB1hwyqgZ8KxCRQRn1IKOSUdsNyqgHGVXfqGy8dhA1JyKAMupBRtU3KjugWImaExFAGfUgo0YyqrFPBU8CKKMeZFR9o7Ij2H9AzYkIoIx6kFEjGfXTqDkRAZRRDzJqJKN+FDUnIoAy6kFGjWTUD6PmRARQRj3IqPpGZVpf6khORAFl1IOMGsmoox3JiSigjHqQUfWNCti2PYi6E5qghHqQUSMb9deoOyc19f7I8cmFCyrrBwawJ30+9dhCZb+/On0aW3ixSyVl+3rM7d+lnAeiHlO3bwvOc/993ShjeMio0YzKtsEmZ1M4BDZGxNhfw1y16H1po7IfiNHTp1bOvvMOtvRyw9InAu2XHdiPtUH8beW45xWPFB4u8LW9cNoDtEdtSIxGLZVKy3BbcOSNAXERM0kjlu7bG5gPIizrDw8o55fjslkzsbUX+ED4217N9uwqptT5MECMYesKe2k//SdOBNp2/2I9GbUh8Rp1Dm4Pjn+DhDEq8JUVywPzhuHE0FBgvuvZXvLnhw4Gyj+1aCHO5eXaxY8H2u47dQprHUrlcmCv+MD21zzTEAt3v4FzVBk7fVqgHYAS6kFGjWzUu7nqiH+DNDLqkG1XvroyaNIZr2/HFvUZ5ZtvFPtKFUxc/ZynDuLerVuwtsrOE8cD7SY8/RTWOvzLz9d76i+ZOYOX/+2qn3nKIWR2HA/2feeml3gdSqgHGTXywdRErjri3yi68f1NL/O9Vxg+/uj8wPynpbFomfXz/ocfCrSBvbAffxsIwbliMVA3jx1UAYOKuvzGDbwO+NLyZYF6mAdACfUgo0Y+mLqeq474N0rUuOeVzdijmp9sC37tTnnJ2VPJvBPyyP7Y228H2ty2dg2vG8f2rv46meyGFz114lsEDuDkcoi/XvUsrwNQQj3IqNGMyvZaV6DuHP+GCTtGzbG9kH9e2Buq9q5nzp8PtIXx4x8uelQZl89+OND+Q7NnYW9Vrpo319NmzIPTKqcUy9p87CjOUYUfxUttHti2rdK9/gVPGYQMSqgHGTWaUQHUnePfMGGNCqi+yg8oTlP420SNzz+5FHt0WHFgf6CN/wDqo/MfwdZeprExtdxOFX+3ehW2dkD59CCjDq9R1x46GJgXwj+ehD2kv82/P/985fubNzUMv+kgvsfGxDLvYntRfxs5Nhw5jC2D+Peq/jg+6P0RD+XTg4zaGqM2E/PfgH8ZV8m86B0LQvzVyhVY25ghxYEPxMtHq1/l6xSntUS8e8Z0bKXmp/v2KeeDgNNvflA+Pcio5hj1i8uext6qrDuo3uPqsiZEP12KeogzNX7dkrmcjX1V88JBnR+UTw8yajxGJcKD8ulBRo1u1GKxeAC1JzRA+fQgo0Y3aqlUWoTaExqgfHqQUaMbtVwu51F7QgOUTw8yalNGHYfaExqgfHqQUZs6mBrrSE/ogPLpQUZtyqgXOdITOqB8epBRmzIq/ckvAiifHmTUpox6oSM9oQPKpwcZtSmjdjnSEzqgfHqQUaMbFbBt+xzqT4QEpdODjNq0UXeh/kRIUDo9yKjNGbVUKnkvtiQagtLpQUZt2qjTUH8iJCidHmTU5oxaLpf7UH8iJCidHmTUpo36bdSfCAlKpwcZtWmj3oL6EyFB6fQgozZtVLpNuiYonR5k1KaN+kHUnwgJSqcHGbU5owK2bYe7xQnBQdn0IKPGYtTgvXKImqBsepBRYzGq9xZ4RF1QNj3IqM0blWgDZFQyaiIgo5JREwEZlYyaCEa8UbP5Ciufn8ows1rZ2ykMjZ7sv6XS1otse41Qo1IkN8ioFImIjjVqOvc5NsbpTaUzFJ0QmRyLzB2pSbmrcAsTBEEQBEEQxAgjlfp/MYZ9cVJXb3oAAAAASUVORK5CYII=\" \n     width=\"80\" \n     height=\"80\"\n     style=\"width: 80px !important; height: 80px !important; max-width: 80px !important; max-height: 80px !important; display: inline-block;\">\n</div>\n</td>\n<td>\n<p><span style=\"color: #009795;font-size: 12pt;\"><b>Zapoznaj się z nowym aktem wewnętrznym / Check out the new internal act</b></span></p>\n</td>\n</tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td><span style=\"color: #707173;font-size: 11pt;\">Process ID</span></td><td style=\"padding-left: 15px;\"><span style=\"color: #707173;font-size: 11pt;\">${processId}</span></td></tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr><td colspan=\"2\" style=\"height:15px;\"></td></tr>\n<tr>\n<td><p><span style=\"color: #707173;font-size: 11pt;\">Podsumowanie zmian/Summary of changes</span></p></td>\n<td style=\"padding-left: 15px;\"><p style=\"text-align: justify; white-space: normal;\">${formattedContent}</p></td>\n</tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n<tr>\n<td><p><span style=\"color: #707173;font-size: 11pt;\">Szczegółowa analiza zmian</span></p></td>\n<td style=\"padding-left: 15px;\"><p><a href=\"http://217.182.76.146/reports/${fileid}\" target=\"_blank\" style=\"color: #009795;\">Link do podsumowania zmian</a></p></td>\n</tr>\n<tr><td colspan=\"2\" style=\"border-bottom: 1px solid rgb(0,150,150); height: 1px; padding: 0;\"></td></tr>\n</tbody>\n</table>\n\n<p><span style=\"color: #009795;font-size: 12pt;\"><b>Wiadomość wygenerowana automatycznie, nie odpowiadaj na nią / Automatically generated message, please do not reply to it.</b></span></p>\n`;\n\nreturn [{ json: { html: htmlTemplate } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        480
+      ],
+      "id": "format-final-email-001",
+      "name": "Format Final Email"
+    },
+    {
+      "parameters": {
+        "fromEmail": "ai_baw@credit-agricole.pl",
+        "toEmail": "trembiasz@credit-agricole.pl",
+        "subject": "✅ Nowy akt wewnętrzny - ZATWIERDZONE podsumowanie",
+        "html": "={{ $json.html }}"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2224,
+        480
+      ],
+      "id": "send-final-email-001",
+      "name": "Send Final Email",
+      "credentials": {
+        "smtp": {
+          "id": "2joSLF2U4RnAaaXW",
+          "name": "SMTP account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "create",
+        "tableName": "errors",
+        "fieldsToSend": "defineInNode",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "error_type",
+              "fieldValue": "TIMEOUT"
+            },
+            {
+              "fieldId": "error_message",
+              "fieldValue": "=Summary approval timeout after 60 iterations (10 minutes)"
+            },
+            {
+              "fieldId": "process_id",
+              "fieldValue": "={{ $json.process_id }}"
+            },
+            {
+              "fieldId": "summary_id",
+              "fieldValue": "={{ $json.summary_id }}"
+            },
+            {
+              "fieldId": "timestamp",
+              "fieldValue": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.seaTable",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        816
+      ],
+      "id": "log-timeout-error-001",
+      "name": "Log Timeout Error",
+      "credentials": {
+        "seaTableApi": {
+          "id": "308kg9y7cDXLbrvU",
+          "name": "SeaTable account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "ai_baw@credit-agricole.pl",
+        "toEmail": "trembiasz@credit-agricole.pl",
+        "subject": "⚠️ TIMEOUT - Brak zatwierdzenia podsumowania",
+        "html": "=<html>\n<head>\n  <meta charset=\"UTF-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; color: #333;\">\n  <h2 style=\"color: #ED1B2F;\">⚠️ Przekroczono czas oczekiwania na zatwierdzenie</h2>\n  \n  <p>System BAW czekał 10 minut na zatwierdzenie podsumowania, ale nie otrzymał odpowiedzi.</p>\n  \n  <table style=\"border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px 0;\">\n    <tr style=\"background-color: #f5f5f5;\">\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Process ID:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.process_id }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Summary ID:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.summary_id }}</td>\n    </tr>\n    <tr style=\"background-color: #f5f5f5;\">\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Status:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">❌ TIMEOUT (60 iteracji × 10s)</td>\n    </tr>\n  </table>\n  \n  <p>Możesz nadal zatwierdzić podsumowanie manualnie:</p>\n  <a href=\"http://217.182.76.146/summary/{{ $json.summary_id }}\" \n     style=\"display: inline-block; background-color: #009795; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;\">\n    Przejdź do podsumowania\n  </a>\n  \n  <hr style=\"border: none; border-top: 1px solid #ddd; margin: 30px 0;\">\n  <p style=\"color: #999; font-size: 12px;\">System BAW AI - Error Notification</p>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1776,
+        816
+      ],
+      "id": "send-timeout-email-001",
+      "name": "Send Timeout Email",
+      "credentials": {
+        "smtp": {
+          "id": "2joSLF2U4RnAaaXW",
+          "name": "SMTP account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "ai_baw@credit-agricole.pl",
+        "toEmail": "trembiasz@credit-agricole.pl",
+        "subject": "❌ Podsumowanie dokumentu zostało odrzucone",
+        "html": "=<html>\n<head>\n  <meta charset=\"UTF-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; color: #333;\">\n  <h2 style=\"color: #ED1B2F;\">❌ Podsumowanie odrzucone</h2>\n  \n  <p>Użytkownik odrzucił automatycznie wygenerowane podsumowanie.</p>\n  \n  <table style=\"border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px 0;\">\n    <tr style=\"background-color: #f5f5f5;\">\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Process ID:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.process_id }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Summary ID:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.summary_id }}</td>\n    </tr>\n    <tr style=\"background-color: #f5f5f5;\">\n      <td style=\"padding: 10px; border: 1px solid #ddd; font-weight: bold;\">Status:</td>\n      <td style=\"padding: 10px; border: 1px solid #ddd;\">❌ REJECTED</td>\n    </tr>\n  </table>\n  \n  <p>Workflow został zakończony. Użytkownik może wygenerować nowe podsumowanie manualnie.</p>\n  \n  <hr style=\"border: none; border-top: 1px solid #ddd; margin: 30px 0;\">\n  <p style=\"color: #999; font-size: 12px;\">System BAW AI - Notification</p>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1552,
+        592
+      ],
+      "id": "send-rejection-email-001",
+      "name": "Send Rejection Email",
+      "credentials": {
+        "smtp": {
+          "id": "2joSLF2U4RnAaaXW",
+          "name": "SMTP account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Obliczanie_zakresu_czasu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Obliczanie_zakresu_czasu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check_if_exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select_no_1": {
+      "main": [
+        [
+          {
+            "node": "Variable js",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select_no_2": {
+      "main": [
+        [
+          {
+            "node": "Variable_js2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check_if_exist": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert_into_db": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variable js": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variable_js2": {
+      "main": [
+        [
+          {
+            "node": "Insert_into_db2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Select_no_2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert_into_db2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Event_log1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select_no3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select_no3": {
+      "main": [
+        [
+          {
+            "node": "Variable_js3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variable_js3": {
+      "main": [
+        [
+          {
+            "node": "insert_do_pobrania",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Insert_into_db",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Event_log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obliczanie_zakresu_czasu": {
+      "main": [
+        [
+          {
+            "node": "Select_no_1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert_do_pobrania": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Documents": {
+      "main": [
+        [
+          {
+            "node": "Start Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Processing": {
+      "main": [
+        [
+          {
+            "node": "Wait 3 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Is Completed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Completed?": {
+      "main": [
+        [
+          {
+            "node": "Get Full Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 2 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Full Result": {
+      "main": [
+        [
+          {
+            "node": "Final Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Summary": {
+      "main": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Create Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent4": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge Final Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Edit Link Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Edit Link Email": {
+      "main": [
+        [
+          {
+            "node": "Wait for User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for User": {
+      "main": [
+        [
+          {
+            "node": "Init Counter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Counter": {
+      "main": [
+        [
+          {
+            "node": "Check Summary Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Summary Status": {
+      "main": [
+        [
+          {
+            "node": "Increment Counter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Counter": {
+      "main": [
+        [
+          {
+            "node": "Is Approved or Timeout?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Approved or Timeout?": {
+      "main": [
+        [
+          {
+            "node": "Get Approved Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Rejection Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Timeout Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Check Summary Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Approved Summary": {
+      "main": [
+        [
+          {
+            "node": "Merge Final Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Final Data": {
+      "main": [
+        [
+          {
+            "node": "Format Final Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Final Email": {
+      "main": [
+        [
+          {
+            "node": "Send Final Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Timeout Error": {
+      "main": [
+        [
+          {
+            "node": "Send Timeout Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "00546990-c360-4b6f-91f2-9e5342a2c541",
+  "meta": {
+    "instanceId": "b4b616b7f91cba1190de30bf997b6d4fd23ae83518f98bc8ef9db895a05f1179"
+  },
+  "id": "Dl3LQScHexBjc6Gh",
+  "tags": []
+}

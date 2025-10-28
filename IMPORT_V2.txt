@@ -1,0 +1,98 @@
+=============================================================================
+  N8N WORKFLOW - IMPORT v2 (UPROSZCZONY)
+=============================================================================
+
+⭐ UŻYJ TEGO PLIKU:
+C:\Projects\BAW\API 04 Enhanced v2.json
+
+=============================================================================
+CO ZOSTAŁO ZMIENIONE W v2
+=============================================================================
+
+1. RETRY LOGIC - USUNIĘTY
+   Zostanie dodany ręcznie po imporcie
+   (retry configuration powodował błąd importu)
+
+2. EMPTY OPTIONS - USUNIĘTE
+   Puste obiekty {} w parameters.options
+
+3. RIGHTVALUE - STRING
+   Wszystkie rightValue w Switch są stringami: "60", "approved", "rejected"
+
+4. WEBHOOK IDS - UPROSZCZONE
+   Unikalne webhook IDs dla Wait nodes
+
+=============================================================================
+IMPORT - KROK PO KROKU
+=============================================================================
+
+KROK 1: Import
+--------------
+1. N8N: http://localhost:5678
+2. Workflows → Import from File
+3. Wybierz: C:\Projects\BAW\API 04 Enhanced v2.json
+4. Import
+
+KROK 2: Dodaj Retry (ręcznie)
+------------------------------
+Po imporcie dodaj retry w 3 węzłach HTTP Request:
+
+A) Create Summary:
+   - Kliknij węzeł
+   - Settings (ikona koła zębatego)
+   - Retry On Fail: ON
+   - Max Tries: 3
+   - Wait Between Tries: 2000 ms
+
+B) Check Summary Status:
+   - Kliknij węzeł
+   - Settings
+   - Retry On Fail: ON
+   - Max Tries: 2
+   - Wait Between Tries: 1000 ms
+
+C) Get Approved Summary:
+   - Kliknij węzeł
+   - Settings
+   - Retry On Fail: ON
+   - Max Tries: 3
+   - Wait Between Tries: 2000 ms
+
+KROK 3: Weryfikacja
+-------------------
+✓ Węzłów: 65
+✓ AI Agent3 → Create Summary
+✓ Is Approved or Timeout? → 4 wyjścia
+✓ Retry dodany w 3 węzłach HTTP Request
+
+KROK 4: Test
+------------
+Execute Workflow → Sprawdź email
+
+=============================================================================
+JEŚLI NADAL BŁĄD
+=============================================================================
+
+Jeśli nadal otrzymujesz "could not find property option":
+
+ROZWIĄZANIE: Import ręczny węzłów
+----------------------------------
+
+1. Otwórz istniejący workflow "API 04" w N8N
+
+2. Dodaj ręcznie 15 węzłów zgodnie z dokumentacją:
+   C:\Projects\BAW\N8N_WORKFLOW_ENHANCED.md
+
+3. Każdy węzeł ma pełną konfigurację JSON w dokumentacji
+
+4. Skopiuj konfigurację node-by-node
+
+ALTERNATYWNIE: Wyślij screenshot błędu
+---------------------------------------
+
+Wyślij screenshot dokładnego komunikatu błędu + wersję N8N:
+- N8N → Settings → About → Version
+
+To pomoże zidentyfikować dokładny problem.
+
+=============================================================================

@@ -34,7 +34,8 @@
       "Bash(ssh:*)",
       "Bash(copy prompt_system.txt prompt_system_original.txt)",
       "Bash(copy prompt_user.txt prompt_user_original.txt)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "ask": []

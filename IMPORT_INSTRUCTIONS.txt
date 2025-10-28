@@ -1,0 +1,265 @@
+=============================================================================
+  N8N WORKFLOW - INSTRUKCJA IMPORTU
+  Enhanced Workflow v2.0.0 (API 04 Enhanced.json)
+=============================================================================
+
+Data: 2025-10-28
+Plik: C:\Projects\BAW\API 04 Enhanced.json
+Rozmiar: 92 KB
+Węzłów: 65 (+15 nowych)
+
+=============================================================================
+KROK 1: IMPORT DO N8N
+=============================================================================
+
+1. Otwórz N8N:
+   http://localhost:5678
+
+2. Przejdź do: Workflows → Import from File
+
+3. Wybierz plik:
+   C:\Projects\BAW\API 04 Enhanced.json
+
+4. Kliknij: Import
+
+5. Sprawdź:
+   - Nazwa: "API 04"
+   - Węzłów: 65
+   - Status: Active = false (domyślnie)
+
+=============================================================================
+KROK 2: WERYFIKACJA CREDENTIALS
+=============================================================================
+
+Otwórz: Credentials (w menu bocznym)
+
+Sprawdź 3 credentials:
+
+1. SMTP account 4 (ID: 2joSLF2U4RnAaaXW)
+   - Test Connection → OK
+
+2. SeaTable account 3 (ID: 308kg9y7cDXLbrvU)
+   - Test Connection → OK
+
+3. OpenAi account 11 (ID: im1Fo28cUIM0GySs)
+   - Test Connection → OK
+
+Jeśli któryś nie działa:
+→ Zweryfikuj hasła/API keys
+→ Zaktualizuj credentials w N8N
+
+=============================================================================
+KROK 3: WERYFIKACJA WORKFLOW
+=============================================================================
+
+Otwórz workflow "API 04"
+
+Sprawdź wizualnie:
+
+1. Czy widoczne nowe węzły:
+   ✓ Create Summary
+   ✓ Send Edit Link Email
+   ✓ Wait for User
+   ✓ Init Counter
+   ✓ Check Summary Status
+   ✓ Increment Counter
+   ✓ Is Approved or Timeout?
+   ✓ Wait 10 Seconds
+   ✓ Get Approved Summary
+   ✓ Merge Final Data
+   ✓ Format Final Email
+   ✓ Send Final Email
+   ✓ Log Timeout Error
+   ✓ Send Timeout Email
+   ✓ Send Rejection Email
+
+2. Czy połączenia są poprawne:
+   ✓ AI Agent3 → Create Summary (NIE → Merge!)
+   ✓ Create Summary → Send Edit Link Email
+   ✓ Is Approved or Timeout? → 4 wyjścia
+
+=============================================================================
+KROK 4: TEST WORKFLOW
+=============================================================================
+
+TEST 1: APPROVE FLOW (5-10 minut)
+-----------------------------------
+1. Kliknij: Execute Workflow
+2. Sprawdź email: "⏳ Podsumowanie wymaga zatwierdzenia"
+3. Otwórz link: http://217.182.76.146/summary/{id}
+4. Edytuj tekst
+5. Kliknij: "✅ Zatwierdź"
+6. Sprawdź email: "✅ ZATWIERDZONE podsumowanie"
+
+Oczekiwany rezultat: ✅ 2 emaile, workflow zakończony sukcesem
+
+
+TEST 2: TIMEOUT FLOW (10 minut)
+---------------------------------
+1. Kliknij: Execute Workflow
+2. Otrzymaj email z linkiem
+3. NIE OTWIERAJ LINKU (poczekaj 10 minut)
+4. Sprawdź email: "⚠️ TIMEOUT"
+5. Sprawdź SeaTable → tabela "errors"
+
+Oczekiwany rezultat: ✅ Timeout po 10 min, log w SeaTable
+
+
+TEST 3: REJECT FLOW (2 minuty)
+--------------------------------
+1. Kliknij: Execute Workflow
+2. Otwórz link z emaila
+3. Kliknij: "❌ Odrzuć"
+4. Sprawdź email: "❌ Podsumowanie odrzucone"
+
+Oczekiwany rezultat: ✅ Rejection email, workflow zakończony
+
+=============================================================================
+KROK 5: AKTYWACJA (PRODUKCJA)
+=============================================================================
+
+Jeśli wszystkie 3 testy przeszły:
+
+1. W N8N workflow settings:
+   Active: OFF → ON
+
+2. Schedule Trigger uruchomi workflow automatycznie co 30 minut
+
+3. Monitor:
+   - Executions (w N8N)
+   - Logi emaili (SMTP)
+   - SeaTable tabela "errors"
+
+=============================================================================
+WYMAGANIA WSTĘPNE
+=============================================================================
+
+BACKEND (UslugaDoPorownan):
+✓ Wersja: v1.1.0 lub nowsza
+✓ Endpoint: POST /api/summary działa
+✓ Endpoint: GET /api/summary/{id}/status działa
+✓ Endpoint: GET /api/summary/{id}/approved działa
+✓ Health check zwraca: "total_summaries", "pending_summaries", "approved_summaries"
+
+Test:
+  curl http://217.182.76.146/health
+  (sprawdź czy są summary statistics)
+
+FRONTEND (SecureDocCompare):
+✓ Editor podsumowań: http://217.182.76.146/summary/{id}
+✓ Quill.js działa
+✓ Buttons: Save, Approve, Reject
+
+Test:
+  Otwórz: http://217.182.76.146/summary/test-123
+  (powinien pokazać edytor lub 404 jeśli nie istnieje)
+
+=============================================================================
+BACKUP & ROLLBACK
+=============================================================================
+
+BACKUP ORYGINALNY:
+C:\Projects\BAW\API 04.json.backup (61 KB)
+
+ROLLBACK (jeśli coś nie działa):
+1. W N8N: Settings → Delete Workflow
+2. Import: C:\Projects\BAW\API 04.json.backup
+3. Zmień nazwę na: "API 04"
+
+=============================================================================
+TROUBLESHOOTING
+=============================================================================
+
+PROBLEM: Import kończy się błędem "Invalid JSON"
+ROZWIĄZANIE:
+  python -c "import json; json.load(open('API 04 Enhanced.json','r',encoding='utf-8')); print('OK')"
+  Jeśli błąd: python enhance_workflow.py
+
+PROBLEM: Brak węzła "Create Summary"
+ROZWIĄZANIE:
+  Sprawdź czy importujesz "API 04 Enhanced.json" (92 KB), nie "API 04.json" (61 KB)
+
+PROBLEM: AI Agent3 nadal łączy się z "Merge"
+ROZWIĄZANIE:
+  Ręcznie usuń połączenie AI Agent3 → Merge
+  Dodaj połączenie AI Agent3 → Create Summary
+
+PROBLEM: Email "Edit Link" nie zawiera linku
+ROZWIĄZANIE:
+  Sprawdź węzeł "Send Edit Link Email" → HTML content
+  Link powinien być: http://217.182.76.146/summary/{{ $json.summary_id }}
+
+PROBLEM: Polling nigdy się nie kończy
+ROZWIĄZANIE:
+  1. Sprawdź węzeł "Increment Counter" → iteration_count rośnie?
+  2. Sprawdź węzeł "Is Approved or Timeout?" → warunek timeout: >= 60
+  3. Sprawdź w Executions czy "Wait 10 Seconds" wykonuje się w pętli
+
+PROBLEM: Backend zwraca 404 na /api/summary
+ROZWIĄZANIE:
+  Backend wymaga aktualizacji do v1.1.0
+  curl http://217.182.76.146/health | grep "total_summaries"
+  Jeśli brak → deploy nowej wersji backend
+
+=============================================================================
+DOKUMENTACJA
+=============================================================================
+
+1. N8N_WORKFLOW_VERIFICATION.md
+   - Analiza oryginalnego workflow v1.0.0
+   - Zidentyfikowane problemy P0-P3
+   - Ocena: 8/10
+
+2. N8N_WORKFLOW_ENHANCED.md
+   - Pełna dokumentacja v2.0.0
+   - Konfiguracja 15 nowych węzłów (JSON)
+   - Connections mapping
+
+3. N8N_WORKFLOW_QUICKSTART.md
+   - Quick Start Guide
+   - Diagram ASCII flow
+   - Procedury testowania
+   - Troubleshooting
+
+4. WORKFLOW_MODIFICATION_SUMMARY.md
+   - Podsumowanie wykonanych zmian
+   - Statystyki (50 → 65 węzłów)
+   - Checklist wdrożeniowy
+
+5. IMPORT_INSTRUCTIONS.txt
+   - Ten dokument
+
+=============================================================================
+KONTAKT & WSPARCIE
+=============================================================================
+
+Pliki workflow:
+- Enhanced: C:\Projects\BAW\API 04 Enhanced.json (92 KB)
+- Original: C:\Projects\BAW\API 04.json.backup (61 KB)
+
+Backend API:
+- Base URL: http://217.182.76.146
+- Docs: http://217.182.76.146/docs
+- Health: http://217.182.76.146/health
+
+Frontend:
+- Summary Editor: http://217.182.76.146/summary/{id}
+- Login: http://217.182.76.146/login
+
+N8N:
+- Local: http://localhost:5678
+- Executions: http://localhost:5678/executions
+
+=============================================================================
+WERSJA
+=============================================================================
+
+Workflow: v2.0.0 Enhanced
+Data: 2025-10-28
+Wykonane przez: Claude Code
+Nodes: 65 (+15)
+Size: 92 KB (+31 KB)
+
+=============================================================================
+KONIEC INSTRUKCJI
+=============================================================================

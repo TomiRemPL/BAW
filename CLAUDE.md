@@ -82,3 +82,4 @@ Color scheme for banking context:
 - Log to both console (colored) and file (`output/app.log` with rotation)
 - Handle errors gracefully with user-friendly messages
 - Process comparison requests sequentially (MAX_CONCURRENT_COMPARISONS = 1)
+- pracujesz w środowisku windows.
