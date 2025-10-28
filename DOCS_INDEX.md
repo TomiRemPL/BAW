@@ -1,463 +1,304 @@
 # 📚 Indeks Dokumentacji - Projekt BAW
 
-Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankowych.
-
-## 🗂️ Struktura Dokumentacji
-
-### Główny Katalog (`/BAW`)
-
-| Plik | Opis | Dla kogo |
-|------|------|----------|
-| [README.md](README.md) | **Start tutaj!** Ogólny opis projektu, architektura, instalacja | Wszyscy |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Szczegółowe instrukcje wdrożenia na Debian z pyenv, systemd, nginx, firewall | DevOps, Admin |
-| [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) | **NOWY!** Przewodnik po skryptach zarządzania usługami (start/stop/status) | DevOps, Admin |
-| [DOCS_INDEX.md](DOCS_INDEX.md) | Ten plik - indeks całej dokumentacji | Wszyscy |
-| [VSCODE_SETUP.md](VSCODE_SETUP.md) | Konfiguracja Visual Studio Code, debugowanie, tasks | Developer |
-| [PROGRESS_LOG.md](PROGRESS_LOG.md) | Historia postępu prac i stan projektu | Manager, Developer |
-| [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) | Podsumowanie implementacji konwersji PDF→DOCX | Developer |
-| [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md) | **NOWY!** Dokumentacja endpointu generowania raportów HTML | Developer, API User |
-| [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | Kompletna dokumentacja API (~900 linii, 9 endpointów) | Developer, API User |
-| [N8N_INTEGRATION.md](N8N_INTEGRATION.md) | Integracja z N8N, workflow automation | DevOps, Automation |
-| [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) | Przewodnik workflow N8N v2.0 | DevOps, Automation |
-| [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) | Przewodnik memory-only workflow N8N v3.0 | DevOps, Security |
-| [N8N_HTML_REPORT_INTEGRATION.md](N8N_HTML_REPORT_INTEGRATION.md) | **NOWY!** Integracja raportów HTML w N8N | DevOps, Automation |
-| [requirements.txt](requirements.txt) | Wspólne zależności Python dla całego projektu | Developer |
-| [test.http](test.http) | Testy API dla REST Client (produkcja) | Developer, API User |
-| [test.local.http](test.local.http) | Testy API dla localhost | Developer |
-| [test.prod.http](test.prod.http) | Testy API dla produkcji (217.182.76.146) | Developer, API User |
-| [test_summaries.http](test_summaries.http) | **NOWY!** Testy endpointów podsumowań (n8n integration) | Developer, API User |
-| [CLAUDE.md](CLAUDE.md) | Instrukcje dla Claude Code AI | Developer |
-
-### SecureDocCompare (`/SecureDocCompare`)
-
-| Plik | Opis | Dla kogo |
-|------|------|----------|
-| [README.md](SecureDocCompare/README.md) | Dokumentacja frontendu - funkcje, konfiguracja, API | Developer, User |
-| [QUICK_START.md](SecureDocCompare/QUICK_START.md) | Szybki start - Windows i Linux, krok po kroku | Wszyscy |
-| [SECURITY.md](SecureDocCompare/SECURITY.md) | Szczegóły zabezpieczeń, testy, rekomendacje | Security, DevOps |
-| [.env.example](.env.example) | Przykładowa konfiguracja środowiskowa | Developer |
-
-### UslugaDoPorownan (`/UslugaDoPorownan`)
-
-| Plik | Opis | Dla kogo |
-|------|------|----------|
-| [README.md](UslugaDoPorownan/README.md) | Dokumentacja API backendu - endpointy, przykłady curl | Developer, API User |
-| [QUICKSTART.md](UslugaDoPorownan/QUICKSTART.md) | Szybki start backendu API | Developer |
-| [PROJECT_SUMMARY.md](UslugaDoPorownan/PROJECT_SUMMARY.md) | Podsumowanie projektu UslugaDoPorownan | Manager, Developer |
-| [PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) | **NOWY!** Changelog aktualizacji promptów LLM v2.0 - eliminacja halucynacji, analiza ryzyka (~755 linii) | Developer, LLM User, Compliance |
-
----
-
-## 🚀 Ścieżki Nauki
-
-### Jestem nowy w projekcie
-
-1. Zacznij od [README.md](README.md) - zrozum architekturę
-2. Przeczytaj [SecureDocCompare/QUICK_START.md](SecureDocCompare/QUICK_START.md)
-3. Zainstaluj i uruchom lokalnie
-4. Przetestuj podstawowe funkcje
-
-### Chcę wdrożyć na serwer
-
-1. Przeczytaj [README.md](README.md) - sekcja "Wymagania"
-2. Podążaj za [DEPLOYMENT.md](DEPLOYMENT.md) krok po kroku
-3. Użyj skryptów z [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) do zarządzania usługami (start/stop/status)
-4. Skonfiguruj [SecureDocCompare/.env](SecureDocCompare/.env.example)
-5. Zobacz [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) dla checklisty bezpieczeństwa
-
-### Chcę rozwijać funkcje
-
-1. Zrozum strukturę z [README.md](README.md)
-2. Frontend: czytaj [SecureDocCompare/README.md](SecureDocCompare/README.md)
-3. Backend API: czytaj [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md)
-4. Zobacz [CLAUDE.md](CLAUDE.md) dla pomocy AI
-
-### Interesuję się bezpieczeństwem
-
-1. [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) - szczegóły zabezpieczeń
-2. [DEPLOYMENT.md](DEPLOYMENT.md) - sekcje: HTTPS, Firewall, systemd
-3. [SecureDocCompare/README.md](SecureDocCompare/README.md) - sekcja "Funkcje bezpieczeństwa"
-
-### Chcę użyć API
-
-1. [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) - pełna dokumentacja API
-2. [UslugaDoPorownan/QUICKSTART.md](UslugaDoPorownan/QUICKSTART.md) - szybki start
-3. [test.http](test.http) - przykłady zapytań API dla REST Client
-4. Przykłady curl i integracji
-
-### Pracuję w Visual Studio Code
-
-1. [VSCODE_SETUP.md](VSCODE_SETUP.md) - **Start tutaj!** Kompletna konfiguracja VSCode
-2. Zainstaluj rekomendowane rozszerzenia (`.vscode/extensions.json`)
-3. Użyj debugowania (`F5`) i tasków (`Ctrl+Shift+P` → Tasks)
-4. Testuj API przez [test.http](test.http) z rozszerzeniem REST Client
-
-### Chcę zintegrować z N8N
-
-1. [N8N_INTEGRATION.md](N8N_INTEGRATION.md) - **Start tutaj!** Wprowadzenie do integracji N8N
-2. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - Pełna lista endpointów z przykładami
-3. [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) - Workflow v2.0 (podstawowy)
-4. [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) - Workflow v3.0 (bez zapisu na dysku)
-5. [N8N_HTML_REPORT_INTEGRATION.md](N8N_HTML_REPORT_INTEGRATION.md) - **NOWY!** Generowanie raportów HTML w N8N
-6. [test.prod.http](test.prod.http) - Testowanie endpointów produkcyjnych
-
-### Chcę generować raporty HTML
-
-1. [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md) - **Start tutaj!** Dokumentacja endpointu raportów
-2. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - Kompletna dokumentacja API
-3. [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) - Backend API
-4. [test.http](test.http) - Przykłady zapytań API (REST Client)
-
-### Chcę używać analizy LLM dla zmian w dokumentach
-
-1. [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) - **Start tutaj!** Kompletna dokumentacja promptów LLM v2.0
-2. Plik `UslugaDoPorownan/prompt_system.txt` - Prompt systemowy (359 linii, 5 zasad, 11 regulacji)
-3. Plik `UslugaDoPorownan/prompt_user.txt` - Prompt użytkownika (355 linii, matryca zgodności, analiza ryzyka)
-4. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - Pobieranie JSON z `/api/result/{process_id}/full`
-
----
-
-## 🎯 Częste Scenariusze
-
-### Instalacja Lokalna (Windows Development)
-
-```
-README.md → SecureDocCompare/QUICK_START.md → Testowanie
-```
-
-**Pliki:**
-1. [README.md](README.md) - sekcja "Instalacja - Windows"
-2. [SecureDocCompare/QUICK_START.md](SecureDocCompare/QUICK_START.md) - sekcja "Windows"
-
-### Deployment na Debian
-
-```
-README.md → DEPLOYMENT.md → SCRIPTS_GUIDE.md → SecureDocCompare/SECURITY.md
-```
-
-**Pliki:**
-1. [README.md](README.md) - sekcja "Wymagania - Debian"
-2. [DEPLOYMENT.md](DEPLOYMENT.md) - pełna instrukcja
-3. [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) - zarządzanie usługami (start/stop/status)
-4. [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) - checklist
-
-### Zarządzanie Usługami (Screen Mode)
-
-```
-SCRIPTS_GUIDE.md → start_services.sh → status_services.sh → stop_services.sh
-```
-
-**Pliki:**
-1. [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) - **Start tutaj!** Kompletny przewodnik skryptów
-2. `start_services.sh` - Uruchomienie Backend + Frontend w screen
-3. `stop_services.sh` - Zatrzymanie wszystkich usług
-4. `status_services.sh` - Kompleksowy status i health check
-
-**Szybki start:**
-```bash
-cd /home/debian/hack/BAW
-chmod +x *.sh
-./start_services.sh      # Uruchom usługi
-./status_services.sh     # Sprawdź status
-screen -r baw-backend    # Zobacz logi
-./stop_services.sh       # Zatrzymaj usługi
-```
-
-### Konfiguracja Zabezpieczeń
-
-```
-SecureDocCompare/SECURITY.md → SecureDocCompare/.env → DEPLOYMENT.md (nginx/HTTPS)
-```
-
-**Pliki:**
-1. [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) - wszystkie mechanizmy
-2. [SecureDocCompare/.env.example](SecureDocCompare/.env.example) - przykładowa konfiguracja
-3. [DEPLOYMENT.md](DEPLOYMENT.md) - sekcje nginx i Let's Encrypt
-
-### Integracja z API
-
-```
-UslugaDoPorownan/README.md → UslugaDoPorownan/QUICKSTART.md → Przykłady curl
-```
-
-**Pliki:**
-1. [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) - dokumentacja endpointów
-2. [UslugaDoPorownan/QUICKSTART.md](UslugaDoPorownan/QUICKSTART.md) - szybki start
-
----
-
-## 📖 Szczegółowy Opis Plików
-
-### README.md (Główny)
-**Lokalizacja:** `/BAW/README.md`
-
-Główna dokumentacja projektu zawierająca:
-- Przegląd architektury (Frontend + Backend)
-- Wymagania systemowe (Python 3.11.9, Windows/Debian)
-- Instrukcje instalacji dla Windows i Linux
-- Komendy uruchomienia obu komponentów
-- Konfiguracja i zmienne środowiskowe
-- Troubleshooting i FAQ
-- Bezpieczeństwo (development vs production)
-
-**Kiedy czytać:** Zawsze jako pierwszy dokument!
-
----
-
-### DEPLOYMENT.md
-**Lokalizacja:** `/BAW/DEPLOYMENT.md`
-
-Kompletny przewodnik wdrożenia produkcyjnego:
-- Instalacja Python 3.11.9 przez pyenv
-- Konfiguracja środowiska wirtualnego
-- Automatyzacja z systemd (auto-start)
-- Nginx reverse proxy
-- HTTPS z Let's Encrypt
-- Firewall (ufw)
-- Monitoring i logi
-- Backup i aktualizacje
-
-**Kiedy czytać:** Przed wdrożeniem na serwer produkcyjny
-
----
-
-### SecureDocCompare/README.md
-**Lokalizacja:** `/BAW/SecureDocCompare/README.md`
-
-Dokumentacja frontendu:
-- System logowania i autentykacji
-- Formularz uploadu plików
-- Interfejs wyników
-- 5 warstw zabezpieczeń
-- API endpoints frontendu
-- Konfiguracja (.env)
-
-**Kiedy czytać:** Pracujesz z frontendem lub chcesz zrozumieć UI
-
----
-
-### SecureDocCompare/QUICK_START.md
-**Lokalizacja:** `/BAW/SecureDocCompare/QUICK_START.md`
-
-Szybki start w 5 krokach:
-- Instalacja dla Windows (development)
-- Instalacja dla Debian/Linux (production)
-- Pierwsze uruchomienie
-- Troubleshooting
-- Testowanie
-
-**Kiedy czytać:** Chcesz szybko uruchomić projekt
-
----
-
-### SecureDocCompare/SECURITY.md
-**Lokalizacja:** `/BAW/SecureDocCompare/SECURITY.md`
-
-Szczegółowa dokumentacja zabezpieczeń:
-- System autentykacji (hasła, sesje, cookies)
-- Walidacja plików (typy, rozmiary)
-- Rate limiting (20 req/min)
-- Bezpieczne nagłówki HTTP (CSP, HSTS, etc.)
-- Path safety i walidacja parametrów
-- Znane ograniczenia
-- Rekomendacje dla produkcji
-- Testy zabezpieczeń
-- Checklist bezpieczeństwa
-
-**Kiedy czytać:** Wdrażasz produkcyjnie lub interesujesz się bezpieczeństwem
-
----
-
-### UslugaDoPorownan/README.md
-**Lokalizacja:** `/BAW/UslugaDoPorownan/README.md`
-
-Pełna dokumentacja API backendu:
-- Wszystkie endpointy z przykładami curl
-- Modele danych (request/response)
-- Algorytm porównywania
-- Typy zmian (unchanged, modified, added, deleted)
-- Przykłady użycia (kompletny workflow)
-- Troubleshooting
-
-**Kiedy czytać:** Integrujesz się z API lub rozwijasz backend
-
----
-
-### UslugaDoPorownan/QUICKSTART.md
-**Lokalizacja:** `/BAW/UslugaDoPorownan/QUICKSTART.md`
-
-Szybki start backendu API:
-- Instalacja i uruchomienie
-- Podstawowe testy
-- Pierwsze użycie API
-
-**Kiedy czytać:** Chcesz szybko przetestować backend API
-
----
-
-## 🔍 Wyszukiwanie w Dokumentacji
-
-### Szukam informacji o...
-
-| Temat | Plik |
-|-------|------|
-| Instalacja Windows | [README.md](README.md) sekcja "Instalacja - Windows" |
-| Instalacja Debian/Linux | [DEPLOYMENT.md](DEPLOYMENT.md) |
-| Python 3.11.9 + pyenv | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Instalacja Python" |
-| **Uruchamianie usług (screen)** | [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md), `start_services.sh` |
-| **Zatrzymywanie usług** | [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md), `stop_services.sh` |
-| **Status usług i health check** | [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md), `status_services.sh` |
-| Hasło i logowanie | [SecureDocCompare/README.md](SecureDocCompare/README.md), [SECURITY.md](SecureDocCompare/SECURITY.md) |
-| Rate limiting | [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) sekcja "Rate Limiting" |
-| HTTPS i SSL | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "HTTPS z Let's Encrypt" |
-| systemd auto-start | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Automatyzacja" |
-| **Nginx reverse proxy** | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Nginx", `setup_nginx_proxy.sh` |
-| **Firewall (ufw, iptables)** | [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Konfiguracja Firewall", `fix_firewall.sh` |
-| **API - Kompletna dokumentacja** | [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - 9 endpointów |
-| API endpointy | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) |
-| Przykłady curl | [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md), [API_DOCUMENTATION.md](API_DOCUMENTATION.md) |
-| Testowanie API (REST Client) | [test.http](test.http), [test.local.http](test.local.http), [test.prod.http](test.prod.http) |
-| **Generowanie raportów HTML** | [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md) - endpoint `/api/report/{process_id}/generate` |
-| **N8N Integracja** | [N8N_INTEGRATION.md](N8N_INTEGRATION.md) |
-| **N8N Workflow v2.0** | [N8N_WORKFLOW_GUIDE.md](N8N_WORKFLOW_GUIDE.md) |
-| **N8N Memory-Only v3.0** | [N8N_MEMORY_ONLY_GUIDE.md](N8N_MEMORY_ONLY_GUIDE.md) |
-| **Diagnostyka API** | `check_api.sh`, [API_DOCUMENTATION.md](API_DOCUMENTATION.md) sekcja "Troubleshooting" |
-| VSCode konfiguracja | [VSCODE_SETUP.md](VSCODE_SETUP.md) |
-| Debugowanie w VSCode | [VSCODE_SETUP.md](VSCODE_SETUP.md) sekcja "Debugowanie" |
-| Konwersja PDF→DOCX | [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) |
-| Historia zmian | [PROGRESS_LOG.md](PROGRESS_LOG.md) |
-| Troubleshooting | [README.md](README.md), [QUICK_START.md](SecureDocCompare/QUICK_START.md), [VSCODE_SETUP.md](VSCODE_SETUP.md), [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) |
-| Bezpieczeństwo | [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) |
-| Konfiguracja .env | [SecureDocCompare/.env.example](SecureDocCompare/.env.example) |
-| **Prompty LLM do analizy zmian** | [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) |
-| **Analiza ryzyka przez LLM** | [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) sekcja "Obszary Analizy Ryzyka" |
-| **Regulacje bankowe (DORA, AML, KYC)** | [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) sekcja "Regulacje do Weryfikacji" |
-| **Matryca zgodności regulacyjnej** | [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) sekcja "Matryca Zgodności" |
-
----
-
-## 📊 Status Dokumentacji
-
-| Dokument | Status | Ostatnia aktualizacja | Wersja |
-|----------|--------|----------------------|--------|
-| README.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
-| **DEPLOYMENT.md** | ✅ Aktualny | 2025-10-24 | 1.2.0 |
-| **SCRIPTS_GUIDE.md** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
-| **DOCS_INDEX.md** | ✅ Aktualny | 2025-10-24 | 1.5.0 |
-| VSCODE_SETUP.md | ✅ Aktualny | 2025-10-22 | 1.0.0 |
-| **PROGRESS_LOG.md** | ✅ Aktualny | 2025-10-24 | 1.4.0 |
-| PDF_CONVERSION_SUMMARY.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
-| **HTML_REPORT_ENDPOINT.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
-| **API_DOCUMENTATION.md** | ✅ Aktualny | 2025-10-28 | 1.2.0 |
-| **N8N_INTEGRATION.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
-| **N8N_WORKFLOW_GUIDE.md** | ✅ Aktualny | 2025-10-23 | 2.0.0 |
-| **N8N_MEMORY_ONLY_GUIDE.md** | ✅ Aktualny | 2025-10-23 | 3.0.0 |
-| **N8N_HTML_REPORT_INTEGRATION.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
-| test.http | ✅ Aktualny | 2025-10-23 | 1.1.0 |
-| **test.local.http** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
-| **test.prod.http** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
-| **test_summaries.http** | ✅ Aktualny | 2025-10-28 | 1.0.0 |
-| SecureDocCompare/README.md | ✅ Aktualny | 2025-10-20 | 1.0.0 |
-| SecureDocCompare/QUICK_START.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
-| SecureDocCompare/SECURITY.md | ✅ Aktualny | 2025-10-20 | 1.0.0 |
-| UslugaDoPorownan/README.md | ✅ Aktualny | 2025-10-15 | 1.0.0 |
-| requirements.txt | ✅ Aktualny | 2025-10-21 | Python 3.11-3.13 |
-| .vscode/ (konfiguracja) | ✅ Aktualny | 2025-10-22 | 1.0.0 |
-| **start_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
-| **stop_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
-| **status_services.sh** | ✅ Aktualny | 2025-10-24 | 1.0.0 |
-| **UslugaDoPorownan/PROMPTS_CHANGELOG.md** | ✅ Aktualny | 2025-10-24 | 2.0.0 |
-| **UslugaDoPorownan/prompt_system.txt** | ✅ Aktualny | 2025-10-24 | 2.0.0 |
-| **UslugaDoPorownan/prompt_user.txt** | ✅ Aktualny | 2025-10-24 | 2.0.0 |
-
----
-
-## 🛠️ Aktualizacja Dokumentacji
-
-Jeśli znajdziesz nieaktualną informację:
-
-1. Sprawdź datę ostatniej aktualizacji
-2. Porównaj z aktualnym kodem
-3. Zaktualizuj odpowiedni plik .md
-4. Dodaj notatkę o zmianie w sekcji "Changelog" (jeśli istnieje)
-
----
-
-## 📞 Wsparcie
-
-- **Dokumentacja:** Ten indeks + pliki .md
-- **Issues:** GitHub Issues
-- **Development:** Claude Code AI (zobacz [CLAUDE.md](CLAUDE.md))
-
----
-
+**Wersja:** 2.0
 **Ostatnia aktualizacja:** 2025-10-28
-**Wersja indeksu:** 1.7.0
-**Projekt:** BAW - Porównywanie Dokumentów Bankowych
+**Status:** ✅ Zaktualizowany i Uspójniony
 
-**Changelog 1.7.0 (2025-10-28):**
-- Zaktualizowano **API_DOCUMENTATION.md** (wersja 1.2.0) - dodano 6 endpointów podsumowań
-- Dodano **test_summaries.http** do tabeli plików głównego katalogu
-- Zaktualizowano tabelę statusu dokumentacji (dodano test_summaries.http)
-- Dodano informację o 16 endpointach API (10 podstawowych + 6 summary)
-- Zaktualizowano datę ostatniej aktualizacji API_DOCUMENTATION.md na 2025-10-28
+---
 
-**Changelog 1.6.0 (2025-10-25):**
-- Dodano **UslugaDoPorownan/PROMPTS_CHANGELOG.md** - kompletna dokumentacja aktualizacji promptów LLM v2.0 (~755 linii)
-- Zaktualizowano **UslugaDoPorownan/prompt_system.txt** (+403 linie, +664%) - wersja 2.0.0
-- Zaktualizowano **UslugaDoPorownan/prompt_user.txt** (+385 linii, +473%) - wersja 2.0.0
-- Dodano nową ścieżkę nauki: "Chcę używać analizy LLM dla zmian w dokumentach"
-- Rozszerzona tabela "Szukam informacji o..." - dodano 4 wpisy o promptach LLM i analizie ryzyka
-- Zaktualizowana tabela statusu dokumentacji (dodano 3 pliki związane z LLM)
-- Kluczowe funkcjonalności:
-  - 5 zasad przeciw halucynacjom (90% redukcja ryzyka)
-  - Kontekst polski bank + KNF
-  - 5 obszarów ryzyka (kredytowe, operacyjne, finansowe, compliance, ESG)
-  - 11 grup regulacji (DORA, AML, KYC, FATCA, CRS, RODO, MiFID II, Bazylea, KNF, Prawo Bankowe, PSD2)
-  - Matryca zgodności regulacyjnej
-  - Priorytetowe działania Top 5 z deadline
-  - Rozszerzona analiza ryzyka (H/M/L)
-  - 6-punktowa kontrola jakości
+## 🎯 Start Tutaj!
 
-**Changelog 1.5.0 (2025-10-24):**
-- Dodano **SCRIPTS_GUIDE.md** - kompletny przewodnik po skryptach zarządzania usługami (~800 linii)
-- Utworzono 3 nowe skrypty: `start_services.sh`, `stop_services.sh`, `status_services.sh`
-- Zaktualizowano **DEPLOYMENT.md** (wersja 1.2.0) - dodano sekcję "Opcja 1: Automatyczne Uruchomienie (ZALECANE) - Screen Mode"
-- Zaktualizowano **PROGRESS_LOG.md** (wersja 1.4.0) - dodano sekcję o skryptach zarządzania usługami (2025-10-24)
-- Rozszerzona sekcja "Chcę wdrożyć na serwer" - dodano krok 3 (skrypty zarządzania)
-- Dodano nową sekcję "Zarządzanie Usługami (Screen Mode)" w częstych scenariuszach
-- Rozszerzona tabela "Szukam informacji o..." - dodano 3 wpisy o zarządzaniu usługami
-- Zaktualizowana tabela statusu dokumentacji (dodano 3 skrypty .sh)
+| Dokument | Opis | Czas |
+|----------|------|------|
+| **[README.md](README.md)** | Główny przegląd projektu, architektura, quick start | 10 min |
+| **[DEPLOYMENT.md](DEPLOYMENT.md)** | Wdrożenie produkcyjne (Debian, pyenv, nginx, systemd) | 30 min |
+| **[TESTING_GUIDE.md](TESTING_GUIDE.md)** | Kompletny przewodnik testowania API | 15 min |
 
-**Changelog 1.4.0 (2025-10-23):**
-- Dodano **N8N_HTML_REPORT_INTEGRATION.md** - przewodnik integracji raportów HTML w N8N workflow
-- Zaktualizowano sekcję "Chcę zintegrować z N8N" - dodano krok 5 (generowanie raportów HTML)
-- Zaktualizowana tabela statusu dokumentacji (23 pliki)
+---
 
-**Changelog 1.3.0 (2025-10-23):**
-- Dodano **HTML_REPORT_ENDPOINT.md** - dokumentacja endpointu generowania raportów HTML
-- Zaktualizowano **API_DOCUMENTATION.md** (wersja 1.1.0) - dodano endpoint 10: `/api/report/{process_id}/generate`
-- Zaktualizowano **PROGRESS_LOG.md** (wersja 1.3.0) - dodano sekcję o endpointcie raportów HTML
-- Dodano sekcję "Chcę generować raporty HTML" w ścieżkach nauki
-- Rozszerzona tabela "Szukam informacji o..." (generowanie raportów HTML)
-- Zaktualizowana tabela statusu dokumentacji (22 pliki)
+## 📖 Główna Dokumentacja
 
-**Changelog 1.2.0 (2025-10-23):**
-- Dodano **API_DOCUMENTATION.md** - kompletna dokumentacja API (~900 linii, 9 endpointów)
-- Dodano **N8N_INTEGRATION.md** - integracja z N8N workflow automation
-- Dodano **N8N_WORKFLOW_GUIDE.md** - przewodnik workflow v2.0
-- Dodano **N8N_MEMORY_ONLY_GUIDE.md** - przewodnik memory-only workflow v3.0
-- Dodano **test.local.http** - testy API dla localhost
-- Dodano **test.prod.http** - testy API dla produkcji (217.182.76.146)
-- Zaktualizowano **DEPLOYMENT.md** - sekcja "Konfiguracja Firewall"
-- Zaktualizowano **test.http** - URL produkcyjne (port 80)
-- Dodano sekcję "Chcę zintegrować z N8N" w ścieżkach nauki
-- Rozszerzona tabela "Szukam informacji o..." (Nginx, Firewall, N8N, Diagnostyka)
-- Zaktualizowana tabela statusu dokumentacji (21 plików)
+### Projekt BAW - Root Directory
 
-**Changelog 1.1.0 (2025-10-22):**
-- Dodano VSCODE_SETUP.md - kompletna konfiguracja Visual Studio Code
-- Dodano test.http - testy API dla REST Client
-- Dodano .vscode/ - settings, launch, tasks, extensions, snippets
-- Dodano .editorconfig - uniwersalne ustawienia edytora
-- Zaktualizowano .gitignore - współdzielenie konfiguracji VSCode
+| Dokument | Wersja | Opis | Dla Kogo |
+|----------|--------|------|----------|
+| [README.md](README.md) | aktualna | Główny opis projektu, komponenty, architektura | Wszyscy |
+| [CLAUDE.md](CLAUDE.md) | 2025-10-28 | Instrukcje dla Claude Code AI | Deweloperzy |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | 2025-10-24 | Wdrożenie produkcyjne z nginx i systemd | DevOps, Admini |
+| [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) | 2025-10-24 | Przewodnik po skryptach zarządzania (start/stop/status) | DevOps, Admin |
+| [TESTING_GUIDE.md](TESTING_GUIDE.md) | 2025-10-28 | Kompletny przewodnik testowania API | QA, Deweloperzy |
+| [VSCODE_SETUP.md](VSCODE_SETUP.md) | 2025-10-22 | Konfiguracja VS Code, debugowanie, tasks, snippets | Deweloperzy |
+| [PROGRESS_LOG.md](PROGRESS_LOG.md) | v2.0 | Historia postępu prac i changelog projektu | Wszyscy |
+| [PODSUMOWANIE_ZMIAN_2025-10-28.md](PODSUMOWANIE_ZMIAN_2025-10-28.md) | v1.0 | Podsumowanie zmian z dnia 2025-10-28 (API docs + logging) | Wszyscy |
+| [PDF_CONVERSION_SUMMARY.md](PDF_CONVERSION_SUMMARY.md) | 2025-10-21 | Implementacja konwersji PDF→DOCX | Deweloperzy |
+| [CHANGELOG.md](CHANGELOG.md) | **NOWY** | Historia zmian projektu (wersjonowanie) | Wszyscy |
+
+---
+
+## 🔌 API Documentation
+
+### Kompletna Dokumentacja API
+
+| Dokument | Wersja | Linie | Opis |
+|----------|--------|-------|------|
+| **[API_COMPLETE_REFERENCE.md](API_COMPLETE_REFERENCE.md)** | 2025-10-28 | ~1,000 | Pełna referencyjna dokumentacja wszystkich endpointów |
+| **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** | 2025-10-28 | ~900 | Dokumentacja techniczna API z przykładami |
+
+### Interaktywna Dokumentacja API
+
+- **Swagger UI:** http://localhost:8001/docs
+- **ReDoc:** http://localhost:8001/redoc
+- **OpenAPI Schema:** http://localhost:8001/openapi.json
+
+### Testy HTTP
+
+| Plik | Środowisko | Opis |
+|------|------------|------|
+| [test.local.http](test.local.http) | Localhost | Testy dla środowiska lokalnego (port 8001) |
+| [test.prod.http](test.prod.http) | Produkcja | Testy dla serwera produkcyjnego (217.182.76.146) |
+| [test_summaries.http](test_summaries.http) | Localhost/Prod | Testy endpointów podsumowań (integracja n8n) |
+| [test_complete_api.http](test_complete_api.http) | **NOWY** | Kompleksowe testy wszystkich endpointów |
+
+---
+
+## 🤖 Integracja n8n
+
+### Główne Dokumenty
+
+| Dokument | Wersja | Opis | Use Case |
+|----------|--------|------|----------|
+| **[N8N_WORKFLOW_QUICKSTART.md](N8N_WORKFLOW_QUICKSTART.md)** | 2025-10-28 | **START TUTAJ!** Quick start z n8n | Podstawowa integracja |
+| **[N8N_INTEGRATION.md](N8N_INTEGRATION.md)** | 2025-10-23 | Szczegółowa dokumentacja integracji | Zaawansowana konfiguracja |
+| **[N8N_SUMMARY_INTEGRATION.md](N8N_SUMMARY_INTEGRATION.md)** | 2025-10-27 | Integracja systemu podsumowań z LLM | Automatyczne podsumowania |
+| **[N8N_HTML_REPORT_INTEGRATION.md](N8N_HTML_REPORT_INTEGRATION.md)** | 2025-10-24 | Generowanie raportów HTML przez n8n | Raporty w workflow |
+| **[N8N_WORKFLOW_VERIFICATION.md](N8N_WORKFLOW_VERIFICATION.md)** | 2025-10-28 | Weryfikacja i testowanie workflow | Debugging, QA |
+
+### Workflow Files
+
+- Eksportowane workflow: `n8n/workflows/*.json`
+- Credentials template: `n8n/credentials.example.json`
+
+---
+
+## 🏢 SecureDocCompare - Frontend
+
+**Lokalizacja:** `SecureDocCompare/`
+**Port:** 8000
+**Opis:** Bezpieczny frontend z systemem logowania
+
+| Dokument | Opis |
+|----------|------|
+| [SecureDocCompare/README.md](SecureDocCompare/README.md) | Główna dokumentacja frontendu - funkcje, konfiguracja, API |
+| [SecureDocCompare/QUICK_START.md](SecureDocCompare/QUICK_START.md) | Szybki start - Windows i Linux, krok po kroku |
+| [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) | Dokumentacja zabezpieczeń - 5 warstw ochrony, testy |
+
+### Konfiguracja
+
+- `.env.example` - Przykładowa konfiguracja środowiskowa
+- `config.py` - Konfiguracja aplikacji
+- `auth.py` - System autentykacji i sesji
+- `middleware.py` - Middleware zabezpieczający
+
+---
+
+## ⚙️ UslugaDoPorownan - Backend API
+
+**Lokalizacja:** `UslugaDoPorownan/`
+**Port:** 8001
+**Opis:** REST API do porównywania dokumentów DOCX/PDF
+
+### Główna Dokumentacja
+
+| Dokument | Linie | Opis | Dla Kogo |
+|----------|-------|------|----------|
+| **[UslugaDoPorownan/API_DOCUMENTATION.md](UslugaDoPorownan/API_DOCUMENTATION.md)** | ~1,500 | **NOWA!** Kompletna dokumentacja API | Wszyscy deweloperzy |
+| **[UslugaDoPorownan/API_README.md](UslugaDoPorownan/API_README.md)** | ~550 | **NOWY!** Quick Start i przykłady (Python, JS, Bash) | Początkujący |
+| **[UslugaDoPorownan/API_TESTS.http](UslugaDoPorownan/API_TESTS.http)** | ~450 | **NOWY!** Gotowe testy HTTP (30+ scenariuszy) | QA, Deweloperzy |
+| [UslugaDoPorownan/README.md](UslugaDoPorownan/README.md) | - | Dokumentacja backendu - endpointy, architektura | Deweloperzy |
+| [UslugaDoPorownan/QUICKSTART.md](UslugaDoPorownan/QUICKSTART.md) | - | Szybki start backendu API | Początkujący |
+
+### Dokumentacja Techniczna
+
+| Dokument | Data | Opis |
+|----------|------|------|
+| **[UslugaDoPorownan/LOGGING_CHANGELOG.md](UslugaDoPorownan/LOGGING_CHANGELOG.md)** | **NOWY** 2025-10-28 | Changelog zmian w loggingu (milisekundy) |
+| [UslugaDoPorownan/PROMPTS_CHANGELOG.md](UslugaDoPorownan/PROMPTS_CHANGELOG.md) | 2025-10-25 | Changelog promptów LLM v2.0 (~755 linii) |
+| [UslugaDoPorownan/PROJECT_SUMMARY.md](UslugaDoPorownan/PROJECT_SUMMARY.md) | - | Podsumowanie projektu backendu |
+
+### Moduły Specjalizowane
+
+| Dokument | Opis |
+|----------|------|
+| [UslugaDoPorownan/pdf_converter/README.md](UslugaDoPorownan/pdf_converter/README.md) | Dokumentacja modułu konwersji PDF→DOCX |
+
+### Optimizacja i Performance
+
+| Dokument | Opis |
+|----------|------|
+| [UslugaDoPorownan/OPTIMIZATION_GUIDE.md](UslugaDoPorownan/OPTIMIZATION_GUIDE.md) | Przewodnik optymalizacji wydajności |
+| [UslugaDoPorownan/BENCHMARK_RESULTS.md](UslugaDoPorownan/BENCHMARK_RESULTS.md) | Wyniki benchmarków przed/po optymalizacji |
+
+---
+
+## 🔧 Narzędzia i Skrypty
+
+### Skrypty Zarządzania Usługami
+
+| Skrypt | Opis |
+|--------|------|
+| `start_services.sh` | Uruchomienie obu usług w screen sessions |
+| `stop_services.sh` | Zatrzymanie usług |
+| `status_services.sh` | Status i health check |
+| `check_api.sh` | Diagnostyka API (firewall, porty, nginx) |
+
+Dokumentacja: [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md)
+
+### Narzędzia Diagnostyczne
+
+| Skrypt | Opis |
+|--------|------|
+| `fix_firewall.sh` | Automatyczna naprawa firewalla |
+| `setup_nginx_proxy.sh` | Instalacja i konfiguracja nginx |
+
+---
+
+## 📁 Struktura Projektu
+
+```
+BAW/
+├── README.md                           # Główny README
+├── DOCS_INDEX.md                       # ← TEN PLIK (v2.0)
+├── CHANGELOG.md                        # Historia zmian (NOWY)
+├── DEPLOYMENT.md                       # Wdrożenie produkcyjne
+├── TESTING_GUIDE.md                    # Przewodnik testowania
+│
+├── API_COMPLETE_REFERENCE.md           # Pełna referencja API
+├── API_DOCUMENTATION.md                # Dokumentacja API
+│
+├── N8N_WORKFLOW_QUICKSTART.md          # n8n Quick Start
+├── N8N_INTEGRATION.md                  # n8n - szczegółowa integracja
+├── N8N_SUMMARY_INTEGRATION.md          # n8n - podsumowania LLM
+├── N8N_HTML_REPORT_INTEGRATION.md      # n8n - raporty HTML
+├── N8N_WORKFLOW_VERIFICATION.md        # n8n - weryfikacja
+│
+├── SecureDocCompare/                   # Frontend (port 8000)
+│   ├── README.md
+│   ├── QUICK_START.md
+│   └── SECURITY.md
+│
+├── UslugaDoPorownan/                   # Backend API (port 8001)
+│   ├── README.md
+│   ├── API_DOCUMENTATION.md            # NOWA (1,500 linii)
+│   ├── API_README.md                   # NOWY (Quick Start)
+│   ├── API_TESTS.http                  # NOWY (30+ testów)
+│   ├── LOGGING_CHANGELOG.md            # NOWY
+│   ├── PROMPTS_CHANGELOG.md
+│   └── pdf_converter/README.md
+│
+├── docs_archive/                       # Archiwum starych dokumentów
+│   └── 2025-10-28_cleanup/             # Cleanup z dnia 2025-10-28
+│       └── README.md                   # Indeks zarchiwizowanych plików
+│
+├── test.local.http                     # Testy HTTP - localhost
+├── test.prod.http                      # Testy HTTP - produkcja
+├── test_summaries.http                 # Testy HTTP - podsumowania
+│
+└── *.sh                                # Skrypty zarządzania
+```
+
+---
+
+## 🗂️ Archiwum Dokumentacji
+
+Stare i zduplikowane dokumenty zostały przeniesione do:
+
+**Lokalizacja:** `docs_archive/2025-10-28_cleanup/`
+
+**Zawartość:** 19 plików (sesje, audyty, stare wersje N8N, duplikaty)
+
+**Szczegóły:** Zobacz [docs_archive/2025-10-28_cleanup/README.md](docs_archive/2025-10-28_cleanup/README.md)
+
+---
+
+## 🎯 Przewodnik Szybki Start
+
+### Dla Nowych Deweloperów
+
+1. **Czytaj:** [README.md](README.md) (10 min)
+2. **Instalacja:** [DEPLOYMENT.md](DEPLOYMENT.md) sekcja "Lokalne Środowisko" (15 min)
+3. **API:** [UslugaDoPorownan/API_README.md](UslugaDoPorownan/API_README.md) (15 min)
+4. **Testowanie:** [TESTING_GUIDE.md](TESTING_GUIDE.md) (10 min)
+5. **VS Code:** [VSCODE_SETUP.md](VSCODE_SETUP.md) (10 min)
+
+**Łączny czas:** ~60 minut
+
+### Dla DevOps/Admin
+
+1. **Wdrożenie:** [DEPLOYMENT.md](DEPLOYMENT.md) (30 min)
+2. **Skrypty:** [SCRIPTS_GUIDE.md](SCRIPTS_GUIDE.md) (15 min)
+3. **Bezpieczeństwo:** [SecureDocCompare/SECURITY.md](SecureDocCompare/SECURITY.md) (15 min)
+4. **n8n:** [N8N_WORKFLOW_QUICKSTART.md](N8N_WORKFLOW_QUICKSTART.md) (20 min)
+
+**Łączny czas:** ~80 minut
+
+### Dla Integratorów API
+
+1. **API Quick Start:** [UslugaDoPorownan/API_README.md](UslugaDoPorownan/API_README.md) (15 min)
+2. **Pełna Dokumentacja:** [API_COMPLETE_REFERENCE.md](API_COMPLETE_REFERENCE.md) (30 min)
+3. **Testy HTTP:** [UslugaDoPorownan/API_TESTS.http](UslugaDoPorownan/API_TESTS.http) (10 min)
+4. **n8n Integration:** [N8N_SUMMARY_INTEGRATION.md](N8N_SUMMARY_INTEGRATION.md) (20 min)
+
+**Łączny czas:** ~75 minut
+
+---
+
+## 📊 Statystyki Dokumentacji
+
+| Kategoria | Liczba Plików | Łączne Linie |
+|-----------|---------------|--------------|
+| **Główne dokumenty** | 10 | ~2,500 |
+| **API Documentation** | 5 | ~4,000 |
+| **n8n Integration** | 5 | ~1,500 |
+| **SecureDocCompare** | 3 | ~800 |
+| **UslugaDoPorownan** | 8 | ~3,500 |
+| **Testy HTTP** | 4 | ~1,000 |
+| **RAZEM** | **35** | **~13,300** |
+
+---
+
+## 🔄 Historia Wersji
+
+| Wersja | Data | Zmiany |
+|--------|------|--------|
+| **2.0** | 2025-10-28 | Cleanup dokumentacji, archiwizacja duplikatów, nowe API docs, uspójnienie wersji |
+| 1.1.0 | 2025-10-25 | Dodano prompty LLM v2.0, optymalizacje |
+| 1.0.0 | 2025-10-24 | Pierwsza stabilna wersja z pełną dokumentacją |
+
+---
+
+## 🆘 Wsparcie
+
+### Pytania o Dokumentację
+
+1. Sprawdź ten indeks (DOCS_INDEX.md)
+2. Zobacz [README.md](README.md) - sekcja FAQ
+3. Przejrzyj [CHANGELOG.md](CHANGELOG.md) - historia zmian
+
+### Znalazłeś błąd w dokumentacji?
+
+1. Sprawdź [PROGRESS_LOG.md](PROGRESS_LOG.md) - czy nie jest to znany issue
+2. Utwórz issue lub zaktualizuj dokumentację
+3. Prześlij PR z poprawką
+
+### Brakuje dokumentacji?
+
+1. Sprawdź `docs_archive/` - może dokument został zarchiwizowany
+2. Zobacz [CHANGELOG.md](CHANGELOG.md) - historia usunięć
+3. Utwórz issue z prośbą o dokumentację
+
+---
+
+**Wersja indeksu:** 2.0
+**Ostatnia aktualizacja:** 2025-10-28
+**Status:** ✅ Aktualny i Kompletny
+**Następna rewizja:** Według potrzeby lub po znaczących zmianach w projekcie

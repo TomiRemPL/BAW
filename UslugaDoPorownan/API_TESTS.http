@@ -1,0 +1,327 @@
+###
+# Plik testów API dla Usługi Porównywania Dokumentów
+# Kompatybilny z: VS Code REST Client, IntelliJ HTTP Client
+# Wersja API: 1.1.0
+###
+
+@baseUrl = http://localhost:8001
+@documentPairId = c29d4e61-2963-48c7-a425-708b0c59be74
+@processId = a8f3e71c-9d2b-4f1a-8e32-7c5d6b9a0f21
+
+################################################################################
+# PODSTAWOWE ENDPOINTY
+################################################################################
+
+### Root Endpoint - Informacje o usłudze
+GET {{baseUrl}}/
+Accept: application/json
+
+### Health Check - Status usługi
+GET {{baseUrl}}/health
+Accept: application/json
+
+################################################################################
+# UPLOAD I PRZETWARZANIE
+################################################################################
+
+### Upload dokumentów (DOCX)
+# Zmień ścieżki do plików na istniejące na Twoim systemie
+POST {{baseUrl}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="old_document"; filename="dokument_v1.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< C:/Projects/BAW/UslugaDoPorownan/testy/stary.docx
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="new_document"; filename="dokument_v2.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< C:/Projects/BAW/UslugaDoPorownan/testy/nowy.docx
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Upload dokumentów (PDF - automatyczna konwersja)
+# Wymaga plików PDF w katalogu testy/
+POST {{baseUrl}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="old_document"; filename="dokument_v1.pdf"
+Content-Type: application/pdf
+
+< C:/Projects/BAW/UslugaDoPorownan/testy/stary.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="new_document"; filename="dokument_v2.pdf"
+Content-Type: application/pdf
+
+< C:/Projects/BAW/UslugaDoPorownan/testy/nowy.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Rozpocznij przetwarzanie
+# Wstaw document_pair_id z poprzedniego uploadu
+POST {{baseUrl}}/api/process
+Content-Type: application/json
+
+{
+  "document_pair_id": "{{documentPairId}}"
+}
+
+### Status przetwarzania - Pending
+# Wstaw process_id z poprzedniego kroku
+GET {{baseUrl}}/api/status/{{processId}}
+Accept: application/json
+
+### Status przetwarzania - Polling (wykonaj wielokrotnie co 2s)
+GET {{baseUrl}}/api/status/{{processId}}
+Accept: application/json
+
+################################################################################
+# WYNIKI PORÓWNANIA
+################################################################################
+
+### Pełny dokument ze zmianami
+GET {{baseUrl}}/api/result/{{processId}}/full
+Accept: application/json
+
+### Tylko zmodyfikowane zdania
+GET {{baseUrl}}/api/result/{{processId}}/modified
+Accept: application/json
+
+### Tylko dodane zdania
+GET {{baseUrl}}/api/result/{{processId}}/added
+Accept: application/json
+
+### Tylko usunięte zdania
+GET {{baseUrl}}/api/result/{{processId}}/deleted
+Accept: application/json
+
+################################################################################
+# SYSTEM PODSUMOWAŃ (n8n)
+################################################################################
+
+### Utwórz podsumowanie (wywołanie z n8n)
+POST {{baseUrl}}/api/summary
+Content-Type: application/json
+
+{
+  "process_id": "{{processId}}",
+  "summary_text": "Regulamin został zaktualizowany o następujące zmiany:\n1. Dodano określenie 'bankowych' do zakresu usług\n2. Dodano nowy punkt o bezpieczeństwie transakcji\n3. Usunięto wymóg posiadania rachunku\n4. Zwiększono opłatę za przelew krajowy z 3 PLN do 5 PLN",
+  "metadata": {
+    "przedmiot_regulacji": "Regulamin świadczenia usług bankowych",
+    "data_aktu": "2025-10-15",
+    "data_wejscia_w_zycie": "2025-11-01",
+    "dodatkowe_dane": {
+      "autor": "Departament Prawny",
+      "wersja": "2.0"
+    }
+  }
+}
+
+### Status podsumowania (polling dla n8n)
+GET {{baseUrl}}/api/summary/{{processId}}/status
+Accept: application/json
+
+### Szczegóły podsumowania
+GET {{baseUrl}}/api/summary/{{processId}}
+Accept: application/json
+
+### Zatwierdzone podsumowanie (dla n8n)
+GET {{baseUrl}}/api/summary/{{processId}}/approved
+Accept: application/json
+
+### Aktualizuj podsumowanie (edycja przez użytkownika)
+PUT {{baseUrl}}/api/summary/{{processId}}
+Content-Type: application/json
+
+{
+  "summary_text": "Regulamin został zaktualizowany - najważniejsze zmiany:\n1. Rozszerzono zakres o usługi bankowe\n2. Dodano klauzulę bezpieczeństwa\n3. Zmieniono opłaty za przelewy krajowe",
+  "metadata": {
+    "przedmiot_regulacji": "Regulamin świadczenia usług bankowych",
+    "data_aktu": "2025-10-15",
+    "data_wejscia_w_zycie": "2025-11-01"
+  }
+}
+
+### Zatwierdź podsumowanie
+POST {{baseUrl}}/api/summary/{{processId}}/approve
+Content-Type: application/json
+
+{
+  "approved": true
+}
+
+### Odrzuć podsumowanie
+POST {{baseUrl}}/api/summary/{{processId}}/approve
+Content-Type: application/json
+
+{
+  "approved": false
+}
+
+################################################################################
+# GENEROWANIE RAPORTÓW
+################################################################################
+
+### Generuj raport HTML
+GET {{baseUrl}}/api/report/{{processId}}/generate
+Accept: application/json
+
+### Pobierz wygenerowany raport (otwórz w przeglądarce)
+# URL będzie zwrócony w response z poprzedniego endpointu
+# Przykład:
+# GET {{baseUrl}}/reports/report_{{processId}}_20251028_143530.html
+
+################################################################################
+# SCENARIUSZE TESTOWE
+################################################################################
+
+### SCENARIUSZ 1: Pełny workflow bez n8n
+# 1. Upload dokumentów
+# 2. Rozpocznij przetwarzanie
+# 3. Sprawdź status (polling)
+# 4. Pobierz wyniki (full/modified/added/deleted)
+# 5. Generuj raport HTML
+
+### SCENARIUSZ 2: Workflow z integracją n8n
+# 1. Upload dokumentów
+# 2. Rozpocznij przetwarzanie
+# 3. Sprawdź status (polling)
+# 4. Pobierz pełne wyniki
+# 5. [n8n] Utwórz podsumowanie (POST /api/summary)
+# 6. [Frontend] Pobierz podsumowanie (GET /api/summary/{process_id})
+# 7. [Frontend] Edytuj podsumowanie (PUT /api/summary/{process_id})
+# 8. [Frontend] Zatwierdź podsumowanie (POST /api/summary/{process_id}/approve)
+# 9. [n8n] Poll status (GET /api/summary/{process_id}/status)
+# 10. [n8n] Pobierz zatwierdzone (GET /api/summary/{process_id}/approved)
+
+################################################################################
+# TESTY BŁĘDÓW
+################################################################################
+
+### 404 - Nie znaleziono pary dokumentów
+POST {{baseUrl}}/api/process
+Content-Type: application/json
+
+{
+  "document_pair_id": "non-existent-id-12345"
+}
+
+### 404 - Nie znaleziono procesu
+GET {{baseUrl}}/api/status/non-existent-process-id
+Accept: application/json
+
+### 404 - Nie znaleziono wyników
+GET {{baseUrl}}/api/result/non-existent-process-id/full
+Accept: application/json
+
+### 404 - Nie znaleziono podsumowania
+GET {{baseUrl}}/api/summary/non-existent-process-id
+Accept: application/json
+
+### 400 - Podsumowanie nie zatwierdzone
+# Najpierw utwórz podsumowanie, potem od razu spróbuj pobrać zatwierdzone
+POST {{baseUrl}}/api/summary
+Content-Type: application/json
+
+{
+  "process_id": "{{processId}}",
+  "summary_text": "Test podsumowania",
+  "metadata": {
+    "przedmiot_regulacji": "Test"
+  }
+}
+
+###
+GET {{baseUrl}}/api/summary/{{processId}}/approved
+Accept: application/json
+
+### 400 - Nieprawidłowy format pliku (wymaga prawdziwego uploadu z .txt)
+POST {{baseUrl}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="old_document"; filename="test.txt"
+Content-Type: text/plain
+
+Test content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="new_document"; filename="test.txt"
+Content-Type: text/plain
+
+Test content
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+################################################################################
+# PRZYKŁADY ZAAWANSOWANE
+################################################################################
+
+### Pełny workflow z użyciem zmiennych
+# Krok 1: Upload
+# @name upload
+POST {{baseUrl}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="old_document"; filename="stary.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< C:/Projects/BAW/UslugaDoPorownan/testy/stary.docx
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="new_document"; filename="nowy.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< C:/Projects/BAW/UslugaDoPorownan/testy/nowy.docx
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Krok 2: Process (użyj ID z poprzedniego requestu)
+# @name process
+POST {{baseUrl}}/api/process
+Content-Type: application/json
+
+{
+  "document_pair_id": "{{upload.response.body.document_pair_id}}"
+}
+
+### Krok 3: Status (użyj ID z poprzedniego requestu)
+GET {{baseUrl}}/api/status/{{process.response.body.process_id}}
+Accept: application/json
+
+### Krok 4: Wyniki (użyj ID z procesu)
+GET {{baseUrl}}/api/result/{{process.response.body.process_id}}/full
+Accept: application/json
+
+################################################################################
+# NOTATKI
+################################################################################
+
+# Zmienne środowiskowe:
+# - @baseUrl: Adres bazowy API
+# - @documentPairId: Przykładowy ID pary dokumentów
+# - @processId: Przykładowy ID procesu
+
+# Wymagania:
+# - Pliki testowe w katalogu testy/ (stary.docx, nowy.docx)
+# - Uruchomiona usługa na localhost:8001
+
+# Statusy przetwarzania:
+# - pending: Oczekuje na rozpoczęcie
+# - processing: W trakcie przetwarzania
+# - completed: Zakończone pomyślnie
+# - error: Błąd przetwarzania
+
+# Statusy podsumowania:
+# - pending_review: Oczekuje na zatwierdzenie
+# - approved: Zatwierdzone
+# - rejected: Odrzucone
+
+# Typy zmian w paragrafach:
+# - unchanged: Bez zmian
+# - modified: Zmodyfikowany
+# - added: Dodany
+# - deleted: Usunięty
+
+# Operacje w ChangeMarker:
+# - equal: Identyczny fragment
+# - insert: Wstawiony tekst
+# - delete: Usunięty tekst

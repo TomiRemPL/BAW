@@ -1,0 +1,590 @@
+### ============================================================================
+### KOMPLETNY ZESTAW TESTÓW API - BAW Document Comparison
+### Wymaga: VSCode + REST Client extension (humao.rest-client)
+### Użycie: Kliknij "Send Request" nad każdym requestem
+### Data: 2025-10-28
+### Wersja: 1.2.0 (VERIFIED)
+### ============================================================================
+
+#############################################
+# KONFIGURACJA
+#############################################
+
+# Serwer produkcyjny (DOMYŚLNY)
+@backend_url = http://217.182.76.146:8001
+@frontend_url = http://217.182.76.146:8000
+
+# Localhost (odkomentuj dla testów lokalnych)
+# @backend_url = http://localhost:8001
+# @frontend_url = http://localhost:8000
+
+# Zmienne dla testów (będą nadpisane przez odpowiedzi)
+@document_pair_id = YOUR_DOCUMENT_PAIR_ID
+@process_id = YOUR_PROCESS_ID
+@summary_process_id = YOUR_SUMMARY_PROCESS_ID
+
+#############################################
+# SEKCJA 1: BACKEND - PODSTAWOWE ENDPOINTY
+#############################################
+
+### 1.1. Informacje o serwisie
+GET {{backend_url}}/
+Accept: application/json
+
+###
+
+### 1.2. Health Check Backend
+GET {{backend_url}}/health
+Accept: application/json
+
+###
+
+#############################################
+# SEKCJA 2: UPLOAD I PRZETWARZANIE DOKUMENTÓW
+#############################################
+
+### 2.1. Upload dokumentów DOCX
+# UWAGA: Zmień ścieżki do plików!
+POST {{backend_url}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_document"; filename="old.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./stara_wersja/dokument.docx
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_document"; filename="new.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./nowa_wersja/dokument.docx
+------WebKitFormBoundary--
+
+# Po otrzymaniu odpowiedzi, skopiuj document_pair_id i wstaw do zmiennej @document_pair_id
+
+###
+
+### 2.2. Upload dokumentów PDF
+POST {{backend_url}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_document"; filename="old.pdf"
+Content-Type: application/pdf
+
+< ./stara_wersja/dokument.pdf
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_document"; filename="new.pdf"
+Content-Type: application/pdf
+
+< ./nowa_wersja/dokument.pdf
+------WebKitFormBoundary--
+
+###
+
+### 2.3. Upload mieszany (DOCX + PDF)
+POST {{backend_url}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_document"; filename="old.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./stara_wersja/dokument.docx
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_document"; filename="new.pdf"
+Content-Type: application/pdf
+
+< ./nowa_wersja/dokument.pdf
+------WebKitFormBoundary--
+
+###
+
+### 2.4. Rozpocznij przetwarzanie
+# Zastąp @document_pair_id wartością z odpowiedzi upload
+POST {{backend_url}}/api/process
+Content-Type: application/json
+
+{
+  "document_pair_id": "{{document_pair_id}}"
+}
+
+# Po otrzymaniu odpowiedzi, skopiuj process_id i wstaw do zmiennej @process_id
+
+###
+
+#############################################
+# SEKCJA 3: STATUS I WYNIKI
+#############################################
+
+### 3.1. Sprawdź status przetwarzania
+# Wywołuj co 2 sekundy aż status = "completed"
+GET {{backend_url}}/api/status/{{process_id}}
+Accept: application/json
+
+###
+
+### 3.2. Pobierz pełny wynik (wszystkie zmiany)
+GET {{backend_url}}/api/result/{{process_id}}/full
+Accept: application/json
+
+###
+
+### 3.3. Pobierz tylko zmodyfikowane
+GET {{backend_url}}/api/result/{{process_id}}/modified
+Accept: application/json
+
+###
+
+### 3.4. Pobierz tylko dodane
+GET {{backend_url}}/api/result/{{process_id}}/added
+Accept: application/json
+
+###
+
+### 3.5. Pobierz tylko usunięte
+GET {{backend_url}}/api/result/{{process_id}}/deleted
+Accept: application/json
+
+###
+
+#############################################
+# SEKCJA 4: RAPORTY HTML
+#############################################
+
+### 4.1. Wygeneruj raport HTML
+GET {{backend_url}}/api/report/{{process_id}}/generate
+Accept: application/json
+
+# Po otrzymaniu report_url, możesz pobrać raport:
+# curl http://217.182.76.146:8001/reports/report_..._timestamp.html > raport.html
+
+###
+
+#############################################
+# SEKCJA 5: SYSTEM PODSUMOWAŃ (n8n Integration)
+#############################################
+
+### 5.1. Utwórz podsumowanie (n8n → Backend)
+POST {{backend_url}}/api/summary
+Content-Type: application/json
+
+{
+  "process_id": "test-summary-001",
+  "summary_text": "# Podsumowanie zmian w dokumencie\n\n## Kluczowe zmiany\n\n1. **Ryzyko operacyjne** - wprowadzono nowe wymagania DORA\n2. **Testy odporności** - testy penetracyjne co najmniej raz w roku\n3. **Raportowanie incydentów** - skrócono czas do 4 godzin\n\n## Wpływ na organizację\n\n- **Wysoki priorytet**: Wymaga natychmiastowych działań\n- **Deadline**: 17 stycznia 2025\n- **Budżet**: 500k PLN",
+  "metadata": {
+    "przedmiot_regulacji": "Dyrektywa DORA (Digital Operational Resilience Act)",
+    "data_aktu": "2024-01-17",
+    "data_wejscia_w_zycie": "2025-01-17",
+    "dodatkowe_dane": {
+      "typ_dokumentu": "regulacja_ue",
+      "priorytet": "wysoki",
+      "organ_wydajacy": "Komisja Europejska"
+    }
+  }
+}
+
+# Zapisz process_id do zmiennej @summary_process_id
+
+###
+
+### 5.2. Sprawdź status podsumowania (n8n polling)
+# Wywołuj co 5-10 sekund
+GET {{backend_url}}/api/summary/{{summary_process_id}}/status
+Accept: application/json
+
+###
+
+### 5.3. Pobierz szczegóły podsumowania
+GET {{backend_url}}/api/summary/{{summary_process_id}}
+Accept: application/json
+
+###
+
+### 5.4. Aktualizuj podsumowanie (Frontend → Backend)
+PUT {{backend_url}}/api/summary/{{summary_process_id}}
+Content-Type: application/json
+
+{
+  "summary_text": "# Podsumowanie zmian (EDYTOWANE)\n\n## Kluczowe zmiany\n\n1. **Ryzyko operacyjne** - ZAKTUALIZOWANE wymagania DORA\n2. **Testy odporności** - zaawansowane testy penetracyjne + audytorzy\n3. **Raportowanie** - 4h (wcześniej 24h)\n4. **NOWY PUNKT** - wymóg certyfikacji ISO 27001\n\n## Wpływ\n\n- **Priorytet krytyczny**\n- **Deadline**: 17.01.2025\n- **Budżet**: 750k PLN (po korekcie)\n- **Zasoby**: +2 specjalistów security",
+  "metadata": {
+    "przedmiot_regulacji": "Dyrektywa DORA",
+    "data_aktu": "2024-01-17",
+    "data_wejscia_w_zycie": "2025-01-17",
+    "dodatkowe_dane": {
+      "typ_dokumentu": "regulacja_ue",
+      "priorytet": "krytyczny",
+      "organ_wydajacy": "Komisja Europejska",
+      "numer_aktu": "EU/2022/2554"
+    }
+  }
+}
+
+###
+
+### 5.5. Zatwierdź podsumowanie (Frontend → Backend)
+POST {{backend_url}}/api/summary/{{summary_process_id}}/approve
+Content-Type: application/json
+
+{
+  "approved": true
+}
+
+###
+
+### 5.6. Odrzuć podsumowanie (Frontend → Backend)
+POST {{backend_url}}/api/summary/{{summary_process_id}}/approve
+Content-Type: application/json
+
+{
+  "approved": false
+}
+
+###
+
+### 5.7. Pobierz zatwierdzone podsumowanie (n8n → Backend)
+# UWAGA: Działa tylko gdy status = "approved"
+GET {{backend_url}}/api/summary/{{summary_process_id}}/approved
+Accept: application/json
+
+###
+
+#############################################
+# SEKCJA 6: FRONTEND API
+#############################################
+
+### 6.1. Health Check Frontend
+GET {{frontend_url}}/health
+Accept: application/json
+
+###
+
+### 6.2. Dashboard (wymaga zalogowania)
+# UWAGA: Najpierw zaloguj się w przeglądarce i skopiuj cookie session_id
+GET {{frontend_url}}/
+Cookie: session_id=YOUR_SESSION_ID
+
+###
+
+### 6.3. Login
+# UWAGA: Hasło z zmiennej środowiskowej FRONTEND_PASSWORD
+POST {{frontend_url}}/api/login
+Content-Type: application/x-www-form-urlencoded
+
+password=YOUR_FRONTEND_PASSWORD
+
+###
+
+### 6.4. Logout
+POST {{frontend_url}}/api/logout
+Cookie: session_id=YOUR_SESSION_ID
+
+###
+
+### 6.5. Summary Editor UI
+# Otwórz w przeglądarce (wymaga zalogowania)
+GET {{frontend_url}}/summary/{{summary_process_id}}
+Cookie: session_id=YOUR_SESSION_ID
+
+###
+
+### 6.6. Upload dokumentów przez frontend (proxy)
+POST {{frontend_url}}/api/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+Cookie: session_id=YOUR_SESSION_ID
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_file"; filename="old.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./stara_wersja/dokument.docx
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_file"; filename="new.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./nowa_wersja/dokument.docx
+------WebKitFormBoundary--
+
+###
+
+### 6.7. Rozpocznij proces przez frontend (proxy)
+POST {{frontend_url}}/api/process/{{document_pair_id}}
+Content-Type: application/json
+Cookie: session_id=YOUR_SESSION_ID
+
+###
+
+### 6.8. Status przez frontend (proxy)
+GET {{frontend_url}}/api/status/{{process_id}}
+Cookie: session_id=YOUR_SESSION_ID
+
+###
+
+### 6.9. Wynik full przez frontend (proxy)
+GET {{frontend_url}}/api/result/{{process_id}}/full
+Cookie: session_id=YOUR_SESSION_ID
+
+###
+
+### 6.10. Pobierz summary przez frontend (proxy)
+GET {{frontend_url}}/api/summary/{{summary_process_id}}
+Cookie: session_id=YOUR_SESSION_ID
+
+###
+
+### 6.11. Aktualizuj summary przez frontend (proxy)
+PUT {{frontend_url}}/api/summary/{{summary_process_id}}
+Content-Type: application/json
+Cookie: session_id=YOUR_SESSION_ID
+
+{
+  "summary_text": "Test update z frontend",
+  "metadata": {"przedmiot_regulacji": "Test"}
+}
+
+###
+
+### 6.12. Zatwierdź summary przez frontend (proxy)
+POST {{frontend_url}}/api/summary/{{summary_process_id}}/approve
+Content-Type: application/json
+Cookie: session_id=YOUR_SESSION_ID
+
+{
+  "approved": true
+}
+
+###
+
+#############################################
+# SEKCJA 7: TESTY BŁĘDÓW
+#############################################
+
+### 7.1. Upload z nieprawidłowym formatem (.txt)
+# Oczekiwany rezultat: 400 Bad Request
+POST {{backend_url}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="old_document"; filename="old.txt"
+Content-Type: text/plain
+
+Test content
+------WebKitFormBoundary
+Content-Disposition: form-data; name="new_document"; filename="new.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./nowa_wersja/dokument.docx
+------WebKitFormBoundary--
+
+###
+
+### 7.2. Rozpocznij proces z nieistniejącym document_pair_id
+# Oczekiwany rezultat: 404 Not Found
+POST {{backend_url}}/api/process
+Content-Type: application/json
+
+{
+  "document_pair_id": "nieistniejacy-id-12345"
+}
+
+###
+
+### 7.3. Status nieistniejącego procesu
+# Oczekiwany rezultat: 404 Not Found
+GET {{backend_url}}/api/status/nieistniejacy-process-id
+Accept: application/json
+
+###
+
+### 7.4. Wynik nieistniejącego procesu
+# Oczekiwany rezultat: 404 Not Found
+GET {{backend_url}}/api/result/nieistniejacy-process-id/full
+Accept: application/json
+
+###
+
+### 7.5. Raport nieistniejącego procesu
+# Oczekiwany rezultat: 404 Not Found
+GET {{backend_url}}/api/report/nieistniejacy-process-id/generate
+Accept: application/json
+
+###
+
+### 7.6. Status nieistniejącego podsumowania
+# Oczekiwany rezultat: 404 Not Found
+GET {{backend_url}}/api/summary/nieistniejace-summary-id/status
+Accept: application/json
+
+###
+
+### 7.7. Pobierz niezatwierdzone podsumowanie (approved endpoint)
+# Oczekiwany rezultat: 400 Bad Request (jeśli status != "approved")
+GET {{backend_url}}/api/summary/{{summary_process_id}}/approved
+Accept: application/json
+
+###
+
+### 7.8. Aktualizuj nieistniejące podsumowanie
+# Oczekiwany rezultat: 404 Not Found
+PUT {{backend_url}}/api/summary/nieistniejace-id
+Content-Type: application/json
+
+{
+  "summary_text": "Test",
+  "metadata": {}
+}
+
+###
+
+### 7.9. Zatwierdź nieistniejące podsumowanie
+# Oczekiwany rezultat: 404 Not Found
+POST {{backend_url}}/api/summary/nieistniejace-id/approve
+Content-Type: application/json
+
+{
+  "approved": true
+}
+
+###
+
+### 7.10. Utwórz duplikat podsumowania (ten sam process_id)
+# Oczekiwany rezultat: 400 Bad Request
+POST {{backend_url}}/api/summary
+Content-Type: application/json
+
+{
+  "process_id": "{{summary_process_id}}",
+  "summary_text": "Duplikat",
+  "metadata": {}
+}
+
+###
+
+#############################################
+# SEKCJA 8: SCENARIUSZE E2E (End-to-End)
+#############################################
+
+### SCENARIUSZ 1: Pełny workflow porównywania dokumentów
+### Krok 1: Upload
+### Krok 2: Process
+### Krok 3: Polling status (powtarzaj aż completed)
+### Krok 4: Pobierz wyniki (full, modified, added, deleted)
+### Krok 5: Wygeneruj raport HTML
+
+### SCENARIUSZ 2: Workflow z podsumowaniem i zatwierdzeniem
+### Krok 1: Upload + Process (jak wyżej)
+### Krok 2: Utwórz podsumowanie (POST /api/summary)
+### Krok 3: Otwórz Summary Editor w przeglądarce
+### Krok 4: Edytuj (PUT /api/summary/{id})
+### Krok 5: Zatwierdź (POST /api/summary/{id}/approve)
+### Krok 6: Pobierz zatwierdzone (GET /api/summary/{id}/approved)
+
+### SCENARIUSZ 3: Workflow odrzucenia
+### Krok 1-2: Jak wyżej
+### Krok 3: Otwórz editor
+### Krok 4: Odrzuć (POST /approve z approved: false)
+### Krok 5: Sprawdź status (GET /status) → "rejected"
+
+### SCENARIUSZ 4: Polling timeout (n8n)
+### Krok 1: Utwórz podsumowanie
+### Krok 2: Polling (GET /status) co 5-10s
+### Krok 3: Po 60 iteracjach (10 minut) → timeout w n8n
+### Krok 4: Email alert do użytkownika
+
+###
+
+#############################################
+# SEKCJA 9: NOTATKI I WSKAZÓWKI
+#############################################
+
+### Instalacja REST Client:
+### 1. Ctrl+Shift+X (Extensions)
+### 2. Wyszukaj "REST Client" (humao)
+### 3. Install
+
+### Użycie:
+### - Kliknij "Send Request" nad każdym requestem
+### - LUB Ctrl+Alt+R
+
+### Zmienne:
+### - @backend_url - URL backendu (port 8001)
+### - @frontend_url - URL frontendu (port 8000)
+### - @document_pair_id - ID pary dokumentów (z upload)
+### - @process_id - ID procesu (z process)
+### - @summary_process_id - ID podsumowania
+
+### Zastąpienie placeholderów:
+### 1. Wykonaj request (np. upload)
+### 2. Skopiuj wartość z odpowiedzi (np. document_pair_id)
+### 3. Wklej do zmiennej na górze pliku
+### 4. Wykonaj kolejny request
+
+### Pliki testowe:
+### - Umieść dokumenty w ./stara_wersja/ i ./nowa_wersja/
+### - Formaty: .docx lub .pdf
+### - Wielkość: do 50MB
+
+### Session ID (frontend):
+### 1. Zaloguj się w przeglądarce: http://217.182.76.146:8000
+### 2. Otwórz DevTools (F12) → Application → Cookies
+### 3. Skopiuj wartość "session_id"
+### 4. Użyj w nagłówku Cookie w requestach do frontendu
+
+### Porty:
+### - Backend (UslugaDoPorownan): 8001
+### - Frontend (SecureDocCompare): 8000
+### - N8N: 5678 (localhost only)
+
+### Dokumentacja:
+### - API_COMPLETE_REFERENCE.md - Kompletna dokumentacja API
+### - API_DOCUMENTATION.md - Poprzednia wersja
+### - N8N_SUMMARY_INTEGRATION.md - Integracja n8n
+
+### Health checks:
+curl http://217.182.76.146:8001/health
+curl http://217.182.76.146:8000/health
+
+### Swagger UI (automatyczna dokumentacja):
+http://217.182.76.146:8001/docs
+http://217.182.76.146:8000/docs
+
+### ReDoc:
+http://217.182.76.146:8001/redoc
+http://217.182.76.146:8000/redoc
+
+###
+
+#############################################
+# STATYSTYKI
+#############################################
+
+### Łącznie endpointów:
+### Backend: 16 (10 document + 6 summary)
+### Frontend: 16 (3 własne + 13 proxy)
+### Razem: 32 endpointy
+
+### Modele Pydantic: 20
+### Testy w tym pliku: 60+
+
+#############################################
+# CHANGELOG
+#############################################
+
+### v1.2.0 (2025-10-28)
+### - Zweryfikowano wszystkie endpointy ze stanem faktycznym
+### - Dodano 6 endpointów summary
+### - Dodano scenariusze E2E
+### - Dodano testy błędów
+### - Uzupełniono frontend API
+
+### v1.1.0 (2025-10-23)
+### - Dodano endpoint raportów HTML
+### - Uzupełniono dokumentację
+
+### v1.0.0 (2025-10-23)
+### - Pierwsze wydanie
+### - 9 podstawowych endpointów
+
+#############################################
+# KONIEC
+#############################################
