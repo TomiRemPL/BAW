@@ -6,7 +6,8 @@ from pathlib import Path
 
 from models import (
     ProcessingStatus, FullDocumentResult, ModifiedSentencesResult,
-    AddedSentencesResult, DeletedSentencesResult
+    AddedSentencesResult, DeletedSentencesResult, SummaryDetailResponse,
+    SummaryMetadata
 )
 
 
@@ -32,6 +33,10 @@ class InMemoryStorage:
 
         # Mapowanie process_id -> document_pair_id
         self.process_to_document: Dict[str, str] = {}
+
+        # Przechowywanie podsumowań dla integracji n8n
+        # process_id -> SummaryDetailResponse
+        self.summaries: Dict[str, SummaryDetailResponse] = {}
 
         logger.info("Inicjalizacja in-memory storage")
 
@@ -201,8 +206,142 @@ class InMemoryStorage:
                 s for s in self.processing_status.values()
                 if s.status == "error"
             ]),
-            "cached_results": len(self.results)
+            "cached_results": len(self.results),
+            "total_summaries": len(self.summaries),
+            "pending_summaries": len([
+                s for s in self.summaries.values()
+                if s.status == "pending_review"
+            ]),
+            "approved_summaries": len([
+                s for s in self.summaries.values()
+                if s.status == "approved"
+            ])
         }
+
+    # ========================================================================
+    # Metody dla systemu podsumowań (integracja n8n)
+    # ========================================================================
+
+    def store_summary(
+        self,
+        process_id: str,
+        summary_text: str,
+        metadata: Optional[SummaryMetadata] = None
+    ) -> SummaryDetailResponse:
+        """
+        Zapisz podsumowanie z n8n.
+
+        Args:
+            process_id: ID procesu
+            summary_text: Tekst podsumowania
+            metadata: Metadane dokumentu
+
+        Returns:
+            SummaryDetailResponse
+        """
+        now = datetime.now()
+        summary = SummaryDetailResponse(
+            process_id=process_id,
+            summary_text=summary_text,
+            metadata=metadata,
+            status="pending_review",
+            created_at=now,
+            edited_by_user=False
+        )
+        self.summaries[process_id] = summary
+        logger.info(f"Zapisano podsumowanie dla procesu: {process_id}")
+        return summary
+
+    def get_summary(
+        self,
+        process_id: str
+    ) -> Optional[SummaryDetailResponse]:
+        """
+        Pobierz podsumowanie.
+
+        Args:
+            process_id: ID procesu
+
+        Returns:
+            SummaryDetailResponse lub None
+        """
+        return self.summaries.get(process_id)
+
+    def update_summary(
+        self,
+        process_id: str,
+        summary_text: str,
+        metadata: Optional[SummaryMetadata] = None
+    ) -> Optional[SummaryDetailResponse]:
+        """
+        Aktualizuj podsumowanie (edycja przez użytkownika).
+
+        Args:
+            process_id: ID procesu
+            summary_text: Nowy tekst podsumowania
+            metadata: Zaktualizowane metadane
+
+        Returns:
+            SummaryDetailResponse lub None
+        """
+        summary = self.summaries.get(process_id)
+        if not summary:
+            return None
+
+        summary.summary_text = summary_text
+        if metadata:
+            summary.metadata = metadata
+        summary.updated_at = datetime.now()
+        summary.edited_by_user = True
+
+        logger.info(f"Zaktualizowano podsumowanie dla procesu: {process_id}")
+        return summary
+
+    def approve_summary(
+        self,
+        process_id: str
+    ) -> Optional[SummaryDetailResponse]:
+        """
+        Zatwierdź podsumowanie.
+
+        Args:
+            process_id: ID procesu
+
+        Returns:
+            SummaryDetailResponse lub None
+        """
+        summary = self.summaries.get(process_id)
+        if not summary:
+            return None
+
+        summary.status = "approved"
+        summary.approved_at = datetime.now()
+
+        logger.info(f"Zatwierdzono podsumowanie dla procesu: {process_id}")
+        return summary
+
+    def reject_summary(
+        self,
+        process_id: str
+    ) -> Optional[SummaryDetailResponse]:
+        """
+        Odrzuć podsumowanie.
+
+        Args:
+            process_id: ID procesu
+
+        Returns:
+            SummaryDetailResponse lub None
+        """
+        summary = self.summaries.get(process_id)
+        if not summary:
+            return None
+
+        summary.status = "rejected"
+        summary.updated_at = datetime.now()
+
+        logger.info(f"Odrzucono podsumowanie dla procesu: {process_id}")
+        return summary
 
 
 # Globalna instancja storage

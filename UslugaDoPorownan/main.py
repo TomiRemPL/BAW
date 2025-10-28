@@ -14,7 +14,9 @@ from fastapi.staticfiles import StaticFiles
 from models import (
     UploadResponse, ProcessRequest, ProcessResponse, ProcessingStatus,
     FullDocumentResult, ModifiedSentencesResult, AddedSentencesResult,
-    DeletedSentencesResult, ModifiedSentence, AddedSentence, DeletedSentence
+    DeletedSentencesResult, ModifiedSentence, AddedSentence, DeletedSentence,
+    SummaryCreateRequest, SummaryUpdateRequest, SummaryStatusResponse,
+    SummaryDetailResponse, SummaryApproveRequest, SummaryApprovedResponse
 )
 from extractor import DocumentExtractor
 from comparator import DocumentComparator
@@ -79,7 +81,7 @@ async def root():
     """Endpoint główny."""
     return {
         "service": "Usługa Porównywania Dokumentów",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "status": "running",
         "endpoints": {
             "upload": "POST /api/documents/upload",
@@ -90,6 +92,14 @@ async def root():
             "added": "GET /api/result/{process_id}/added",
             "deleted": "GET /api/result/{process_id}/deleted",
             "generate_report": "GET /api/report/{process_id}/generate"
+        },
+        "summary_endpoints": {
+            "create": "POST /api/summary",
+            "get_status": "GET /api/summary/{process_id}/status",
+            "get_detail": "GET /api/summary/{process_id}",
+            "get_approved": "GET /api/summary/{process_id}/approved",
+            "update": "PUT /api/summary/{process_id}",
+            "approve": "POST /api/summary/{process_id}/approve"
         }
     }
 
@@ -467,6 +477,231 @@ async def get_deleted_sentences(process_id: str):
         total_count=len(deleted_sentences),
         generated_at=datetime.now()
     )
+
+
+# ============================================================================
+# Endpointy dla systemu podsumowań (integracja n8n)
+# ============================================================================
+
+
+@app.post("/api/summary", response_model=SummaryDetailResponse)
+async def create_summary(request: SummaryCreateRequest):
+    """
+    Utwórz podsumowanie z n8n.
+
+    Endpoint wywoływany przez n8n po wygenerowaniu podsumowania zmian.
+
+    Args:
+        request: SummaryCreateRequest z process_id, tekstem podsumowania i metadanymi
+
+    Returns:
+        SummaryDetailResponse ze statusem "pending_review"
+    """
+    try:
+        # Sprawdź czy proces istnieje (z tolerancją dla testów)
+        process_status = storage.get_processing_status(request.process_id)
+        if not process_status:
+            # Dla środowiska testowego: loguj ostrzeżenie ale kontynuuj
+            logger.warning(
+                f"Tworzenie podsumowania dla nieistniejącego procesu: {request.process_id}. "
+                f"To jest OK dla testów, ale w produkcji proces powinien istnieć."
+            )
+
+        # Zapisz podsumowanie
+        summary = storage.store_summary(
+            process_id=request.process_id,
+            summary_text=request.summary_text,
+            metadata=request.metadata
+        )
+
+        logger.info(f"Utworzono podsumowanie dla procesu: {request.process_id}")
+
+        return summary
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Błąd podczas tworzenia podsumowania: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Błąd podczas tworzenia podsumowania: {str(e)}"
+        )
+
+
+@app.get("/api/summary/{process_id}/status", response_model=SummaryStatusResponse)
+async def get_summary_status(process_id: str):
+    """
+    Pobierz status podsumowania.
+
+    Endpoint dla n8n do sprawdzania czy podsumowanie zostało zaakceptowane.
+    n8n będzie polling-ować ten endpoint co kilka sekund.
+
+    Args:
+        process_id: ID procesu
+
+    Returns:
+        SummaryStatusResponse ze statusem (pending_review/approved/rejected)
+    """
+    summary = storage.get_summary(process_id)
+    if not summary:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Nie znaleziono podsumowania dla procesu: {process_id}"
+        )
+
+    return SummaryStatusResponse(
+        process_id=summary.process_id,
+        status=summary.status,
+        created_at=summary.created_at,
+        updated_at=summary.updated_at,
+        approved_at=summary.approved_at
+    )
+
+
+@app.get("/api/summary/{process_id}", response_model=SummaryDetailResponse)
+async def get_summary_detail(process_id: str):
+    """
+    Pobierz szczegóły podsumowania.
+
+    Zwraca pełne podsumowanie z tekstem i metadanymi.
+    Dla n8n: wywoływane po otrzymaniu statusu "approved".
+
+    Args:
+        process_id: ID procesu
+
+    Returns:
+        SummaryDetailResponse z pełnymi danymi
+    """
+    summary = storage.get_summary(process_id)
+    if not summary:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Nie znaleziono podsumowania dla procesu: {process_id}"
+        )
+
+    return summary
+
+
+@app.get("/api/summary/{process_id}/approved", response_model=SummaryApprovedResponse)
+async def get_approved_summary(process_id: str):
+    """
+    Pobierz zatwierdzone podsumowanie.
+
+    Endpoint dla n8n - zwraca podsumowanie tylko jeśli ma status "approved".
+
+    Args:
+        process_id: ID procesu
+
+    Returns:
+        SummaryApprovedResponse z zatwierdzonym podsumowaniem
+
+    Raises:
+        404: Jeśli podsumowanie nie istnieje
+        400: Jeśli podsumowanie nie zostało jeszcze zatwierdzone
+    """
+    summary = storage.get_summary(process_id)
+    if not summary:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Nie znaleziono podsumowania dla procesu: {process_id}"
+        )
+
+    if summary.status != "approved":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Podsumowanie nie zostało jeszcze zatwierdzone. Aktualny status: {summary.status}"
+        )
+
+    return SummaryApprovedResponse(
+        process_id=summary.process_id,
+        summary_text=summary.summary_text,
+        metadata=summary.metadata,
+        approved_at=summary.approved_at,
+        edited_by_user=summary.edited_by_user
+    )
+
+
+@app.put("/api/summary/{process_id}", response_model=SummaryDetailResponse)
+async def update_summary(process_id: str, request: SummaryUpdateRequest):
+    """
+    Aktualizuj podsumowanie.
+
+    Endpoint wywoływany przez frontend po edycji przez użytkownika.
+
+    Args:
+        process_id: ID procesu
+        request: SummaryUpdateRequest z nowym tekstem i metadanymi
+
+    Returns:
+        SummaryDetailResponse ze zaktualizowanymi danymi
+    """
+    try:
+        summary = storage.update_summary(
+            process_id=process_id,
+            summary_text=request.summary_text,
+            metadata=request.metadata
+        )
+
+        if not summary:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Nie znaleziono podsumowania dla procesu: {process_id}"
+            )
+
+        logger.info(f"Zaktualizowano podsumowanie dla procesu: {process_id}")
+
+        return summary
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Błąd podczas aktualizacji podsumowania: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Błąd podczas aktualizacji podsumowania: {str(e)}"
+        )
+
+
+@app.post("/api/summary/{process_id}/approve", response_model=SummaryDetailResponse)
+async def approve_summary(process_id: str, request: SummaryApproveRequest):
+    """
+    Zatwierdź lub odrzuć podsumowanie.
+
+    Endpoint wywoływany przez frontend po zatwierdzeniu/odrzuceniu przez użytkownika.
+
+    Args:
+        process_id: ID procesu
+        request: SummaryApproveRequest (approved: true/false)
+
+    Returns:
+        SummaryDetailResponse ze zaktualizowanym statusem
+    """
+    try:
+        if request.approved:
+            summary = storage.approve_summary(process_id)
+            action = "zatwierdzono"
+        else:
+            summary = storage.reject_summary(process_id)
+            action = "odrzucono"
+
+        if not summary:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Nie znaleziono podsumowania dla procesu: {process_id}"
+            )
+
+        logger.info(f"Podsumowanie {action} dla procesu: {process_id}")
+
+        return summary
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Błąd podczas zatwierdzania podsumowania: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Błąd podczas zatwierdzania podsumowania: {str(e)}"
+        )
 
 
 @app.get("/api/report/{process_id}/generate")

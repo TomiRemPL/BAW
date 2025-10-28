@@ -23,10 +23,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
-            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com cdn.quilljs.com unpkg.com; "
+            "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.quilljs.com; "
             "img-src 'self' data:; "
-            "font-src 'self'; "
+            "font-src 'self' cdnjs.cloudflare.com cdn.quilljs.com data:; "
             "connect-src 'self';"
         )
 

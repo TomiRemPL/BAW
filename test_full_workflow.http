@@ -1,0 +1,96 @@
+### Test pełnego workflow z podsumowaniami
+### Użycie: VSCode + REST Client extension
+
+@baseUrl = http://localhost:8001
+@frontendUrl = http://localhost:8000
+
+### KROK 1: Upload dokumentów
+### ============================================================================
+
+POST {{baseUrl}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="old_document"; filename="stary.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./testy/stary.docx
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="new_document"; filename="nowy.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./testy/nowy.docx
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Zapisz document_pair_id z odpowiedzi!
+
+### ============================================================================
+### KROK 2: Rozpocznij porównywanie
+### ============================================================================
+### ZAMIEŃ document_pair_id na wartość z KROKU 1
+
+POST {{baseUrl}}/api/process
+Content-Type: application/json
+
+{
+  "document_pair_id": "WKLEJ_TUTAJ_DOCUMENT_PAIR_ID"
+}
+
+### Zapisz process_id z odpowiedzi!
+
+### ============================================================================
+### KROK 3: Sprawdź status (poczekaj aż będzie "completed")
+### ============================================================================
+### ZAMIEŃ process_id na wartość z KROKU 2
+
+GET {{baseUrl}}/api/status/WKLEJ_TUTAJ_PROCESS_ID
+
+### Powtarzaj aż status = "completed"
+
+### ============================================================================
+### KROK 4: Utwórz podsumowanie (teraz proces istnieje!)
+### ============================================================================
+### ZAMIEŃ process_id na wartość z KROKU 2
+
+POST {{baseUrl}}/api/summary
+Content-Type: application/json
+
+{
+  "process_id": "WKLEJ_TUTAJ_PROCESS_ID",
+  "summary_text": "# Podsumowanie zmian\n\n## Kluczowe zmiany\n- Zmiana 1\n- Zmiana 2",
+  "metadata": {
+    "przedmiot_regulacji": "Test DORA",
+    "data_aktu": "2024-01-17",
+    "data_wejscia_w_zycie": "2025-01-17"
+  }
+}
+
+### ============================================================================
+### KROK 5: Sprawdź status podsumowania
+### ============================================================================
+
+GET {{baseUrl}}/api/summary/WKLEJ_TUTAJ_PROCESS_ID/status
+
+### ============================================================================
+### KROK 6: Otwórz edytor w przeglądarce
+### ============================================================================
+
+### http://localhost:8000/summary/WKLEJ_TUTAJ_PROCESS_ID
+### Zaloguj się i edytuj podsumowanie
+
+### ============================================================================
+### KROK 7: Po edycji - zatwierdź
+### ============================================================================
+
+POST {{baseUrl}}/api/summary/WKLEJ_TUTAJ_PROCESS_ID/approve
+Content-Type: application/json
+
+{
+  "approved": true
+}
+
+### ============================================================================
+### KROK 8: Pobierz zatwierdzone podsumowanie (dla n8n)
+### ============================================================================
+
+GET {{baseUrl}}/api/summary/WKLEJ_TUTAJ_PROCESS_ID/approved

@@ -371,6 +371,195 @@ async def health():
     }
 
 
+# ============================================================================
+# Endpointy dla systemu podsumowań (integracja n8n)
+# ============================================================================
+
+
+@app.get("/summary/{process_id}", response_class=HTMLResponse)
+async def summary_editor_page(request: Request, process_id: str):
+    """
+    Strona edytora podsumowania.
+
+    NIE wymaga autentykacji - dostęp przez link z process_id (dla n8n workflow).
+
+    Args:
+        request: Request object
+        process_id: ID procesu
+
+    Returns:
+        HTML strona edytora
+    """
+    return templates.TemplateResponse(
+        "summary_editor.html",
+        {"request": request, "process_id": process_id}
+    )
+
+
+@app.get("/api/summary/{process_id}")
+async def get_summary_proxy(process_id: str):
+    """
+    Pobierz podsumowanie (proxy do backend).
+
+    NIE wymaga autentykacji - dla n8n workflow.
+
+    Args:
+        process_id: ID procesu
+
+    Returns:
+        JSON z podsumowaniem
+    """
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{settings.document_api_url}/api/summary/{process_id}"
+            )
+
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Błąd API: {response.text}"
+                )
+
+            return JSONResponse(content=response.json())
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Błąd podczas pobierania podsumowania: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Błąd: {str(e)}"
+        )
+
+
+@app.get("/api/summary/{process_id}/status")
+async def get_summary_status_proxy(process_id: str):
+    """
+    Pobierz status podsumowania (proxy do backend).
+
+    NIE wymaga autentykacji - dla n8n workflow.
+
+    Args:
+        process_id: ID procesu
+
+    Returns:
+        JSON ze statusem
+    """
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{settings.document_api_url}/api/summary/{process_id}/status"
+            )
+
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Błąd API: {response.text}"
+                )
+
+            return JSONResponse(content=response.json())
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Błąd podczas pobierania statusu podsumowania: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Błąd: {str(e)}"
+        )
+
+
+@app.put("/api/summary/{process_id}")
+async def update_summary_proxy(
+    process_id: str,
+    request: Request
+):
+    """
+    Aktualizuj podsumowanie (proxy do backend).
+
+    NIE wymaga autentykacji - dla n8n workflow.
+
+    Args:
+        process_id: ID procesu
+        request: Request z danymi do aktualizacji
+
+    Returns:
+        JSON ze zaktualizowanym podsumowaniem
+    """
+    try:
+        body = await request.json()
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.put(
+                f"{settings.document_api_url}/api/summary/{process_id}",
+                json=body
+            )
+
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Błąd API: {response.text}"
+                )
+
+            logger.info(f"Zaktualizowano podsumowanie: {process_id}")
+            return JSONResponse(content=response.json())
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Błąd podczas aktualizacji podsumowania: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Błąd: {str(e)}"
+        )
+
+
+@app.post("/api/summary/{process_id}/approve")
+async def approve_summary_proxy(
+    process_id: str,
+    request: Request
+):
+    """
+    Zatwierdź/odrzuć podsumowanie (proxy do backend).
+
+    NIE wymaga autentykacji - dla n8n workflow.
+
+    Args:
+        process_id: ID procesu
+        request: Request z danymi zatwierdzenia
+
+    Returns:
+        JSON ze zaktualizowanym podsumowaniem
+    """
+    try:
+        body = await request.json()
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{settings.document_api_url}/api/summary/{process_id}/approve",
+                json=body
+            )
+
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Błąd API: {response.text}"
+                )
+
+            logger.info(f"Zatwierdzono/odrzucono podsumowanie: {process_id}")
+            return JSONResponse(content=response.json())
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Błąd podczas zatwierdzania podsumowania: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Błąd: {str(e)}"
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
 

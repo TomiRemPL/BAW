@@ -1,0 +1,214 @@
+### BAW - Test Endpointów Podsumowań (n8n Integration)
+### Użycie: VSCode + REST Client extension
+
+@baseUrl = http://localhost:8001
+@frontendUrl = http://localhost:8000
+@processId = n8n-test-001
+
+### ============================================================================
+### 1. Health Check - Backend
+### ============================================================================
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+### ============================================================================
+### 2. Health Check - Frontend
+### ============================================================================
+
+GET {{frontendUrl}}/health
+Accept: application/json
+
+### ============================================================================
+### 3. Utwórz podsumowanie (n8n → Backend)
+### ============================================================================
+
+POST {{baseUrl}}/api/summary
+Content-Type: application/json
+
+{
+  "process_id": "{{processId}}",
+  "summary_text": "# Podsumowanie zmian w dokumencie\n\n## Kluczowe zmiany\n\n1. **Ryzyko operacyjne** - wprowadzono nowe wymagania dotyczące zarządzania ryzykiem IT zgodnie z Dyrektywą DORA\n2. **Testy odporności** - obowiązek przeprowadzania testów penetracyjnych co najmniej raz w roku\n3. **Raportowanie incydentów** - skrócono czas raportowania poważnych incydentów do 4 godzin\n\n## Wpływ na organizację\n\n- **Wysoki priorytet**: Wymaga natychmiastowych działań\n- **Deadline**: 17 stycznia 2025\n- **Budżet**: Szacowany koszt wdrożenia: 500k PLN",
+  "metadata": {
+    "przedmiot_regulacji": "Dyrektywa DORA (Digital Operational Resilience Act)",
+    "data_aktu": "2024-01-17",
+    "data_wejscia_w_zycie": "2025-01-17",
+    "dodatkowe_dane": {
+      "typ_dokumentu": "regulacja_ue",
+      "priorytet": "wysoki",
+      "organ_wydajacy": "Komisja Europejska"
+    }
+  }
+}
+
+### ============================================================================
+### 4. Sprawdź status podsumowania (n8n polling)
+### ============================================================================
+
+GET {{baseUrl}}/api/summary/{{processId}}/status
+Accept: application/json
+
+### ============================================================================
+### 5. Pobierz szczegóły podsumowania
+### ============================================================================
+
+GET {{baseUrl}}/api/summary/{{processId}}
+Accept: application/json
+
+### ============================================================================
+### 6. Aktualizuj podsumowanie (Frontend → Backend)
+### ============================================================================
+
+PUT {{baseUrl}}/api/summary/{{processId}}
+Content-Type: application/json
+
+{
+  "summary_text": "# Podsumowanie zmian w dokumencie (EDYTOWANE)\n\n## Kluczowe zmiany\n\n1. **Ryzyko operacyjne** - wprowadzono nowe, bardziej rygorystyczne wymagania dotyczące zarządzania ryzykiem IT zgodnie z Dyrektywą DORA\n2. **Testy odporności** - obowiązek przeprowadzania zaawansowanych testów penetracyjnych co najmniej raz w roku, z udziałem niezależnych audytorów\n3. **Raportowanie incydentów** - skrócono czas raportowania poważnych incydentów do 4 godzin (wcześniej 24h)\n4. **Nowy punkt** - wprowadzono wymóg certyfikacji ISO 27001\n\n## Wpływ na organizację\n\n- **Wysoki priorytet**: Wymaga natychmiastowych działań\n- **Deadline**: 17 stycznia 2025\n- **Budżet**: Szacowany koszt wdrożenia: 750k PLN (po korekcie)\n- **Zasoby**: Wymaga zatrudnienia 2 specjalistów security",
+  "metadata": {
+    "przedmiot_regulacji": "Dyrektywa DORA (Digital Operational Resilience Act)",
+    "data_aktu": "2024-01-17",
+    "data_wejscia_w_zycie": "2025-01-17",
+    "dodatkowe_dane": {
+      "typ_dokumentu": "regulacja_ue",
+      "priorytet": "krytyczny",
+      "organ_wydajacy": "Komisja Europejska",
+      "numer_aktu": "EU/2022/2554",
+      "link_zrodlowy": "https://eur-lex.europa.eu/..."
+    }
+  }
+}
+
+### ============================================================================
+### 7. Zatwierdź podsumowanie (Frontend → Backend)
+### ============================================================================
+
+POST {{baseUrl}}/api/summary/{{processId}}/approve
+Content-Type: application/json
+
+{
+  "approved": true
+}
+
+### ============================================================================
+### 8. Odrzuć podsumowanie (Frontend → Backend)
+### ============================================================================
+
+POST {{baseUrl}}/api/summary/{{processId}}/approve
+Content-Type: application/json
+
+{
+  "approved": false
+}
+
+### ============================================================================
+### 9. Pobierz zatwierdzone podsumowanie (n8n → Backend)
+### ============================================================================
+
+GET {{baseUrl}}/api/summary/{{processId}}/approved
+Accept: application/json
+
+### ============================================================================
+### 10. Test Frontend - Proxy Endpoints (wymaga logowania!)
+### ============================================================================
+
+### Pobierz podsumowanie przez frontend
+GET {{frontendUrl}}/api/summary/{{processId}}
+Accept: application/json
+Cookie: session_id=YOUR_SESSION_ID_HERE
+
+### ============================================================================
+### 11. Test Workflow n8n - Pełny cykl
+### ============================================================================
+
+### Krok 1: Utwórz podsumowanie
+POST {{baseUrl}}/api/summary
+Content-Type: application/json
+
+{
+  "process_id": "workflow-test-456",
+  "summary_text": "Test workflow n8n - wygenerowane automatycznie",
+  "metadata": {
+    "przedmiot_regulacji": "Test DORA"
+  }
+}
+
+###
+
+### Krok 2: Polling - sprawdzaj co 5 sekund
+GET {{baseUrl}}/api/summary/workflow-test-456/status
+
+###
+
+### Krok 3: (Użytkownik edytuje w przeglądarce)
+### Otwórz: http://localhost:8000/summary/workflow-test-456
+### Zaloguj się i edytuj podsumowanie
+### Zatwierdź klikając "Zatwierdź"
+
+###
+
+### Krok 4: Po zatwierdzeniu - pobierz wynik
+GET {{baseUrl}}/api/summary/workflow-test-456/approved
+
+### ============================================================================
+### 12. Testy błędów
+### ============================================================================
+
+### Nieistniejący process_id
+GET {{baseUrl}}/api/summary/nieistniejacy-id/status
+
+###
+
+### Pobranie niezatwierdzonego podsumowania
+GET {{baseUrl}}/api/summary/{{processId}}/approved
+
+###
+
+### Aktualizacja nieistniejącego podsumowania
+PUT {{baseUrl}}/api/summary/nieistniejacy-id
+Content-Type: application/json
+
+{
+  "summary_text": "Test",
+  "metadata": {}
+}
+
+### ============================================================================
+### 13. Statystyki (sprawdź liczby podsumowań)
+### ============================================================================
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+### Powinna zwrócić:
+### {
+###   "statistics": {
+###     "total_summaries": X,
+###     "pending_summaries": Y,
+###     "approved_summaries": Z
+###   }
+### }
+
+### ============================================================================
+### NOTATKI
+### ============================================================================
+
+# Statusy podsumowania:
+# - "pending_review" - oczekuje na akceptację
+# - "approved" - zatwierdzone (n8n może kontynuować)
+# - "rejected" - odrzucone
+
+# Workflow n8n:
+# 1. POST /api/summary (utworzenie)
+# 2. GET /api/summary/{id}/status (polling co 5-10s)
+# 3. Użytkownik edytuje w http://localhost:8000/summary/{id}
+# 4. Użytkownik zatwierdza → status = "approved"
+# 5. GET /api/summary/{id}/approved (pobranie przez n8n)
+
+# Frontend wymaga autentykacji:
+# - Zaloguj się w przeglądarce: http://localhost:8000
+# - Skopiuj cookie session_id z DevTools
+# - Użyj w requestach do frontendu
+
+### ============================================================================
+### Dokumentacja: N8N_SUMMARY_INTEGRATION.md
+### ============================================================================

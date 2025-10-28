@@ -133,3 +133,65 @@ class DeletedSentencesResult(BaseModel):
     deleted_sentences: List[DeletedSentence]
     total_count: int
     generated_at: datetime
+
+
+# ============================================================================
+# Modele dla systemu podsumowań z integracją n8n
+# ============================================================================
+
+
+class SummaryMetadata(BaseModel):
+    """Metadane dokumentu dla podsumowania."""
+    przedmiot_regulacji: Optional[str] = None
+    data_aktu: Optional[str] = None
+    data_wejscia_w_zycie: Optional[str] = None
+    # Pole rozszerzalne - dodatkowe metadane jako dict
+    dodatkowe_dane: Optional[Dict[str, Any]] = None
+
+
+class SummaryCreateRequest(BaseModel):
+    """Żądanie utworzenia podsumowania z n8n."""
+    process_id: str
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+
+
+class SummaryUpdateRequest(BaseModel):
+    """Żądanie aktualizacji podsumowania przez użytkownika."""
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+
+
+class SummaryStatusResponse(BaseModel):
+    """Status podsumowania dla n8n."""
+    process_id: str
+    status: Literal["pending_review", "approved", "rejected"]
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+
+
+class SummaryDetailResponse(BaseModel):
+    """Szczegóły podsumowania."""
+    process_id: str
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+    status: Literal["pending_review", "approved", "rejected"]
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+    edited_by_user: bool = False
+
+
+class SummaryApproveRequest(BaseModel):
+    """Żądanie zatwierdzenia podsumowania."""
+    approved: bool = True
+
+
+class SummaryApprovedResponse(BaseModel):
+    """Odpowiedź z zatwierdzonym podsumowaniem dla n8n."""
+    process_id: str
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+    approved_at: datetime
+    edited_by_user: bool

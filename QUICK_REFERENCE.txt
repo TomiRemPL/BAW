@@ -1,0 +1,113 @@
+================================================================================
+  BAW - Quick Reference Guide (Windows)
+================================================================================
+
+URUCHOMIENIE SERWISÓW
+----------------------
+PowerShell:   .\start_services.ps1
+Batch:        start_services.bat
+
+SPRAWDZENIE STATUSU
+-------------------
+PowerShell:   .\check_services.ps1
+Batch:        check_services.bat
+
+ZATRZYMANIE SERWISÓW
+--------------------
+PowerShell:   .\stop_services.ps1
+Batch:        stop_services.bat
+
+ADRESY SERWISÓW
+---------------
+Backend API:  http://localhost:8001
+API Docs:     http://localhost:8001/docs
+Frontend:     http://localhost:8000
+
+HASŁO DOMYŚLNE
+--------------
+Zobacz: SecureDocCompare/.env
+Domyślne: SecurePassword123!
+ZMIEŃ przed produkcją!
+
+RĘCZNE URUCHOMIENIE
+-------------------
+Terminal 1 (Backend):
+  cd C:\Projects\BAW
+  .venv\Scripts\activate
+  cd UslugaDoPorownan
+  uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+Terminal 2 (Frontend):
+  cd C:\Projects\BAW
+  .venv\Scripts\activate
+  cd SecureDocCompare
+  uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+TESTOWANIE API
+--------------
+curl http://localhost:8001/health
+curl http://localhost:8000/health
+
+NOWE FUNKCJE - SYSTEM PODSUMOWAŃ
+---------------------------------
+Edytor:       http://localhost:8000/summary/{process_id}
+Dokumentacja: N8N_SUMMARY_INTEGRATION.md
+
+ENDPOINTY N8N:
+  POST   /api/summary                    - Utwórz podsumowanie
+  GET    /api/summary/{id}/status        - Status (polling)
+  GET    /api/summary/{id}/approved      - Pobierz zatwierdzone
+  PUT    /api/summary/{id}               - Aktualizuj
+  POST   /api/summary/{id}/approve       - Zatwierdź/odrzuć
+
+ROZWIĄZYWANIE PROBLEMÓW
+-----------------------
+Problem: PowerShell - "Wykonywanie skryptów wyłączone"
+Rozwiązanie:
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Problem: Port zajęty
+Rozwiązanie:
+  .\stop_services.ps1
+  (lub ręcznie: taskkill /F /PID <numer_pid>)
+
+Problem: Brak środowiska wirtualnego
+Rozwiązanie:
+  python -m venv .venv
+  .venv\Scripts\activate
+  pip install -r requirements.txt
+
+DOKUMENTACJA
+------------
+README.md                      - Główna dokumentacja
+WINDOWS_SCRIPTS.md             - Szczegóły skryptów Windows
+N8N_SUMMARY_INTEGRATION.md     - Integracja n8n
+DEPLOYMENT.md                  - Wdrożenie produkcyjne
+SecureDocCompare/README.md     - Frontend
+UslugaDoPorownan/README.md     - Backend API
+
+SKRÓTY KLAWISZOWE (w terminalu z uruchomionym serwisem)
+-------------------------------------------------------
+Ctrl+C        - Zatrzymaj serwis
+Ctrl+Pause    - Wstrzymaj output
+Ctrl+Break    - Przerwij natychmiast
+
+MONITOROWANIE
+-------------
+Logi: Widoczne w oknach terminali (czasu rzeczywistego)
+Auto-reload: Włączony (zmiana kodu → restart)
+
+PRODUKCJA
+---------
+NIE UŻYWAJ tych skryptów w produkcji!
+Zobacz: DEPLOYMENT.md
+
+WSPARCIE
+--------
+GitHub: https://github.com/twoje-repo/BAW
+Dokumentacja: README.md
+Issues: GitHub Issues
+
+================================================================================
+Wersja: 1.0.0 | Data: 2025-10-27 | Python: 3.11.9
+================================================================================

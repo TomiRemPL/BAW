@@ -128,6 +128,38 @@ pip install -r requirements.txt
 
 ### Development (Windows)
 
+**Metoda 1: Automatyczne uruchomienie (Rekomendowane)**
+
+```powershell
+# PowerShell - uruchamia oba serwisy w osobnych oknach
+.\start_services.ps1
+
+# Lub Batch (CMD)
+start_services.bat
+```
+
+**Co robi skrypt:**
+- Sprawdza środowisko wirtualne
+- Weryfikuje porty
+- Uruchamia Backend (8001) i Frontend (8000) w osobnych oknach
+- Sprawdza health endpoints
+- Opcjonalnie otwiera przeglądarkę
+
+**Zarządzanie serwisami:**
+```powershell
+# Sprawdź status
+.\check_services.ps1
+
+# Zatrzymaj serwisy
+.\stop_services.ps1
+```
+
+**Więcej informacji:** Zobacz `WINDOWS_SCRIPTS.md`
+
+---
+
+**Metoda 2: Ręczne uruchomienie (2 terminale)**
+
 **Terminal 1 - Backend:**
 ```bash
 cd c:/Projects/BAW
@@ -185,6 +217,8 @@ APP_PASSWORD=TwojeNoweSuperbezpieczneHaslo
 |------|------|
 | `README.md` | Ten plik - ogólny opis projektu |
 | `DEPLOYMENT.md` | Instrukcje wdrożenia na serwer Debian |
+| `WINDOWS_SCRIPTS.md` | **Skrypty Windows - zarządzanie serwisami** |
+| `N8N_SUMMARY_INTEGRATION.md` | **Integracja n8n - system podsumowań** |
 | `requirements.txt` | Wszystkie zależności Python |
 | `SecureDocCompare/README.md` | Dokumentacja frontendu |
 | `SecureDocCompare/QUICK_START.md` | Szybki start frontendu |
