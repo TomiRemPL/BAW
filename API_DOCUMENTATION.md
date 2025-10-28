@@ -1,10 +1,10 @@
 # 📚 Dokumentacja API - UslugaDoPorownan
 
-**Wersja:** 1.1.0
+**Wersja:** 1.2.0
 **Port:** 8001
 **URL Base:** `http://localhost:8001`
 **Format:** JSON
-**Ostatnia aktualizacja:** 2025-10-23
+**Ostatnia aktualizacja:** 2025-10-28
 
 ---
 
@@ -12,10 +12,11 @@
 
 1. [Podstawowe Informacje](#podstawowe-informacje)
 2. [Lista Endpointów](#lista-endpointów)
-3. [Przykładowy Workflow](#przykładowy-workflow)
-4. [Testowanie w VSCode](#testowanie-w-vscode)
-5. [Kody Błędów](#kody-błędów)
-6. [Modele Danych](#modele-danych)
+3. [System Podsumowań (Integracja n8n)](#-system-podsumowań-integracja-n8n)
+4. [Przykładowy Workflow](#przykładowy-workflow)
+5. [Testowanie w VSCode](#testowanie-w-vscode)
+6. [Kody Błędów](#kody-błędów)
+7. [Modele Danych](#modele-danych)
 
 ---
 
@@ -654,6 +655,196 @@ curl http://217.182.76.146/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_2
 
 ---
 
+## 🔄 System Podsumowań (Integracja n8n)
+
+**NOWE w v1.1.0** - System edycji i zatwierdzania podsumowań zmian w dokumentach z integracją n8n workflow.
+
+### Architektura Workflow:
+
+1. **n8n** generuje podsumowanie zmian (np. przez LLM)
+2. **n8n** wysyła podsumowanie do systemu (`POST /api/summary`)
+3. System przechowuje podsumowanie ze statusem `pending_review`
+4. **Użytkownik** otwiera link edytora i edytuje/zatwierdza podsumowanie
+5. **n8n** polluje endpoint statusu (`GET /api/summary/{id}/status`)
+6. Po zatwierdzeniu, **n8n** pobiera podsumowanie (`GET /api/summary/{id}/approved`)
+7. **n8n** kontynuuje workflow z zatwierdzonym tekstem
+
+### 11. POST `/api/summary` - Utworzenie podsumowania
+
+Tworzy nowe podsumowanie dla procesu. Endpoint wywoływany przez n8n po wygenerowaniu podsumowania zmian.
+
+**❌ NIE wymaga autentykacji** (dla integracji n8n)
+
+**Przykład curl:**
+```bash
+curl -X POST http://localhost:8001/api/summary \
+  -H "Content-Type: application/json" \
+  -d '{
+    "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+    "summary_text": "# Podsumowanie zmian\n\n## Kluczowe zmiany\n\n1. Test",
+    "metadata": {
+      "przedmiot_regulacji": "Dyrektywa DORA"
+    }
+  }'
+```
+
+**Odpowiedź (200 OK):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "# Podsumowanie zmian...",
+  "metadata": {
+    "przedmiot_regulacji": "Dyrektywa DORA",
+    "data_aktu": null,
+    "data_wejscia_w_zycie": null
+  },
+  "status": "pending_review",
+  "created_at": "2025-10-28T10:00:00.123456",
+  "updated_at": null,
+  "approved_at": null,
+  "edited_by_user": false
+}
+```
+
+---
+
+### 12. GET `/api/summary/{process_id}/status` - Status podsumowania
+
+Sprawdza status podsumowania. Endpoint dla n8n do polling (co 5-10 sekund).
+
+**Przykład curl:**
+```bash
+curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/status
+```
+
+**Odpowiedź (200 OK):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "status": "pending_review",
+  "created_at": "2025-10-28T10:00:00.123456",
+  "updated_at": "2025-10-28T10:05:00.123456",
+  "approved_at": null
+}
+```
+
+**Możliwe statusy:**
+- `pending_review` - oczekuje na akceptację
+- `approved` - zatwierdzone
+- `rejected` - odrzucone
+
+---
+
+### 13. GET `/api/summary/{process_id}` - Szczegóły podsumowania
+
+Pobiera pełne szczegóły podsumowania.
+
+**Przykład curl:**
+```bash
+curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab
+```
+
+**Odpowiedź (200 OK):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "# Podsumowanie zmian...",
+  "metadata": {
+    "przedmiot_regulacji": "Dyrektywa DORA"
+  },
+  "status": "pending_review",
+  "created_at": "2025-10-28T10:00:00.123456",
+  "updated_at": "2025-10-28T10:05:00.123456",
+  "approved_at": null,
+  "edited_by_user": true
+}
+```
+
+---
+
+### 14. PUT `/api/summary/{process_id}` - Aktualizacja
+
+Aktualizuje tekst i metadane podsumowania.
+
+**Przykład curl:**
+```bash
+curl -X PUT http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab \
+  -H "Content-Type: application/json" \
+  -d '{
+    "summary_text": "# Podsumowanie (EDYTOWANE)...",
+    "metadata": {"przedmiot_regulacji": "DORA Updated"}
+  }'
+```
+
+**Odpowiedź (200 OK):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "# Podsumowanie (EDYTOWANE)...",
+  "metadata": {"przedmiot_regulacji": "DORA Updated"},
+  "status": "pending_review",
+  "updated_at": "2025-10-28T10:10:00.123456",
+  "edited_by_user": true
+}
+```
+
+---
+
+### 15. POST `/api/summary/{process_id}/approve` - Zatwierdzenie
+
+Zatwierdza lub odrzuca podsumowanie.
+
+**Przykład curl (zatwierdzenie):**
+```bash
+curl -X POST http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/approve \
+  -H "Content-Type: application/json" \
+  -d '{"approved": true}'
+```
+
+**Odpowiedź (200 OK):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "# Podsumowanie (EDYTOWANE)...",
+  "status": "approved",
+  "approved_at": "2025-10-28T10:15:00.123456",
+  "edited_by_user": true
+}
+```
+
+---
+
+### 16. GET `/api/summary/{process_id}/approved` - Pobranie zatwierdzonego
+
+Pobiera zatwierdzone podsumowanie. Tylko dla statusu "approved".
+
+**Przykład curl:**
+```bash
+curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/approved
+```
+
+**Odpowiedź (200 OK):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "# Podsumowanie (EDYTOWANE)...",
+  "metadata": {"przedmiot_regulacji": "DORA Updated"},
+  "approved_at": "2025-10-28T10:15:00.123456",
+  "edited_by_user": true
+}
+```
+
+**Błąd (400 Bad Request):**
+```json
+{
+  "detail": "Podsumowanie nie zostało jeszcze zatwierdzone. Aktualny status: pending_review"
+}
+```
+
+**Pełna dokumentacja:** Zobacz [N8N_SUMMARY_INTEGRATION.md](N8N_SUMMARY_INTEGRATION.md) dla workflow n8n i szczegółów.
+
+---
+
 ## 🔄 Przykładowy Workflow
 
 ### Scenariusz 1: Porównanie dwóch plików DOCX
@@ -1123,10 +1314,24 @@ FastAPI automatycznie generuje interaktywną dokumentację:
 
 ---
 
-**Ostatnia aktualizacja:** 2025-10-23
-**Wersja dokumentu:** 1.1.0
+**Ostatnia aktualizacja:** 2025-10-28
+**Wersja dokumentu:** 1.2.0
 
 ## 📝 Changelog
+
+### v1.2.0 (2025-10-28)
+- 🎉 **Dodano 6 nowych endpointów podsumowań** (integracja n8n):
+  - `POST /api/summary` - Utworzenie podsumowania
+  - `GET /api/summary/{id}/status` - Status (polling dla n8n)
+  - `GET /api/summary/{id}` - Szczegóły podsumowania
+  - `PUT /api/summary/{id}` - Aktualizacja tekstu/metadanych
+  - `POST /api/summary/{id}/approve` - Zatwierdzenie/odrzucenie
+  - `GET /api/summary/{id}/approved` - Pobranie zatwierdzonego
+- ✅ Dodano sekcję "System Podsumowań (Integracja n8n)"
+- ✅ Zaktualizowano Spis Treści
+- ✅ Link do szczegółowej dokumentacji: [N8N_SUMMARY_INTEGRATION.md](N8N_SUMMARY_INTEGRATION.md)
+- ✅ Testy: [test_summaries.http](test_summaries.http)
+- 📊 **Razem: 16 endpointów API** (10 podstawowych + 6 summary)
 
 ### v1.1.0 (2025-10-23)
 - ✅ **Dodano endpoint 10:** `GET /api/report/{process_id}/generate` - Generowanie raportów HTML

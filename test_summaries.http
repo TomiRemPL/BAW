@@ -3,7 +3,7 @@
 
 @baseUrl = http://localhost:8001
 @frontendUrl = http://localhost:8000
-@processId = n8n-test-001
+@processId = n8n-test-002
 
 ### ============================================================================
 ### 1. Health Check - Backend

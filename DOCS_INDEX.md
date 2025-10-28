@@ -25,6 +25,7 @@ Kompleksowy przewodnik po dokumentacji projektu porównywania dokumentów bankow
 | [test.http](test.http) | Testy API dla REST Client (produkcja) | Developer, API User |
 | [test.local.http](test.local.http) | Testy API dla localhost | Developer |
 | [test.prod.http](test.prod.http) | Testy API dla produkcji (217.182.76.146) | Developer, API User |
+| [test_summaries.http](test_summaries.http) | **NOWY!** Testy endpointów podsumowań (n8n integration) | Developer, API User |
 | [CLAUDE.md](CLAUDE.md) | Instrukcje dla Claude Code AI | Developer |
 
 ### SecureDocCompare (`/SecureDocCompare`)
@@ -347,7 +348,7 @@ Szybki start backendu API:
 | **PROGRESS_LOG.md** | ✅ Aktualny | 2025-10-24 | 1.4.0 |
 | PDF_CONVERSION_SUMMARY.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
 | **HTML_REPORT_ENDPOINT.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
-| **API_DOCUMENTATION.md** | ✅ Aktualny | 2025-10-23 | 1.1.0 |
+| **API_DOCUMENTATION.md** | ✅ Aktualny | 2025-10-28 | 1.2.0 |
 | **N8N_INTEGRATION.md** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
 | **N8N_WORKFLOW_GUIDE.md** | ✅ Aktualny | 2025-10-23 | 2.0.0 |
 | **N8N_MEMORY_ONLY_GUIDE.md** | ✅ Aktualny | 2025-10-23 | 3.0.0 |
@@ -355,6 +356,7 @@ Szybki start backendu API:
 | test.http | ✅ Aktualny | 2025-10-23 | 1.1.0 |
 | **test.local.http** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
 | **test.prod.http** | ✅ Aktualny | 2025-10-23 | 1.0.0 |
+| **test_summaries.http** | ✅ Aktualny | 2025-10-28 | 1.0.0 |
 | SecureDocCompare/README.md | ✅ Aktualny | 2025-10-20 | 1.0.0 |
 | SecureDocCompare/QUICK_START.md | ✅ Aktualny | 2025-10-21 | 1.0.0 |
 | SecureDocCompare/SECURITY.md | ✅ Aktualny | 2025-10-20 | 1.0.0 |
@@ -389,9 +391,16 @@ Jeśli znajdziesz nieaktualną informację:
 
 ---
 
-**Ostatnia aktualizacja:** 2025-10-25
-**Wersja indeksu:** 1.6.0
+**Ostatnia aktualizacja:** 2025-10-28
+**Wersja indeksu:** 1.7.0
 **Projekt:** BAW - Porównywanie Dokumentów Bankowych
+
+**Changelog 1.7.0 (2025-10-28):**
+- Zaktualizowano **API_DOCUMENTATION.md** (wersja 1.2.0) - dodano 6 endpointów podsumowań
+- Dodano **test_summaries.http** do tabeli plików głównego katalogu
+- Zaktualizowano tabelę statusu dokumentacji (dodano test_summaries.http)
+- Dodano informację o 16 endpointach API (10 podstawowych + 6 summary)
+- Zaktualizowano datę ostatniej aktualizacji API_DOCUMENTATION.md na 2025-10-28
 
 **Changelog 1.6.0 (2025-10-25):**
 - Dodano **UslugaDoPorownan/PROMPTS_CHANGELOG.md** - kompletna dokumentacja aktualizacji promptów LLM v2.0 (~755 linii)
