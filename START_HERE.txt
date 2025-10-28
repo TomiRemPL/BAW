@@ -1,0 +1,82 @@
+=============================================================================
+  N8N ENHANCED WORKFLOW - START HERE
+  Dla N8N 1.111.0
+=============================================================================
+
+TWOJA WERSJA N8N: 1.111.0
+
+PLIK DO IMPORTU:
+C:\Projects\BAW\API 04 Enhanced - N8N 1.111.0.json
+
+=============================================================================
+SZYBKI START (3 KROKI)
+=============================================================================
+
+KROK 1: IMPORT
+--------------
+1. Otwórz: http://localhost:5678
+2. Workflows → Import from File
+3. Wybierz: API 04 Enhanced - N8N 1.111.0.json
+4. Import
+
+KROK 2: DODAJ RETRY (3 węzły)
+------------------------------
+A) Create Summary:
+   Kliknij węzeł → Settings → Retry On Fail: ON
+   Max Tries: 3, Wait: 2000ms
+
+B) Check Summary Status:
+   Kliknij węzeł → Settings → Retry On Fail: ON
+   Max Tries: 2, Wait: 1000ms
+
+C) Get Approved Summary:
+   Kliknij węzeł → Settings → Retry On Fail: ON
+   Max Tries: 3, Wait: 2000ms
+
+KROK 3: TEST
+------------
+Execute Workflow → Sprawdź email
+
+=============================================================================
+JEŚLI IMPORT DZIAŁA BEZ BŁĘDÓW - GRATULACJE!
+=============================================================================
+
+Następne kroki:
+1. Sprawdź credentials (SMTP, SeaTable, OpenAI)
+2. Wykonaj 3 testy (approve, timeout, reject)
+3. Aktywuj workflow (Active: ON)
+
+=============================================================================
+PEŁNA DOKUMENTACJA
+=============================================================================
+
+Szczegółowa instrukcja:
+C:\Projects\BAW\IMPORT_N8N_1.111.0.md
+
+Dokumentacja techniczna:
+C:\Projects\BAW\N8N_WORKFLOW_ENHANCED.md
+
+Quick Start Guide:
+C:\Projects\BAW\N8N_WORKFLOW_QUICKSTART.md
+
+=============================================================================
+BACKUP
+=============================================================================
+
+Oryginalny workflow (rollback):
+C:\Projects\BAW\API 04.json.backup
+
+=============================================================================
+WSPARCIE
+=============================================================================
+
+API Documentation:
+- Backend: http://217.182.76.146/docs
+- Health: http://217.182.76.146/health
+
+Frontend:
+- Summary Editor: http://217.182.76.146/summary/{id}
+
+=============================================================================
+POWODZENIA!
+=============================================================================

@@ -1,0 +1,103 @@
+=============================================================================
+  N8N WORKFLOW - FINAL VERSION (PO POPRAWKACH)
+  Dla N8N 1.111.0
+=============================================================================
+
+TWOJA WERSJA N8N: 1.111.0
+
+PLIK DO IMPORTU (FINAL):
+C:\Projects\BAW\API 04 FINAL - N8N 1.111.0.json
+
+=============================================================================
+CO ZOSTALO NAPRAWIONE?
+=============================================================================
+
+1. contentType: "json" (BYLO: "application/json")
+2. Parametry API zgodne z faktyczna implementacja
+3. Usunieto wszystkie problematyczne options
+4. TypeVersions poprawne dla N8N 1.111.0
+
+=============================================================================
+SZYBKI START (3 KROKI)
+=============================================================================
+
+KROK 1: IMPORT
+--------------
+1. Otwórz: http://localhost:5678
+2. Workflows → Import from File
+3. Wybierz: API 04 FINAL - N8N 1.111.0.json
+4. Import
+
+KROK 2: DODAJ RETRY (3 węzły - RĘCZNIE)
+----------------------------------------
+A) Create Summary:
+   Węzeł → Settings ⚙ → Retry On Fail: ON
+   Max Tries: 3, Wait: 2000ms
+
+B) Check Summary Status:
+   Węzeł → Settings ⚙ → Retry On Fail: ON
+   Max Tries: 2, Wait: 1000ms
+
+C) Get Approved Summary:
+   Węzeł → Settings ⚙ → Retry On Fail: ON
+   Max Tries: 3, Wait: 2000ms
+
+KROK 3: TEST
+------------
+Execute Workflow → Sprawdź email
+
+=============================================================================
+JEŚLI IMPORT DZIAŁA BEZ BŁĘDÓW - GRATULACJE!
+=============================================================================
+
+Następne kroki:
+1. Sprawdź credentials (SMTP, SeaTable, OpenAI)
+2. Wykonaj 3 testy (approve, timeout, reject)
+3. Aktywuj workflow (Active: ON)
+
+=============================================================================
+PEŁNA DOKUMENTACJA
+=============================================================================
+
+Szczegółowa instrukcja:
+C:\Projects\BAW\IMPORT_FINAL_N8N_1.111.0.md
+
+=============================================================================
+BACKUP
+=============================================================================
+
+Oryginalny workflow (rollback):
+C:\Projects\BAW\API 04.json.backup
+
+=============================================================================
+API ENDPOINTS
+=============================================================================
+
+Backend (UslugaDoPorownan):
+- Health: http://217.182.76.146:8001/health
+- Docs: http://217.182.76.146:8001/docs
+
+Frontend (SecureDocCompare):
+- Dashboard: http://217.182.76.146:8000
+- Summary Editor: http://217.182.76.146:8000/summary/{process_id}
+
+Summary API (integracja n8n):
+- POST /api/summary - Utworzenie podsumowania
+- GET /api/summary/{id}/status - Status (polling)
+- GET /api/summary/{id}/approved - Pobranie zatwierdzonego
+
+=============================================================================
+WSPARCIE
+=============================================================================
+
+Testy API:
+- Backend: test.http
+- Summary: test_summaries.http
+
+Dokumentacja:
+- API_DOCUMENTATION.md
+- N8N_SUMMARY_INTEGRATION.md
+
+=============================================================================
+POWODZENIA!
+=============================================================================
