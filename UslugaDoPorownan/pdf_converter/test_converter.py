@@ -56,15 +56,20 @@ def test_input_validation():
         print("  ✓ Wykryto nieistniejący plik")
 
     # Test niewłaściwego formatu
-    with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-        try:
-            converter.convert(tmp_path, "output.docx")
-            assert False, "Powinien rzucić UnsupportedFormatError"
-        except UnsupportedFormatError as e:
-            assert ".txt" in str(e) or "pdf" in str(e).lower()
-            print("  ✓ Wykryto niewłaściwy format")
-        finally:
+    # Stwórz i zamknij plik tymczasowy, aby uzyskać jego ścieżkę
+    tmp_file = tempfile.NamedTemporaryFile(suffix=".txt", delete=False)
+    tmp_path = Path(tmp_file.name)
+    tmp_file.close()
+
+    try:
+        converter.convert(tmp_path, "output.docx")
+        assert False, "Powinien rzucić UnsupportedFormatError"
+    except UnsupportedFormatError as e:
+        assert ".txt" in str(e) or "pdf" in str(e).lower()
+        print("  ✓ Wykryto niewłaściwy format")
+    finally:
+        # Upewnij się, że plik jest usuwany po teście
+        if tmp_path.exists():
             tmp_path.unlink()
 
     print("  ✓ Walidacja wejścia OK")

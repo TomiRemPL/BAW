@@ -57,19 +57,17 @@ app.add_middleware(
 UPLOADS_DIR = Path("uploads")
 REPORTS_DIR = Path("output/reports")
 
+# Utworzenie katalogów przy starcie modułu, aby były dostępne dla testów
+UPLOADS_DIR.mkdir(exist_ok=True)
+REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
 
 @app.on_event("startup")
 async def startup():
     """Inicjalizacja przy starcie aplikacji."""
     logger.info("Uruchamianie usługi porównywania dokumentów")
-
-    # Utworzenie katalogów
-    UPLOADS_DIR.mkdir(exist_ok=True)
     logger.info(f"Katalog uploads: {UPLOADS_DIR.absolute()}")
-
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     logger.info(f"Katalog reports: {REPORTS_DIR.absolute()}")
-
     logger.info("Usługa gotowa do działania")
 
 

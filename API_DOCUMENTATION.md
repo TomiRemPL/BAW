@@ -1,58 +1,96 @@
-# 📚 Dokumentacja API - UslugaDoPorownan
+# 📚 Kompletna Dokumentacja API - BAW Document Comparison
 
-**Wersja:** 1.2.0
-**Port:** 8001
-**URL Base:** `http://localhost:8001`
-**Format:** JSON
-**Ostatnia aktualizacja:** 2025-10-28
+**Wersja:** 1.2.0 (VERIFIED)
+**Data weryfikacji:** 2025-10-28
+**Status:** ✅ Zgodna ze stanem faktycznym kodu
 
 ---
 
 ## 📖 Spis Treści
 
-1. [Podstawowe Informacje](#podstawowe-informacje)
-2. [Lista Endpointów](#lista-endpointów)
-3. [System Podsumowań (Integracja n8n)](#-system-podsumowań-integracja-n8n)
-4. [Przykładowy Workflow](#przykładowy-workflow)
-5. [Testowanie w VSCode](#testowanie-w-vscode)
-6. [Kody Błędów](#kody-błędów)
-7. [Modele Danych](#modele-danych)
+1. [Architektura Systemu](#architektura-systemu)
+2. [Backend API (UslugaDoPorownan)](#backend-api---uslugadoporownan)
+3. [Frontend API (SecureDocCompare)](#frontend-api---securedoccompare)
+4. [System Podsumowań (n8n Integration)](#system-podsumowań-n8n-integration)
+5. [Modele Danych](#modele-danych)
+6. [Workflow Integracji](#workflow-integracji)
+7. [Przykłady Użycia](#przykłady-użycia)
 
 ---
 
-## 🔗 Podstawowe Informacje
+## 🏗️ Architektura Systemu
 
-- **URL Base:** `http://localhost:8001`
-- **Format:** JSON (application/json)
-- **Obsługiwane formaty dokumentów:** DOCX, PDF (automatyczna konwersja)
-- **Timeout uploadu:** 120 sekund
-- **Storage:** In-memory (dane tracone po restarcie)
-- **Przetwarzanie:** Asynchroniczne w tle (FastAPI BackgroundTasks)
+### Komponenty:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         N8N Workflow                         │
+│  (Automatyzacja, AI Agent, Email, Podsumowania)             │
+└────────────┬────────────────────────────────────┬───────────┘
+             │                                    │
+             ▼                                    ▼
+┌────────────────────────┐         ┌────────────────────────┐
+│  SecureDocCompare      │         │  UslugaDoPorownan      │
+│  Frontend (Port 8000)  │◄───────►│  Backend (Port 8001)   │
+│  - Login/Auth          │         │  - Document Processing │
+│  - Dashboard UI        │         │  - PDF Conversion      │
+│  - Summary Editor      │         │  - Diff Engine         │
+│  - API Proxy           │         │  - Summary Storage     │
+└────────────────────────┘         └────────────────────────┘
+```
+
+### Porty:
+- **Backend (UslugaDoPorownan):** `http://217.182.76.146:8001`
+- **Frontend (SecureDocCompare):** `http://217.182.76.146:8000`
+- **N8N Workflow:** `http://localhost:5678` (localhost only)
+
+### Storage:
+- **In-Memory:** Wszystkie dane (documents, processes, results, summaries)
+- **Restart = utrata danych** (brak persistence)
+- **Uploads:** Pliki DOCX zapisywane w `uploads/` (nie czyszczone automatycznie)
+- **Reports:** Raporty HTML w `output/reports/`
 
 ---
 
-## 📋 Lista Endpointów
+## 🔧 Backend API - UslugaDoPorownan
+
+**Base URL:** `http://217.182.76.146:8001`
+**Port:** 8001
+**Framework:** FastAPI + Uvicorn
+**CORS:** Enabled (allow_origins=["*"])
+
+### Endpointy:
+
+| Metoda | Endpoint | Opis | Auth |
+|--------|----------|------|------|
+| GET | `/` | Informacje o serwisie | ❌ |
+| GET | `/health` | Health check + statystyki | ❌ |
+| POST | `/api/documents/upload` | Upload dokumentów (DOCX/PDF) | ❌ |
+| POST | `/api/process` | Rozpocznij porównywanie | ❌ |
+| GET | `/api/status/{process_id}` | Status przetwarzania | ❌ |
+| GET | `/api/result/{process_id}/full` | Pełny wynik | ❌ |
+| GET | `/api/result/{process_id}/modified` | Tylko zmodyfikowane | ❌ |
+| GET | `/api/result/{process_id}/added` | Tylko dodane | ❌ |
+| GET | `/api/result/{process_id}/deleted` | Tylko usunięte | ❌ |
+| GET | `/api/report/{process_id}/generate` | Generuj raport HTML | ❌ |
+| POST | `/api/summary` | Utwórz podsumowanie (n8n) | ❌ |
+| GET | `/api/summary/{process_id}/status` | Status podsumowania (polling) | ❌ |
+| GET | `/api/summary/{process_id}` | Szczegóły podsumowania | ❌ |
+| GET | `/api/summary/{process_id}/approved` | Pobierz zatwierdzone | ❌ |
+| PUT | `/api/summary/{process_id}` | Aktualizuj podsumowanie | ❌ |
+| POST | `/api/summary/{process_id}/approve` | Zatwierdź/odrzuć | ❌ |
+
+**Razem:** 16 endpointów (10 document comparison + 6 summary system)
+
+---
 
 ### 1. GET `/` - Informacje o serwisie
-
-Zwraca podstawowe informacje o usłudze i dostępnych endpointach.
-
-**Przykład curl:**
-```bash
-curl http://localhost:8001/
-```
-
-**Przykład HTTP:**
-```http
-GET http://localhost:8001/
-Accept: application/json
-```
 
 **Odpowiedź (200 OK):**
 ```json
 {
   "service": "Usługa Porównywania Dokumentów",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "status": "running",
   "endpoints": {
     "upload": "POST /api/documents/upload",
@@ -63,6 +101,14 @@ Accept: application/json
     "added": "GET /api/result/{process_id}/added",
     "deleted": "GET /api/result/{process_id}/deleted",
     "generate_report": "GET /api/report/{process_id}/generate"
+  },
+  "summary_endpoints": {
+    "create": "POST /api/summary",
+    "get_status": "GET /api/summary/{process_id}/status",
+    "get_detail": "GET /api/summary/{process_id}",
+    "get_approved": "GET /api/summary/{process_id}/approved",
+    "update": "PUT /api/summary/{process_id}",
+    "approve": "POST /api/summary/{process_id}/approve"
   }
 }
 ```
@@ -71,73 +117,42 @@ Accept: application/json
 
 ### 2. GET `/health` - Health Check
 
-Sprawdza stan usługi i zwraca statystyki przetwarzania.
-
-**Przykład curl:**
-```bash
-curl http://localhost:8001/health
-```
-
-**Przykład HTTP:**
-```http
-GET http://localhost:8001/health
-Accept: application/json
-```
-
 **Odpowiedź (200 OK):**
 ```json
 {
   "status": "healthy",
-  "timestamp": "2025-10-23T10:30:45.123456",
+  "timestamp": "2025-10-28T10:30:45.123456",
   "statistics": {
     "total_documents": 10,
     "total_processes": 8,
     "completed_processes": 7,
-    "failed_processes": 1
+    "failed_processes": 1,
+    "total_summaries": 5,
+    "pending_summaries": 2,
+    "approved_summaries": 3
   }
 }
 ```
 
 ---
 
-### 3. POST `/api/documents/upload` - Upload dokumentów
+### 3. POST `/api/documents/upload` - Upload Dokumentów
 
-Załaduj parę dokumentów (DOCX lub PDF) do porównania. Dokumenty PDF są automatycznie konwertowane do formatu DOCX.
+**Content-Type:** `multipart/form-data`
 
-**Parametry (multipart/form-data):**
+**Parametry:**
 - `old_document` (file, **required**) - Stary dokument (.docx lub .pdf)
 - `new_document` (file, **required**) - Nowy dokument (.docx lub .pdf)
 
-**Ograniczenia:**
-- Maksymalny rozmiar: 50MB (konfigurowane w SecureDocCompare)
-- Formaty: `.docx`, `.pdf`
-- Timeout: 120s
-
-#### Przykład 1: Upload DOCX
+**Obsługiwane formaty:**
+- `.docx` - Bezpośrednio przetwarzany
+- `.pdf` - Automatyczna konwersja do DOCX (pdf2docx → pdfplumber fallback)
 
 **curl:**
 ```bash
-curl -X POST http://localhost:8001/api/documents/upload \
+curl -X POST http://217.182.76.146:8001/api/documents/upload \
   -F "old_document=@stara_wersja/dokument.docx" \
   -F "new_document=@nowa_wersja/dokument.docx"
-```
-
-**HTTP:**
-```http
-POST http://localhost:8001/api/documents/upload
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
-
-------WebKitFormBoundary
-Content-Disposition: form-data; name="old_document"; filename="old.docx"
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-
-< ./stara_wersja/dokument.docx
-------WebKitFormBoundary
-Content-Disposition: form-data; name="new_document"; filename="new.docx"
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-
-< ./nowa_wersja/dokument.docx
-------WebKitFormBoundary--
 ```
 
 **Odpowiedź (200 OK):**
@@ -149,49 +164,13 @@ Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.doc
 }
 ```
 
-#### Przykład 2: Upload PDF (z konwersją)
-
-**curl:**
-```bash
-curl -X POST http://localhost:8001/api/documents/upload \
-  -F "old_document=@stara_wersja/dokument.pdf" \
-  -F "new_document=@nowa_wersja/dokument.pdf"
-```
-
-**HTTP:**
-```http
-POST http://localhost:8001/api/documents/upload
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
-
-------WebKitFormBoundary
-Content-Disposition: form-data; name="old_document"; filename="old.pdf"
-Content-Type: application/pdf
-
-< ./stara_wersja/dokument.pdf
-------WebKitFormBoundary
-Content-Disposition: form-data; name="new_document"; filename="new.pdf"
-Content-Type: application/pdf
-
-< ./nowa_wersja/dokument.pdf
-------WebKitFormBoundary--
-```
-
-**Odpowiedź (200 OK):**
+**Z konwersją PDF:**
 ```json
 {
   "document_pair_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "status": "uploaded",
-  "message": "Dokumenty zostały załadowane: old.pdf, new.pdf\nStary dokument PDF skonwertowany (metoda: pdfplumber, jakość: 0.79)\nNowy dokument PDF skonwertowany (metoda: pdf2docx, jakość: 0.92)"
+  "message": "Dokumenty zostały załadowane: old.pdf, new.pdf\nStary dokument PDF skonwertowany (metoda: pdf2docx, jakość: 0.92)\nNowy dokument PDF skonwertowany (metoda: pdfplumber, jakość: 0.79)"
 }
-```
-
-#### Przykład 3: Upload mieszany (DOCX + PDF)
-
-**curl:**
-```bash
-curl -X POST http://localhost:8001/api/documents/upload \
-  -F "old_document=@stara_wersja/dokument.docx" \
-  -F "new_document=@nowa_wersja/dokument.pdf"
 ```
 
 **Błędy:**
@@ -200,34 +179,28 @@ curl -X POST http://localhost:8001/api/documents/upload \
 
 ---
 
-### 4. POST `/api/process` - Rozpocznij przetwarzanie
+### 4. POST `/api/process` - Rozpocznij Przetwarzanie
 
-Rozpocznij asynchroniczne porównywanie dokumentów. Zwraca natychmiast `process_id`, które można użyć do sprawdzenia statusu i pobrania wyników.
+**Content-Type:** `application/json`
 
-**Parametry (JSON body):**
+**Request Body:**
 ```json
-{
-  "document_pair_id": "string"  // UUID z /api/documents/upload
-}
-```
-
-**Przykład curl:**
-```bash
-curl -X POST http://localhost:8001/api/process \
-  -H "Content-Type: application/json" \
-  -d '{
-    "document_pair_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-  }'
-```
-
-**Przykład HTTP:**
-```http
-POST http://localhost:8001/api/process
-Content-Type: application/json
-
 {
   "document_pair_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 }
+```
+
+**Model:** `ProcessRequest`
+```python
+class ProcessRequest(BaseModel):
+    document_pair_id: str
+```
+
+**curl:**
+```bash
+curl -X POST http://217.182.76.146:8001/api/process \
+  -H "Content-Type: application/json" \
+  -d '{"document_pair_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"}'
 ```
 
 **Odpowiedź (200 OK):**
@@ -239,113 +212,117 @@ Content-Type: application/json
 }
 ```
 
+**Przetwarzanie:**
+- Asynchroniczne (FastAPI BackgroundTasks)
+- Zwraca natychmiast `process_id`
+- Sprawdzaj status przez polling `/api/status/{process_id}`
+
 **Błędy:**
-- `404 Not Found` - Nie znaleziono pary dokumentów o podanym ID
-- `500 Internal Server Error` - Błąd podczas rozpoczynania przetwarzania
+- `404 Not Found` - Nie znaleziono pary dokumentów
+- `500 Internal Server Error` - Błąd rozpoczynania przetwarzania
 
 ---
 
-### 5. GET `/api/status/{process_id}` - Status przetwarzania
-
-Sprawdź aktualny status przetwarzania dokumentów. Endpoint do pollingu - wywołuj co 1-2 sekundy aż `status` będzie `"completed"` lub `"error"`.
+### 5. GET `/api/status/{process_id}` - Status Przetwarzania
 
 **Parametry URL:**
-- `process_id` (string, **required**) - UUID procesu
+- `process_id` (UUID, **required**)
 
-**Przykład curl:**
+**curl:**
 ```bash
-curl http://localhost:8001/api/status/f1e2d3c4-b5a6-7890-cdef-1234567890ab
+curl http://217.182.76.146:8001/api/status/f1e2d3c4-b5a6-7890-cdef-1234567890ab
 ```
 
-**Przykład HTTP:**
-```http
-GET http://localhost:8001/api/status/f1e2d3c4-b5a6-7890-cdef-1234567890ab
-Accept: application/json
-```
+**Możliwe statusy:**
 
-#### Odpowiedź: Status "pending"
+#### Status: `pending`
 ```json
 {
   "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
   "status": "pending",
   "progress": 0,
   "message": "Oczekiwanie na rozpoczęcie przetwarzania",
-  "started_at": "2025-10-23T10:30:00",
+  "started_at": "2025-10-28T10:30:00.123456",
   "completed_at": null,
   "error": null
 }
 ```
 
-#### Odpowiedź: Status "processing"
+#### Status: `processing`
 ```json
 {
   "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
   "status": "processing",
   "progress": 50,
   "message": "Porównywanie dokumentów",
-  "started_at": "2025-10-23T10:30:00",
+  "started_at": "2025-10-28T10:30:00.123456",
   "completed_at": null,
   "error": null
 }
 ```
 
 **Etapy przetwarzania:**
-- Progress 0-10: Oczekiwanie
-- Progress 10-30: Ekstrakcja treści ze starego dokumentu
-- Progress 30-50: Ekstrakcja treści z nowego dokumentu
-- Progress 50-80: Porównywanie dokumentów
-- Progress 80-100: Tworzenie wyników
+- 0-10: Oczekiwanie
+- 10-30: Ekstrakcja ze starego dokumentu
+- 30-50: Ekstrakcja z nowego dokumentu
+- 50-80: Porównywanie
+- 80-100: Tworzenie wyników
 
-#### Odpowiedź: Status "completed"
+#### Status: `completed`
 ```json
 {
   "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
   "status": "completed",
   "progress": 100,
   "message": "Przetwarzanie zakończone pomyślnie",
-  "started_at": "2025-10-23T10:30:00",
-  "completed_at": "2025-10-23T10:30:45",
+  "started_at": "2025-10-28T10:30:00.123456",
+  "completed_at": "2025-10-28T10:30:45.789012",
   "error": null
 }
 ```
 
-#### Odpowiedź: Status "error"
+#### Status: `error`
 ```json
 {
   "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
   "status": "error",
   "progress": 0,
   "message": "Błąd podczas przetwarzania",
-  "started_at": "2025-10-23T10:30:00",
+  "started_at": "2025-10-28T10:30:00.123456",
   "completed_at": null,
   "error": "Document extraction failed: Invalid DOCX format"
 }
 ```
 
+**Model:** `ProcessingStatus`
+```python
+class ProcessingStatus(BaseModel):
+    process_id: str
+    status: Literal["pending", "processing", "completed", "error"]
+    progress: Optional[int] = None  # 0-100
+    message: Optional[str] = None
+    error: Optional[str] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+```
+
+**Polling:**
+- Wywołuj co 1-2 sekundy
+- Kontynuuj aż `status` = `"completed"` lub `"error"`
+
 **Błędy:**
-- `404 Not Found` - Nie znaleziono procesu o podanym ID
+- `404 Not Found` - Nie znaleziono procesu
 
 ---
 
-### 6. GET `/api/result/{process_id}/full` - Pełny wynik
-
-Pobierz pełny dokument ze wszystkimi zmianami (unchanged, modified, added, deleted).
+### 6. GET `/api/result/{process_id}/full` - Pełny Wynik
 
 **Wymagania:**
-- Status procesu musi być `"completed"`
+- Status procesu = `"completed"`
 
-**Parametry URL:**
-- `process_id` (string, **required**) - UUID procesu
-
-**Przykład curl:**
+**curl:**
 ```bash
-curl http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/full
-```
-
-**Przykład HTTP:**
-```http
-GET http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/full
-Accept: application/json
+curl http://217.182.76.146:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/full
 ```
 
 **Odpowiedź (200 OK):**
@@ -359,7 +336,7 @@ Accept: application/json
       "type": "unchanged",
       "text": "To jest niezmieniony paragraf.",
       "old_text": null,
-      "changes": []
+      "changes": null
     },
     {
       "index": 1,
@@ -368,14 +345,12 @@ Accept: application/json
       "old_text": "To jest stary tekst.",
       "changes": [
         {
-          "type": "delete",
-          "text": "stary",
-          "position": 8
+          "operation": "delete",
+          "text": "stary"
         },
         {
-          "type": "insert",
-          "text": "nowy",
-          "position": 8
+          "operation": "insert",
+          "text": "nowy"
         }
       ]
     },
@@ -384,222 +359,81 @@ Accept: application/json
       "type": "added",
       "text": "To jest całkowicie nowy paragraf.",
       "old_text": null,
-      "changes": []
+      "changes": null
     },
     {
       "index": 3,
       "type": "deleted",
       "text": "Ten paragraf został usunięty.",
       "old_text": null,
-      "changes": []
+      "changes": null
     }
   ],
   "tables": [
     {
       "index": 0,
-      "type": "unchanged",
       "rows": [
         ["Kolumna 1", "Kolumna 2"],
         ["Wartość 1", "Wartość 2"]
       ],
-      "old_rows": null,
-      "changes": []
+      "changes": [
+        {
+          "table_index": 0,
+          "row_index": 1,
+          "col_index": 1,
+          "old_value": "Wartość 1",
+          "new_value": "Wartość 2",
+          "changes": [
+            {"operation": "delete", "text": "1"},
+            {"operation": "insert", "text": "2"}
+          ]
+        }
+      ]
     }
   ],
   "statistics": {
     "total_paragraphs": 4,
-    "unchanged": 1,
-    "modified": 1,
-    "added": 1,
-    "deleted": 1,
-    "change_percentage": 75.0
+    "unchanged_paragraphs": 1,
+    "modified_paragraphs": 1,
+    "added_paragraphs": 1,
+    "deleted_paragraphs": 1,
+    "total_changes": 15,
+    "tables_count": 1,
+    "modified_cells": 1
   },
-  "generated_at": "2025-10-23T10:30:45.123456"
+  "generated_at": "2025-10-28T10:30:45.123456"
 }
 ```
 
-**Typy zmian paragrafów:**
-- `unchanged` - Paragraf bez zmian
-- `modified` - Paragraf zmieniony (zawiera szczegóły w `changes`)
-- `added` - Paragraf dodany (nowy)
-- `deleted` - Paragraf usunięty
+**Typy paragrafów:**
+- `unchanged` - Bez zmian
+- `modified` - Zmieniony (szczegóły w `changes`)
+- `added` - Dodany (nowy)
+- `deleted` - Usunięty
 
-**Błędy:**
-- `404 Not Found` - Nie znaleziono wyników dla podanego procesu
-
----
-
-### 7. GET `/api/result/{process_id}/modified` - Tylko zmodyfikowane
-
-Pobierz tylko zmienione zdania (filtrowanie po stronie API). Wygodne do szybkiego przeglądu zmian.
-
-**Parametry URL:**
-- `process_id` (string, **required**) - UUID procesu
-
-**Przykład curl:**
-```bash
-curl http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/modified
-```
-
-**Przykład HTTP:**
-```http
-GET http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/modified
-Accept: application/json
-```
-
-**Odpowiedź (200 OK):**
-```json
-{
-  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
-  "document_pair_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "modified_sentences": [
-    {
-      "paragraph_index": 1,
-      "old_text": "To jest stary tekst.",
-      "new_text": "To jest nowy tekst.",
-      "changes": [
-        {
-          "type": "delete",
-          "text": "stary",
-          "position": 8
-        },
-        {
-          "type": "insert",
-          "text": "nowy",
-          "position": 8
-        }
-      ]
-    },
-    {
-      "paragraph_index": 5,
-      "old_text": "Kwota: 100 PLN",
-      "new_text": "Kwota: 200 PLN",
-      "changes": [
-        {
-          "type": "delete",
-          "text": "100",
-          "position": 7
-        },
-        {
-          "type": "insert",
-          "text": "200",
-          "position": 7
-        }
-      ]
-    }
-  ],
-  "total_count": 2,
-  "generated_at": "2025-10-23T10:30:45.123456"
-}
-```
+**Model:** `FullDocumentResult`
 
 **Błędy:**
 - `404 Not Found` - Nie znaleziono wyników
 
 ---
 
-### 8. GET `/api/result/{process_id}/added` - Tylko dodane
+### 7-9. Filtrowane Wyniki
 
-Pobierz tylko dodane zdania.
-
-**Parametry URL:**
-- `process_id` (string, **required**) - UUID procesu
-
-**Przykład curl:**
-```bash
-curl http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/added
-```
-
-**Przykład HTTP:**
-```http
-GET http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/added
-Accept: application/json
-```
-
-**Odpowiedź (200 OK):**
-```json
-{
-  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
-  "document_pair_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "added_sentences": [
-    {
-      "paragraph_index": 2,
-      "text": "To jest całkowicie nowy paragraf."
-    },
-    {
-      "paragraph_index": 7,
-      "text": "Dodano nową klauzulę prawną."
-    }
-  ],
-  "total_count": 2,
-  "generated_at": "2025-10-23T10:30:45.123456"
-}
-```
-
-**Błędy:**
-- `404 Not Found` - Nie znaleziono wyników
+**Podobne do `/full`, ale zwracają tylko:**
+- `/modified` - Tylko zmienione zdania (`ModifiedSentencesResult`)
+- `/added` - Tylko dodane zdania (`AddedSentencesResult`)
+- `/deleted` - Tylko usunięte zdania (`DeletedSentencesResult`)
 
 ---
 
-### 9. GET `/api/result/{process_id}/deleted` - Tylko usunięte
+### 10. GET `/api/report/{process_id}/generate` - Generuj Raport HTML
 
-Pobierz tylko usunięte zdania.
+**Generuje statyczny raport HTML z osadzonymi danymi JSON.**
 
-**Parametry URL:**
-- `process_id` (string, **required**) - UUID procesu
-
-**Przykład curl:**
+**curl:**
 ```bash
-curl http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/deleted
-```
-
-**Przykład HTTP:**
-```http
-GET http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/deleted
-Accept: application/json
-```
-
-**Odpowiedź (200 OK):**
-```json
-{
-  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
-  "document_pair_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "deleted_sentences": [
-    {
-      "paragraph_index": 3,
-      "text": "Ten paragraf został usunięty."
-    },
-    {
-      "paragraph_index": 9,
-      "text": "Stara klauzula została usunięta."
-    }
-  ],
-  "total_count": 2,
-  "generated_at": "2025-10-23T10:30:45.123456"
-}
-```
-
-**Błędy:**
-- `404 Not Found` - Nie znaleziono wyników
-
----
-
-### 10. GET `/api/report/{process_id}/generate` - Generuj raport HTML
-
-Generuje statyczny raport HTML z osadzonymi danymi JSON. Raport jest zapisywany na serwerze i dostępny przez URL. Działa w trybie offline (nie wymaga serwera do wyświetlenia).
-
-**Parametry URL:**
-- `process_id` (string, **required**) - UUID procesu
-
-**Przykład curl:**
-```bash
-curl http://localhost:8001/api/report/f1e2d3c4-b5a6-7890-cdef-1234567890ab/generate
-```
-
-**Przykład HTTP:**
-```http
-GET http://localhost:8001/api/report/f1e2d3c4-b5a6-7890-cdef-1234567890ab/generate
-Accept: application/json
+curl http://217.182.76.146:8001/api/report/f1e2d3c4-b5a6-7890-cdef-1234567890ab/generate
 ```
 
 **Odpowiedź (200 OK):**
@@ -607,85 +441,121 @@ Accept: application/json
 {
   "success": true,
   "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
-  "report_url": "/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
-  "report_filename": "report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
-  "report_path": "C:\\Projects\\BAW\\UslugaDoPorownan\\output\\reports\\report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
-  "generated_at": "2025-10-23T23:14:38.123456",
+  "report_url": "/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251028_231438.html",
+  "report_filename": "report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251028_231438.html",
+  "report_path": "C:\\Projects\\BAW\\UslugaDoPorownan\\output\\reports\\report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251028_231438.html",
+  "generated_at": "2025-10-28T23:14:38.123456",
   "message": "Raport HTML został wygenerowany pomyślnie"
 }
 ```
 
 **Dostęp do raportu:**
 ```bash
-# Lokalnie
-curl http://localhost:8001/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html > raport.html
+# Pobierz raport
+curl http://217.182.76.146:8001/reports/report_..._20251028_231438.html > raport.html
 
-# Produkcyjnie
-curl http://217.182.76.146/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html > raport.html
+# Otwórz w przeglądarce (działa offline!)
 ```
 
-**Funkcjonalności raportu HTML:**
-- ✅ Pełne dane JSON osadzone w HTML (nie wymaga zewnętrznego ładowania)
-- ✅ Auto-display przy otwarciu (nie wymaga akcji użytkownika)
-- ✅ Interaktywne filtry (wszystkie/modified/added/deleted/unchanged)
-- ✅ Summary box z metrykami
-- ✅ Responsive design (desktop/tablet/mobile)
-- ✅ Print-ready styles
-- ✅ Działa offline (bez serwera, bez internetu)
-
-**Use cases:**
-- Archiwizacja wyników jako pojedynczy plik HTML
-- Udostępnianie offline (email, pendrive)
-- Prezentacje (otwórz plik bezpośrednio w przeglądarce)
-- Backup alternatywny do JSON
-- Integracja z systemami workflow (N8N, zapier)
+**Funkcjonalności raportu:**
+- ✅ Pełne dane JSON osadzone w HTML
+- ✅ Auto-display przy otwarciu
+- ✅ Interaktywne filtry
+- ✅ Responsive design
+- ✅ Działa offline
 
 **Błędy:**
-- `404 Not Found` - Nie znaleziono wyników dla podanego process_id
-- `500 Internal Server Error` - Błąd podczas generowania raportu (brak uprawnień zapisu, brak miejsca)
-
-**Uwagi:**
-- Raport jest generowany na żądanie (nie automatycznie)
-- Pliki są zapisywane w `output/reports/` na serwerze
-- Format nazwy: `report_{process_id}_{timestamp}.html`
-- Raporty NIE są usuwane automatycznie (wymagane ręczne cleanup)
-- Raport ma ~55+ KB (zawiera HTML + CSS + JS + JSON)
-
-**Pełna dokumentacja:** Zobacz [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md) dla szczegółów i zaawansowanych przykładów.
+- `404 Not Found` - Nie znaleziono wyników
+- `500 Internal Server Error` - Błąd generowania
 
 ---
 
-## 🔄 System Podsumowań (Integracja n8n)
+## 📝 System Podsumowań (n8n Integration)
 
-**NOWE w v1.1.0** - System edycji i zatwierdzania podsumowań zmian w dokumentach z integracją n8n workflow.
+**Nowe w v1.1.0** - Workflow integracji n8n dla edycji i zatwierdzania podsumowań.
 
-### Architektura Workflow:
+### Architektura:
 
-1. **n8n** generuje podsumowanie zmian (np. przez LLM)
-2. **n8n** wysyła podsumowanie do systemu (`POST /api/summary`)
-3. System przechowuje podsumowanie ze statusem `pending_review`
-4. **Użytkownik** otwiera link edytora i edytuje/zatwierdza podsumowanie
-5. **n8n** polluje endpoint statusu (`GET /api/summary/{id}/status`)
-6. Po zatwierdzeniu, **n8n** pobiera podsumowanie (`GET /api/summary/{id}/approved`)
-7. **n8n** kontynuuje workflow z zatwierdzonym tekstem
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      N8N Workflow                            │
+└──────┬────────────────────────────────────────────┬─────────┘
+       │                                            │
+       │ 1. POST /api/summary                       │ 5. GET /approved
+       │    (create)                                │    (fetch)
+       ▼                                            ▼
+┌────────────────────────────────────────────────────────────┐
+│                UslugaDoPorownan Backend                     │
+│  Storage: summaries Dict[process_id, SummaryDetailResponse] │
+└──────▲─────────────────────────────────────────────▲───────┘
+       │                                            │
+       │ 2. GET /status (polling)                   │ 4. POST /approve
+       │                                            │    (confirm)
+       │                                            │
+┌──────┴─────────────────────────────────────────────┴───────┐
+│              SecureDocCompare Frontend                      │
+│  3. UI Editor: /summary/{process_id}                        │
+│     - Edycja tekstu (PUT /api/summary/{id})                 │
+│     - Edycja metadanych                                     │
+│     - Zatwierdź/Odrzuć (POST /approve)                      │
+└────────────────────────────────────────────────────────────┘
+```
 
-### 11. POST `/api/summary` - Utworzenie podsumowania
+### Workflow Flow:
 
-Tworzy nowe podsumowanie dla procesu. Endpoint wywoływany przez n8n po wygenerowaniu podsumowania zmian.
+1. **N8N** generuje podsumowanie (np. przez AI Agent)
+2. **N8N** wysyła `POST /api/summary` → status = `pending_review`
+3. **N8N** wysyła email z linkiem: `http://217.182.76.146:8000/summary/{id}`
+4. **N8N** zaczyna polling `GET /api/summary/{id}/status` (co 5-10s)
+5. **Użytkownik** otwiera link w przeglądarce
+6. **Użytkownik** edytuje tekst (`PUT /api/summary/{id}`)
+7. **Użytkownik** zatwierdza (`POST /api/summary/{id}/approve`)
+8. **N8N** otrzymuje status = `approved` z pollingu
+9. **N8N** pobiera `GET /api/summary/{id}/approved`
+10. **N8N** kontynuuje workflow z zatwierdzonym tekstem
 
-**❌ NIE wymaga autentykacji** (dla integracji n8n)
+---
 
-**Przykład curl:**
-```bash
-curl -X POST http://localhost:8001/api/summary \
-  -H "Content-Type: application/json" \
-  -d '{
-    "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
-    "summary_text": "# Podsumowanie zmian\n\n## Kluczowe zmiany\n\n1. Test",
-    "metadata": {
-      "przedmiot_regulacji": "Dyrektywa DORA"
+### 11. POST `/api/summary` - Utwórz Podsumowanie
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "# Podsumowanie zmian\\n\\n## Kluczowe zmiany\\n\\n1. Test",
+  "metadata": {
+    "przedmiot_regulacji": "Dyrektywa DORA",
+    "data_aktu": "2024-01-17",
+    "data_wejscia_w_zycie": "2025-01-17",
+    "dodatkowe_dane": {
+      "typ_dokumentu": "regulacja_ue",
+      "priorytet": "wysoki"
     }
-  }'
+  }
+}
+```
+
+**Model:** `SummaryCreateRequest`
+```python
+class SummaryCreateRequest(BaseModel):
+    process_id: str
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+
+class SummaryMetadata(BaseModel):
+    przedmiot_regulacji: Optional[str] = None
+    data_aktu: Optional[str] = None
+    data_wejscia_w_zycie: Optional[str] = None
+    dodatkowe_dane: Optional[Dict[str, Any]] = None
+```
+
+**curl:**
+```bash
+curl -X POST http://217.182.76.146:8001/api/summary \
+  -H "Content-Type: application/json" \
+  -d '{"process_id": "f1e2d3c4", "summary_text": "# Test", "metadata": {"przedmiot_regulacji": "DORA"}}'
 ```
 
 **Odpowiedź (200 OK):**
@@ -695,8 +565,12 @@ curl -X POST http://localhost:8001/api/summary \
   "summary_text": "# Podsumowanie zmian...",
   "metadata": {
     "przedmiot_regulacji": "Dyrektywa DORA",
-    "data_aktu": null,
-    "data_wejscia_w_zycie": null
+    "data_aktu": "2024-01-17",
+    "data_wejscia_w_zycie": "2025-01-17",
+    "dodatkowe_dane": {
+      "typ_dokumentu": "regulacja_ue",
+      "priorytet": "wysoki"
+    }
   },
   "status": "pending_review",
   "created_at": "2025-10-28T10:00:00.123456",
@@ -706,15 +580,21 @@ curl -X POST http://localhost:8001/api/summary \
 }
 ```
 
+**Model odpowiedzi:** `SummaryDetailResponse`
+
+**Błędy:**
+- `400 Bad Request` - Podsumowanie już istnieje dla tego process_id
+- `500 Internal Server Error` - Błąd tworzenia
+
 ---
 
-### 12. GET `/api/summary/{process_id}/status` - Status podsumowania
+### 12. GET `/api/summary/{process_id}/status` - Status Podsumowania
 
-Sprawdza status podsumowania. Endpoint dla n8n do polling (co 5-10 sekund).
+**Endpoint dla n8n polling** (co 5-10 sekund)
 
-**Przykład curl:**
+**curl:**
 ```bash
-curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/status
+curl http://217.182.76.146:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/status
 ```
 
 **Odpowiedź (200 OK):**
@@ -729,19 +609,24 @@ curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/stat
 ```
 
 **Możliwe statusy:**
-- `pending_review` - oczekuje na akceptację
-- `approved` - zatwierdzone
-- `rejected` - odrzucone
+- `pending_review` - Oczekuje na akceptację użytkownika
+- `approved` - Zatwierdzone (n8n może pobrać)
+- `rejected` - Odrzucone przez użytkownika
+
+**Model:** `SummaryStatusResponse`
+
+**Błędy:**
+- `404 Not Found` - Nie znaleziono podsumowania
 
 ---
 
-### 13. GET `/api/summary/{process_id}` - Szczegóły podsumowania
+### 13. GET `/api/summary/{process_id}` - Szczegóły Podsumowania
 
-Pobiera pełne szczegóły podsumowania.
+**Pełne dane podsumowania (tekst + metadane + status)**
 
-**Przykład curl:**
+**curl:**
 ```bash
-curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab
+curl http://217.182.76.146:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab
 ```
 
 **Odpowiedź (200 OK):**
@@ -752,75 +637,28 @@ curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab
   "metadata": {
     "przedmiot_regulacji": "Dyrektywa DORA"
   },
-  "status": "pending_review",
+  "status": "approved",
   "created_at": "2025-10-28T10:00:00.123456",
   "updated_at": "2025-10-28T10:05:00.123456",
-  "approved_at": null,
-  "edited_by_user": true
-}
-```
-
----
-
-### 14. PUT `/api/summary/{process_id}` - Aktualizacja
-
-Aktualizuje tekst i metadane podsumowania.
-
-**Przykład curl:**
-```bash
-curl -X PUT http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab \
-  -H "Content-Type: application/json" \
-  -d '{
-    "summary_text": "# Podsumowanie (EDYTOWANE)...",
-    "metadata": {"przedmiot_regulacji": "DORA Updated"}
-  }'
-```
-
-**Odpowiedź (200 OK):**
-```json
-{
-  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
-  "summary_text": "# Podsumowanie (EDYTOWANE)...",
-  "metadata": {"przedmiot_regulacji": "DORA Updated"},
-  "status": "pending_review",
-  "updated_at": "2025-10-28T10:10:00.123456",
-  "edited_by_user": true
-}
-```
-
----
-
-### 15. POST `/api/summary/{process_id}/approve` - Zatwierdzenie
-
-Zatwierdza lub odrzuca podsumowanie.
-
-**Przykład curl (zatwierdzenie):**
-```bash
-curl -X POST http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/approve \
-  -H "Content-Type: application/json" \
-  -d '{"approved": true}'
-```
-
-**Odpowiedź (200 OK):**
-```json
-{
-  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
-  "summary_text": "# Podsumowanie (EDYTOWANE)...",
-  "status": "approved",
   "approved_at": "2025-10-28T10:15:00.123456",
   "edited_by_user": true
 }
 ```
 
+**Model:** `SummaryDetailResponse`
+
+**Błędy:**
+- `404 Not Found` - Nie znaleziono
+
 ---
 
-### 16. GET `/api/summary/{process_id}/approved` - Pobranie zatwierdzonego
+### 14. GET `/api/summary/{process_id}/approved` - Pobierz Zatwierdzone
 
-Pobiera zatwierdzone podsumowanie. Tylko dla statusu "approved".
+**Endpoint dla n8n** - zwraca dane **tylko jeśli** status = `"approved"`
 
-**Przykład curl:**
+**curl:**
 ```bash
-curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/approved
+curl http://217.182.76.146:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/approved
 ```
 
 **Odpowiedź (200 OK):**
@@ -828,111 +666,443 @@ curl http://localhost:8001/api/summary/f1e2d3c4-b5a6-7890-cdef-1234567890ab/appr
 {
   "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
   "summary_text": "# Podsumowanie (EDYTOWANE)...",
-  "metadata": {"przedmiot_regulacji": "DORA Updated"},
+  "metadata": {
+    "przedmiot_regulacji": "DORA Updated"
+  },
   "approved_at": "2025-10-28T10:15:00.123456",
   "edited_by_user": true
 }
 ```
 
-**Błąd (400 Bad Request):**
+**Model:** `SummaryApprovedResponse`
+
+**Błędy:**
+- `404 Not Found` - Nie znaleziono podsumowania
+- `400 Bad Request` - Podsumowanie nie zostało jeszcze zatwierdzone
+
+**Przykład błędu 400:**
 ```json
 {
   "detail": "Podsumowanie nie zostało jeszcze zatwierdzone. Aktualny status: pending_review"
 }
 ```
 
-**Pełna dokumentacja:** Zobacz [N8N_SUMMARY_INTEGRATION.md](N8N_SUMMARY_INTEGRATION.md) dla workflow n8n i szczegółów.
+---
+
+### 15. PUT `/api/summary/{process_id}` - Aktualizuj Podsumowanie
+
+**Endpoint wywoływany przez frontend** po edycji przez użytkownika
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "summary_text": "# Podsumowanie (EDYTOWANE)...",
+  "metadata": {
+    "przedmiot_regulacji": "DORA Updated",
+    "data_aktu": "2024-01-17"
+  }
+}
+```
+
+**Model:** `SummaryUpdateRequest`
+
+**curl:**
+```bash
+curl -X PUT http://217.182.76.146:8001/api/summary/f1e2d3c4 \
+  -H "Content-Type: application/json" \
+  -d '{"summary_text": "# EDYTOWANE", "metadata": {"przedmiot_regulacji": "DORA"}}'
+```
+
+**Odpowiedź (200 OK):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "# Podsumowanie (EDYTOWANE)...",
+  "metadata": {
+    "przedmiot_regulacji": "DORA Updated"
+  },
+  "status": "pending_review",
+  "created_at": "2025-10-28T10:00:00.123456",
+  "updated_at": "2025-10-28T10:10:00.123456",
+  "approved_at": null,
+  "edited_by_user": true
+}
+```
+
+**Uwagi:**
+- Automatycznie ustawia `edited_by_user = true`
+- Aktualizuje `updated_at`
+- Status pozostaje bez zmian
+
+**Błędy:**
+- `404 Not Found` - Nie znaleziono
+- `500 Internal Server Error` - Błąd aktualizacji
 
 ---
 
-## 🔄 Przykładowy Workflow
+### 16. POST `/api/summary/{process_id}/approve` - Zatwierdź/Odrzuć
 
-### Scenariusz 1: Porównanie dwóch plików DOCX
+**Endpoint wywoływany przez frontend** po zatwierdzeniu/odrzuceniu
 
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "approved": true
+}
+```
+
+**Model:** `SummaryApproveRequest`
+
+**curl (zatwierdzenie):**
 ```bash
-# Krok 1: Sprawdź czy serwis działa
-curl http://localhost:8001/health
-
-# Odpowiedź: {"status": "healthy", ...}
-
-# Krok 2: Upload dokumentów
-curl -X POST http://localhost:8001/api/documents/upload \
-  -F "old_document=@stara_wersja/umowa.docx" \
-  -F "new_document=@nowa_wersja/umowa.docx"
-
-# Odpowiedź: {"document_pair_id": "a1b2c3d4-...", "status": "uploaded"}
-# Zapisz document_pair_id!
-
-# Krok 3: Rozpocznij przetwarzanie
-curl -X POST http://localhost:8001/api/process \
+curl -X POST http://217.182.76.146:8001/api/summary/f1e2d3c4/approve \
   -H "Content-Type: application/json" \
-  -d '{"document_pair_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"}'
-
-# Odpowiedź: {"process_id": "f1e2d3c4-...", "status": "started"}
-# Zapisz process_id!
-
-# Krok 4: Sprawdź status (powtarzaj co 2 sekundy)
-curl http://localhost:8001/api/status/f1e2d3c4-b5a6-7890-cdef-1234567890ab
-
-# Odpowiedź (processing): {"status": "processing", "progress": 50, ...}
-# Czekaj aż status = "completed"
-
-# Krok 5: Pobierz wyniki JSON
-curl http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/full > wynik.json
-curl http://localhost:8001/api/result/f1e2d3c4-b5a6-7890-cdef-1234567890ab/modified > zmiany.json
-
-# Krok 6 (OPCJONALNIE): Wygeneruj raport HTML
-curl http://localhost:8001/api/report/f1e2d3c4-b5a6-7890-cdef-1234567890ab/generate
-
-# Odpowiedź: {"success": true, "report_url": "/reports/report_..._20251023_231438.html"}
-
-# Krok 7 (OPCJONALNIE): Pobierz raport HTML
-curl http://localhost:8001/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html > raport.html
-
-# Teraz możesz otworzyć raport.html w przeglądarce (działa offline!)
+  -d '{"approved": true}'
 ```
 
-### Scenariusz 2: Porównanie dwóch plików PDF
-
+**curl (odrzucenie):**
 ```bash
-# Krok 1: Upload PDF (z automatyczną konwersją)
-curl -X POST http://localhost:8001/api/documents/upload \
-  -F "old_document=@stara_wersja/regulamin.pdf" \
-  -F "new_document=@nowa_wersja/regulamin.pdf"
-
-# Odpowiedź zawiera info o konwersji:
-# {
-#   "document_pair_id": "...",
-#   "message": "...\\nStary dokument PDF skonwertowany (metoda: pdf2docx, jakość: 0.92)"
-# }
-
-# Następne kroki jak w scenariuszu 1...
+curl -X POST http://217.182.76.146:8001/api/summary/f1e2d3c4/approve \
+  -H "Content-Type: application/json" \
+  -d '{"approved": false}'
 ```
 
-### Scenariusz 3: Automatyzacja z polling (bash script)
+**Odpowiedź (200 OK - zatwierdzone):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "# Podsumowanie (EDYTOWANE)...",
+  "metadata": {
+    "przedmiot_regulacji": "DORA"
+  },
+  "status": "approved",
+  "created_at": "2025-10-28T10:00:00.123456",
+  "updated_at": "2025-10-28T10:10:00.123456",
+  "approved_at": "2025-10-28T10:15:00.123456",
+  "edited_by_user": true
+}
+```
+
+**Odpowiedź (200 OK - odrzucone):**
+```json
+{
+  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
+  "summary_text": "...",
+  "status": "rejected",
+  "created_at": "2025-10-28T10:00:00.123456",
+  "updated_at": "2025-10-28T10:10:00.123456",
+  "approved_at": null,
+  "edited_by_user": true
+}
+```
+
+**Uwagi:**
+- `approved: true` → status = `"approved"`, ustawia `approved_at`
+- `approved: false` → status = `"rejected"`, `approved_at` = null
+
+**Błędy:**
+- `404 Not Found` - Nie znaleziono
+- `500 Internal Server Error` - Błąd zatwierdzania
+
+---
+
+## 🌐 Frontend API - SecureDocCompare
+
+**Base URL:** `http://217.182.76.146:8000`
+**Port:** 8000
+**Framework:** FastAPI + Jinja2 Templates
+**Auth:** Session-based (hasło w env `FRONTEND_PASSWORD`)
+
+### Endpointy:
+
+| Metoda | Endpoint | Opis | Auth |
+|--------|----------|------|------|
+| GET | `/` | Dashboard (główna strona) | ✅ Session |
+| POST | `/api/login` | Logowanie | ❌ |
+| POST | `/api/logout` | Wylogowanie | ✅ Session |
+| POST | `/api/upload` | Upload dokumentów (proxy) | ✅ Session |
+| POST | `/api/process/{document_pair_id}` | Rozpocznij proces (proxy) | ✅ Session |
+| GET | `/api/status/{process_id}` | Status (proxy) | ✅ Session |
+| GET | `/api/result/{process_id}/full` | Wynik full (proxy) | ✅ Session |
+| GET | `/api/result/{process_id}/modified` | Wynik modified (proxy) | ✅ Session |
+| GET | `/api/result/{process_id}/added` | Wynik added (proxy) | ✅ Session |
+| GET | `/api/result/{process_id}/deleted` | Wynik deleted (proxy) | ✅ Session |
+| GET | `/health` | Health check | ❌ |
+| GET | `/summary/{process_id}` | Summary Editor UI | ✅ Session |
+| GET | `/api/summary/{process_id}` | Pobierz summary (proxy) | ✅ Session |
+| GET | `/api/summary/{process_id}/status` | Status summary (proxy) | ✅ Session |
+| PUT | `/api/summary/{process_id}` | Aktualizuj summary (proxy) | ✅ Session |
+| POST | `/api/summary/{process_id}/approve` | Zatwierdź summary (proxy) | ✅ Session |
+
+**Razem:** 16 endpointów (3 własne + 13 proxy do backend)
+
+### Uwagi:
+- Większość endpointów to **proxy do backend** (przekierowanie do port 8001)
+- **Autentykacja:** Session cookie (hasło: env `FRONTEND_PASSWORD`)
+- **Summary Editor:** `/summary/{process_id}` - UI do edycji podsumowań
+- **Dashboard:** `/` - UI zarządzania dokumentami
+
+---
+
+## 📊 Modele Danych (Pydantic)
+
+### Porównywanie Dokumentów
+
+#### `UploadResponse`
+```python
+class UploadResponse(BaseModel):
+    document_pair_id: str
+    status: str
+    message: str
+```
+
+#### `ProcessRequest`
+```python
+class ProcessRequest(BaseModel):
+    document_pair_id: str
+```
+
+#### `ProcessResponse`
+```python
+class ProcessResponse(BaseModel):
+    process_id: str
+    status: str
+    message: str
+```
+
+#### `ProcessingStatus`
+```python
+class ProcessingStatus(BaseModel):
+    process_id: str
+    status: Literal["pending", "processing", "completed", "error"]
+    progress: Optional[int] = None  # 0-100
+    message: Optional[str] = None
+    error: Optional[str] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+```
+
+#### `ChangeMarker`
+```python
+class ChangeMarker(BaseModel):
+    operation: Literal["delete", "equal", "insert"]
+    text: str
+```
+
+#### `ParagraphResult`
+```python
+class ParagraphResult(BaseModel):
+    index: int
+    text: str
+    type: Literal["unchanged", "modified", "added", "deleted"]
+    old_text: Optional[str] = None
+    changes: Optional[List[ChangeMarker]] = None
+```
+
+#### `TableCellChange`
+```python
+class TableCellChange(BaseModel):
+    table_index: int
+    row_index: int
+    col_index: int
+    old_value: str
+    new_value: str
+    changes: List[ChangeMarker]
+```
+
+#### `TableResult`
+```python
+class TableResult(BaseModel):
+    index: int
+    rows: List[List[str]]
+    changes: Optional[List[TableCellChange]] = None
+```
+
+#### `StatisticsResult`
+```python
+class StatisticsResult(BaseModel):
+    total_paragraphs: int
+    unchanged_paragraphs: int
+    modified_paragraphs: int
+    added_paragraphs: int
+    deleted_paragraphs: int
+    total_changes: int
+    tables_count: int
+    modified_cells: int
+```
+
+#### `FullDocumentResult`
+```python
+class FullDocumentResult(BaseModel):
+    process_id: str
+    document_pair_id: str
+    paragraphs: List[ParagraphResult]
+    tables: List[TableResult]
+    statistics: StatisticsResult
+    generated_at: datetime
+```
+
+### Podsumowania (n8n Integration)
+
+#### `SummaryMetadata`
+```python
+class SummaryMetadata(BaseModel):
+    przedmiot_regulacji: Optional[str] = None
+    data_aktu: Optional[str] = None
+    data_wejscia_w_zycie: Optional[str] = None
+    dodatkowe_dane: Optional[Dict[str, Any]] = None  # Rozszerzalne
+```
+
+#### `SummaryCreateRequest`
+```python
+class SummaryCreateRequest(BaseModel):
+    process_id: str
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+```
+
+#### `SummaryUpdateRequest`
+```python
+class SummaryUpdateRequest(BaseModel):
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+```
+
+#### `SummaryStatusResponse`
+```python
+class SummaryStatusResponse(BaseModel):
+    process_id: str
+    status: Literal["pending_review", "approved", "rejected"]
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+```
+
+#### `SummaryDetailResponse`
+```python
+class SummaryDetailResponse(BaseModel):
+    process_id: str
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+    status: Literal["pending_review", "approved", "rejected"]
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+    edited_by_user: bool = False
+```
+
+#### `SummaryApproveRequest`
+```python
+class SummaryApproveRequest(BaseModel):
+    approved: bool = True
+```
+
+#### `SummaryApprovedResponse`
+```python
+class SummaryApprovedResponse(BaseModel):
+    process_id: str
+    summary_text: str
+    metadata: Optional[SummaryMetadata] = None
+    approved_at: datetime
+    edited_by_user: bool
+```
+
+---
+
+## 🔄 Workflow Integracji n8n
+
+### Scenariusz 1: Porównanie + Podsumowanie + Zatwierdzenie
+
+```mermaid
+sequenceDiagram
+    participant N8N
+    participant Backend
+    participant Frontend
+    participant User
+
+    N8N->>Backend: POST /api/documents/upload
+    Backend-->>N8N: {document_pair_id}
+
+    N8N->>Backend: POST /api/process
+    Backend-->>N8N: {process_id}
+
+    loop Polling
+        N8N->>Backend: GET /api/status/{process_id}
+        Backend-->>N8N: {status: "processing"}
+    end
+
+    Backend-->>N8N: {status: "completed"}
+
+    N8N->>Backend: GET /api/result/{process_id}/full
+    Backend-->>N8N: {paragraphs, tables, statistics}
+
+    N8N->>N8N: AI Agent generuje podsumowanie
+
+    N8N->>Backend: POST /api/summary
+    Backend-->>N8N: {process_id, status: "pending_review"}
+
+    N8N->>User: Email z linkiem (Summary Editor)
+
+    loop Polling
+        N8N->>Backend: GET /api/summary/{id}/status
+        Backend-->>N8N: {status: "pending_review"}
+    end
+
+    User->>Frontend: Otwiera /summary/{id}
+    User->>Frontend: Edytuje tekst
+    Frontend->>Backend: PUT /api/summary/{id}
+    Backend-->>Frontend: {updated_at, edited_by_user: true}
+
+    User->>Frontend: Zatwierdza
+    Frontend->>Backend: POST /api/summary/{id}/approve
+    Backend-->>Frontend: {status: "approved", approved_at}
+
+    N8N->>Backend: GET /api/summary/{id}/status
+    Backend-->>N8N: {status: "approved"}
+
+    N8N->>Backend: GET /api/summary/{id}/approved
+    Backend-->>N8N: {summary_text, metadata, edited_by_user}
+
+    N8N->>User: Email z zatwierdzonym podsumowaniem
+```
+
+---
+
+## 🧪 Przykłady Użycia
+
+### Bash Script - Pełny Workflow
 
 ```bash
 #!/bin/bash
 
-# Upload
-UPLOAD_RESPONSE=$(curl -s -X POST http://localhost:8001/api/documents/upload \
-  -F "old_document=@old.docx" \
-  -F "new_document=@new.docx")
+BACKEND_URL="http://217.182.76.146:8001"
+
+# 1. Upload dokumentów
+echo "=== Upload dokumentów ==="
+UPLOAD_RESPONSE=$(curl -s -X POST $BACKEND_URL/api/documents/upload \
+  -F "old_document=@stara_wersja/dokument.docx" \
+  -F "new_document=@nowa_wersja/dokument.docx")
 
 DOC_PAIR_ID=$(echo $UPLOAD_RESPONSE | jq -r '.document_pair_id')
 echo "Document Pair ID: $DOC_PAIR_ID"
 
-# Rozpocznij przetwarzanie
-PROCESS_RESPONSE=$(curl -s -X POST http://localhost:8001/api/process \
+# 2. Rozpocznij przetwarzanie
+echo "=== Rozpoczynanie przetwarzania ==="
+PROCESS_RESPONSE=$(curl -s -X POST $BACKEND_URL/api/process \
   -H "Content-Type: application/json" \
   -d "{\"document_pair_id\": \"$DOC_PAIR_ID\"}")
 
 PROCESS_ID=$(echo $PROCESS_RESPONSE | jq -r '.process_id')
 echo "Process ID: $PROCESS_ID"
 
-# Polling status
+# 3. Polling statusu
+echo "=== Polling statusu ==="
 while true; do
-  STATUS_RESPONSE=$(curl -s http://localhost:8001/api/status/$PROCESS_ID)
+  STATUS_RESPONSE=$(curl -s $BACKEND_URL/api/status/$PROCESS_ID)
   STATUS=$(echo $STATUS_RESPONSE | jq -r '.status')
   PROGRESS=$(echo $STATUS_RESPONSE | jq -r '.progress')
 
@@ -949,400 +1119,101 @@ while true; do
   sleep 2
 done
 
-# Pobierz wyniki JSON
-curl -s http://localhost:8001/api/result/$PROCESS_ID/full > result.json
-echo "Wyniki JSON zapisane w result.json"
+# 4. Pobierz wyniki
+echo "=== Pobieranie wyników ==="
+curl -s $BACKEND_URL/api/result/$PROCESS_ID/full > result.json
+echo "Wyniki zapisane w result.json"
 
-# (OPCJONALNIE) Wygeneruj raport HTML
-REPORT_RESPONSE=$(curl -s http://localhost:8001/api/report/$PROCESS_ID/generate)
+# 5. Wygeneruj raport HTML
+echo "=== Generowanie raportu HTML ==="
+REPORT_RESPONSE=$(curl -s $BACKEND_URL/api/report/$PROCESS_ID/generate)
 REPORT_URL=$(echo $REPORT_RESPONSE | jq -r '.report_url')
-echo "Raport HTML wygenerowany: $REPORT_URL"
+echo "Raport wygenerowany: $REPORT_URL"
 
-# Pobierz raport HTML
-curl -s http://localhost:8001$REPORT_URL > report.html
-echo "Raport HTML zapisany w report.html"
-echo "Otwórz report.html w przeglądarce aby zobaczyć wyniki!"
+curl -s $BACKEND_URL$REPORT_URL > report.html
+echo "Raport pobrany do report.html"
+
+# 6. Utwórz podsumowanie
+echo "=== Tworzenie podsumowania ==="
+SUMMARY_RESPONSE=$(curl -s -X POST $BACKEND_URL/api/summary \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"process_id\": \"$PROCESS_ID\",
+    \"summary_text\": \"Test podsumowania\",
+    \"metadata\": {\"przedmiot_regulacji\": \"Test\"}
+  }")
+
+echo "Podsumowanie utworzone: $(echo $SUMMARY_RESPONSE | jq -r '.status')"
+
+# 7. Polling statusu podsumowania
+echo "=== Polling podsumowania ==="
+while true; do
+  SUMMARY_STATUS=$(curl -s $BACKEND_URL/api/summary/$PROCESS_ID/status | jq -r '.status')
+  echo "Status podsumowania: $SUMMARY_STATUS"
+
+  if [ "$SUMMARY_STATUS" = "approved" ]; then
+    echo "Podsumowanie zatwierdzone!"
+    break
+  elif [ "$SUMMARY_STATUS" = "rejected" ]; then
+    echo "Podsumowanie odrzucone!"
+    exit 1
+  fi
+
+  sleep 5
+done
+
+# 8. Pobierz zatwierdzone podsumowanie
+echo "=== Pobieranie zatwierdzonego podsumowania ==="
+curl -s $BACKEND_URL/api/summary/$PROCESS_ID/approved > approved_summary.json
+echo "Zatwierdzone podsumowanie zapisane w approved_summary.json"
+
+echo "=== ZAKOŃCZONO ==="
 ```
-
----
-
-## 🛠️ Testowanie w VSCode
-
-Jeśli używasz **Visual Studio Code**, możesz skorzystać z pliku `test.http`:
-
-### Instalacja
-
-1. Otwórz VSCode
-2. Naciśnij `Ctrl+Shift+X` (Extensions)
-3. Wyszukaj **"REST Client"** (autor: humao)
-4. Kliknij **Install**
-
-### Użycie
-
-1. Otwórz plik `C:\Projects\BAW\test.http`
-2. Kliknij **"Send Request"** nad wybranym zapytaniem
-3. Zobacz wynik w nowym oknie (po prawej stronie)
-
-### Przykład test.http
-
-```http
-### Variables
-@backend_url = http://localhost:8001
-
-### Health Check
-GET {{backend_url}}/health
-
-### Upload dokumentów
-POST {{backend_url}}/api/documents/upload
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
-
-------WebKitFormBoundary
-Content-Disposition: form-data; name="old_document"; filename="old.docx"
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-
-< ./stara_wersja/dokument.docx
-------WebKitFormBoundary
-Content-Disposition: form-data; name="new_document"; filename="new.docx"
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-
-< ./nowa_wersja/dokument.docx
-------WebKitFormBoundary--
-```
-
-**Skrót klawiszowy:** `Ctrl+Alt+R` (wyślij request)
-
----
-
-## ⚠️ Kody Błędów
-
-| Kod | Status | Znaczenie | Przykład |
-|-----|--------|-----------|----------|
-| 200 | OK | Sukces | Dokument załadowany |
-| 400 | Bad Request | Nieprawidłowe parametry | Zły format pliku, brak wymaganych pól |
-| 404 | Not Found | Nie znaleziono zasobu | Nieistniejący process_id lub document_pair_id |
-| 500 | Internal Server Error | Błąd serwera | Błąd konwersji PDF, błąd ekstrakcji DOCX |
-
-### Przykłady błędów
-
-**400 Bad Request - Zły format pliku:**
-```json
-{
-  "detail": "Stary dokument musi być w formacie DOCX lub PDF (otrzymano: .txt)"
-}
-```
-
-**404 Not Found - Nieistniejący proces:**
-```json
-{
-  "detail": "Nie znaleziono procesu: f1e2d3c4-b5a6-7890-cdef-1234567890ab"
-}
-```
-
-**500 Internal Server Error - Błąd konwersji:**
-```json
-{
-  "detail": "Błąd konwersji starego dokumentu PDF: PDF file is corrupted"
-}
-```
-
----
-
-## 📊 Modele Danych
-
-### UploadResponse
-
-```json
-{
-  "document_pair_id": "string (UUID)",
-  "status": "string ('uploaded')",
-  "message": "string"
-}
-```
-
-### ProcessRequest
-
-```json
-{
-  "document_pair_id": "string (UUID)"
-}
-```
-
-### ProcessResponse
-
-```json
-{
-  "process_id": "string (UUID)",
-  "status": "string ('started')",
-  "message": "string"
-}
-```
-
-### ProcessingStatus
-
-```json
-{
-  "process_id": "string (UUID)",
-  "status": "string ('pending' | 'processing' | 'completed' | 'error')",
-  "progress": "number (0-100)",
-  "message": "string",
-  "started_at": "string (ISO 8601)",
-  "completed_at": "string | null (ISO 8601)",
-  "error": "string | null"
-}
-```
-
-### FullDocumentResult
-
-```json
-{
-  "process_id": "string (UUID)",
-  "document_pair_id": "string (UUID)",
-  "paragraphs": [
-    {
-      "index": "number",
-      "type": "string ('unchanged' | 'modified' | 'added' | 'deleted')",
-      "text": "string",
-      "old_text": "string | null",
-      "changes": [
-        {
-          "type": "string ('insert' | 'delete' | 'equal')",
-          "text": "string",
-          "position": "number"
-        }
-      ]
-    }
-  ],
-  "tables": [
-    {
-      "index": "number",
-      "type": "string ('unchanged' | 'modified' | 'added' | 'deleted')",
-      "rows": "array",
-      "old_rows": "array | null",
-      "changes": "array"
-    }
-  ],
-  "statistics": {
-    "total_paragraphs": "number",
-    "unchanged": "number",
-    "modified": "number",
-    "added": "number",
-    "deleted": "number",
-    "change_percentage": "number"
-  },
-  "generated_at": "string (ISO 8601)"
-}
-```
-
-### ModifiedSentencesResult
-
-```json
-{
-  "process_id": "string (UUID)",
-  "document_pair_id": "string (UUID)",
-  "modified_sentences": [
-    {
-      "paragraph_index": "number",
-      "old_text": "string",
-      "new_text": "string",
-      "changes": [
-        {
-          "type": "string ('insert' | 'delete' | 'equal')",
-          "text": "string",
-          "position": "number"
-        }
-      ]
-    }
-  ],
-  "total_count": "number",
-  "generated_at": "string (ISO 8601)"
-}
-```
-
-### AddedSentencesResult
-
-```json
-{
-  "process_id": "string (UUID)",
-  "document_pair_id": "string (UUID)",
-  "added_sentences": [
-    {
-      "paragraph_index": "number",
-      "text": "string"
-    }
-  ],
-  "total_count": "number",
-  "generated_at": "string (ISO 8601)"
-}
-```
-
-### DeletedSentencesResult
-
-```json
-{
-  "process_id": "string (UUID)",
-  "document_pair_id": "string (UUID)",
-  "deleted_sentences": [
-    {
-      "paragraph_index": "number",
-      "text": "string"
-    }
-  ],
-  "total_count": "number",
-  "generated_at": "string (ISO 8601)"
-}
-```
-
-### GenerateReportResponse
-
-```json
-{
-  "success": "boolean",
-  "process_id": "string (UUID)",
-  "report_url": "string (relatywny URL: /reports/{filename})",
-  "report_filename": "string (report_{process_id}_{timestamp}.html)",
-  "report_path": "string (pełna ścieżka na serwerze)",
-  "generated_at": "string (ISO 8601)",
-  "message": "string"
-}
-```
-
-**Przykład:**
-```json
-{
-  "success": true,
-  "process_id": "f1e2d3c4-b5a6-7890-cdef-1234567890ab",
-  "report_url": "/reports/report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
-  "report_filename": "report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
-  "report_path": "C:\\Projects\\BAW\\UslugaDoPorownan\\output\\reports\\report_f1e2d3c4-b5a6-7890-cdef-1234567890ab_20251023_231438.html",
-  "generated_at": "2025-10-23T23:14:38.123456",
-  "message": "Raport HTML został wygenerowany pomyślnie"
-}
-```
-
----
-
-## 🔧 Konfiguracja i Limity
-
-### Limity
-
-- **Max rozmiar pliku:** 50MB (konfigurowane w SecureDocCompare middleware)
-- **Timeout uploadu:** 120 sekund
-- **Timeout konwersji PDF:** 60 sekund (konfigurowane w PDF_CONFIG)
-- **Formaty:** DOCX, PDF
-- **Storage:** In-memory (brak persistence)
-
-### Konwersja PDF
-
-System używa dwupoziomowej konwersji PDF→DOCX:
-
-1. **pdf2docx** (primary) - Szybka, ~95% przypadków
-   - Jakość: 0.85-0.95
-   - Czas: ~5-15s per dokument
-
-2. **pdfplumber** (fallback) - Wolniejsza, skomplikowane dokumenty
-   - Jakość: 0.75-0.85
-   - Czas: ~15-25s per dokument
-   - Uruchamia się gdy:
-     - pdf2docx zwróci błąd
-     - Jakość < 0.7
-
-### Jakość konwersji
-
-- **0.90-1.0** - Doskonała (wszystkie elementy zachowane)
-- **0.80-0.89** - Bardzo dobra (drobne różnice w formatowaniu)
-- **0.70-0.79** - Dobra (utrata niektórych stylów, ale treść zachowana)
-- **< 0.70** - Słaba (znaczące różnice, trigger fallback)
-
----
-
-## 📝 Uwagi Implementacyjne
-
-### Asynchroniczne przetwarzanie
-
-API używa FastAPI `BackgroundTasks` do przetwarzania w tle:
-
-1. `POST /api/process` zwraca natychmiast `process_id`
-2. Przetwarzanie odbywa się asynchronicznie
-3. Status można sprawdzić przez polling `/api/status/{process_id}`
-4. Wyniki dostępne po `status = "completed"`
-
-### In-memory Storage
-
-- Wszystkie dane przechowywane w pamięci (brak bazy danych)
-- Restart serwisu = utrata wszystkich danych
-- Pliki DOCX zapisywane w `uploads/` (nie są czyszczone automatycznie)
-
-### CORS
-
-API akceptuje requesty z dowolnego źródła (`allow_origins=["*"]`). W produkcji zaleca się ograniczenie do konkretnych domen.
-
-### Logowanie
-
-- Format: `%(asctime)s - %(name)s - %(levelname)s - %(message)s`
-- Level: INFO
-- Output: stdout (console)
 
 ---
 
 ## 📚 Powiązane Dokumenty
 
-- **[README.md](README.md)** - Główna dokumentacja projektu
-- **[HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md)** - **NOWY!** Szczegółowa dokumentacja endpointu raportów HTML
-- **[PROGRESS_LOG.md](PROGRESS_LOG.md)** - Historia rozwoju projektu
-- **[DOCS_INDEX.md](DOCS_INDEX.md)** - Indeks całej dokumentacji
-- **[test.http](test.http)** - Testy API dla REST Client
-- **[UslugaDoPorownan/README.md](UslugaDoPorownan/README.md)** - Dokumentacja modułu backend
-- **[pdf_converter/README.md](UslugaDoPorownan/pdf_converter/README.md)** - Dokumentacja konwertera PDF
+- **API_DOCUMENTATION.md** - Poprzednia wersja dokumentacji (może być nieaktualna)
+- **test.http** - Testy REST Client (backend endpoints)
+- **test_summaries.http** - Testy REST Client (summary endpoints)
+- **N8N_SUMMARY_INTEGRATION.md** - Szczegółowa dokumentacja integracji n8n
+- **IMPORT_FINAL_N8N_1.111.0.md** - Instrukcja importu workflow n8n
+- **UslugaDoPorownan/main.py** - Kod źródłowy backend
+- **SecureDocCompare/main.py** - Kod źródłowy frontend
+- **UslugaDoPorownan/models.py** - Modele Pydantic
 
 ---
 
-## 📞 Pomoc i Wsparcie
+## 🔑 Kluczowe Informacje
 
-### Dokumentacja online
+### Bezpieczeństwo:
+- ❌ **Brak autentykacji na backend API** (port 8001)
+- ✅ **Session-based auth na frontend** (port 8000)
+- ⚠️ **CORS włączony** (allow_origins=["*"])
 
-FastAPI automatycznie generuje interaktywną dokumentację:
+### Performance:
+- **In-memory storage** - szybkie, ale dane tracone po restarcie
+- **Asynchroniczne przetwarzanie** - nie blokuje API
+- **PDF konwersja** - może trwać 15-25s per dokument
 
-- **Swagger UI:** http://localhost:8001/docs
-- **ReDoc:** http://localhost:8001/redoc
+### Limity:
+- **Max rozmiar pliku:** 50MB (SecureDocCompare middleware)
+- **Timeout uploadu:** 120s
+- **Timeout konwersji PDF:** 60s
+- **Formaty:** DOCX, PDF
 
-### Kontakt
-
-- **Projekt:** BAW - Porównywanie Dokumentów Bankowych
-- **Wersja:** 1.0.0
-- **Python:** 3.11.9
-- **Framework:** FastAPI + Uvicorn
+### Uwagi Wdrożeniowe:
+- **Port 8001** musi być dostępny dla n8n (localhost lub remote)
+- **Port 8000** musi być dostępny dla użytkowników (web browser)
+- **Uploads katalog** rośnie w czasie (nie ma auto-cleanup)
+- **Reports katalog** rośnie w czasie (nie ma auto-cleanup)
 
 ---
 
-**Ostatnia aktualizacja:** 2025-10-28
+**Data weryfikacji:** 2025-10-28
 **Wersja dokumentu:** 1.2.0
+**Status:** ✅ Verified & Complete
 
-## 📝 Changelog
-
-### v1.2.0 (2025-10-28)
-- 🎉 **Dodano 6 nowych endpointów podsumowań** (integracja n8n):
-  - `POST /api/summary` - Utworzenie podsumowania
-  - `GET /api/summary/{id}/status` - Status (polling dla n8n)
-  - `GET /api/summary/{id}` - Szczegóły podsumowania
-  - `PUT /api/summary/{id}` - Aktualizacja tekstu/metadanych
-  - `POST /api/summary/{id}/approve` - Zatwierdzenie/odrzucenie
-  - `GET /api/summary/{id}/approved` - Pobranie zatwierdzonego
-- ✅ Dodano sekcję "System Podsumowań (Integracja n8n)"
-- ✅ Zaktualizowano Spis Treści
-- ✅ Link do szczegółowej dokumentacji: [N8N_SUMMARY_INTEGRATION.md](N8N_SUMMARY_INTEGRATION.md)
-- ✅ Testy: [test_summaries.http](test_summaries.http)
-- 📊 **Razem: 16 endpointów API** (10 podstawowych + 6 summary)
-
-### v1.1.0 (2025-10-23)
-- ✅ **Dodano endpoint 10:** `GET /api/report/{process_id}/generate` - Generowanie raportów HTML
-- ✅ Zaktualizowano odpowiedź endpointu `/` (dodano `generate_report`)
-- ✅ Rozszerzono Scenariusz 1 i 3 o generowanie raportów HTML
-- ✅ Dodano model `GenerateReportResponse` do sekcji "Modele Danych"
-- ✅ Dodano link do szczegółowej dokumentacji: [HTML_REPORT_ENDPOINT.md](HTML_REPORT_ENDPOINT.md)
-
-### v1.0.0 (2025-10-23)
-- 🎉 Pierwsze wydanie dokumentacji API
-- 📝 9 endpointów (health, upload, process, status, full, modified, added, deleted)
-- 📖 Przykładowe workflow i scenariusze
-- 🧪 Instrukcje testowania w VSCode (REST Client)
-- 📊 Pełne modele danych (Pydantic)
+**Zweryfikowane przez:** Claude Code
+**Źródło:** Faktyczny kod w repozytoriach UslugaDoPorownan i SecureDocCompare

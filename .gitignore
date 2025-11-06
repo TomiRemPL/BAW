@@ -41,11 +41,7 @@ env/
 Thumbs.db
 
 # Application specific
-output/*.pdf
-output/*.html
-output/app.log*
-nowa_wersja/*.docx
-stara_wersja/*.docx
+output/
 
 # Keep directories but ignore contents
 !nowa_wersja/.gitkeep
@@ -60,6 +56,7 @@ stara_wersja/*.docx
 .pytest_cache/
 .coverage
 htmlcov/
+test_report.html
 
 # Logs
 *.log
@@ -67,5 +64,11 @@ htmlcov/
 # UV lock file
 uv.lock
 
-# Temporary test files
-test_comparison.py
+# Temporary script
+create_test_docs.py
+
+# Temporary upload files
+uploads/
+
+# Windows specific
+nul
