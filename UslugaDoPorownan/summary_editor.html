@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edycja Podsumowania Zmian</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .process-id {
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #555;
+            word-break: break-all;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .current-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .current-summary h3 {
+            color: #495057;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .current-summary pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+            font-size: 14px;
+            color: #212529;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-save {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .success-message,
+        .error-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metadata-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .metadata-item label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .metadata-item .value {
+            font-size: 14px;
+            color: #212529;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Edycja Podsumowania Zmian</h1>
+            <p>Zweryfikuj i zatwierdź podsumowanie wygenerowane przez AI</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Ładowanie danych...</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="process-id">
+                <strong>Process ID:</strong> <span id="processId"></span>
+            </div>
+
+            <div id="statusBadge"></div>
+
+            <div id="message"></div>
+
+            <div class="metadata" id="metadata"></div>
+
+            <div class="current-summary">
+                <h3>Obecne podsumowanie</h3>
+                <pre id="currentSummary"></pre>
+            </div>
+
+            <div class="info-box">
+                <strong>💡 Wskazówki:</strong>
+                Możesz edytować podsumowanie poniżej. Upewnij się, że wszystkie kluczowe zmiany zostały uwzględnione.
+                Po zakończeniu edycji kliknij "Zatwierdź" lub "Odrzuć".
+            </div>
+
+            <div class="form-group">
+                <label for="summaryText">Edytuj podsumowanie:</label>
+                <textarea id="summaryText" placeholder="Wprowadź zmiany..."></textarea>
+                <div class="char-count">
+                    <span id="charCount">0</span> znaków
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-save" onclick="saveSummary()">💾 Zapisz zmiany</button>
+                <button class="btn-approve" onclick="approveSummary()">✅ Zatwierdź</button>
+                <button class="btn-reject" onclick="rejectSummary()">❌ Odrzuć</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://217.182.76.146';
+        let currentProcessId = null;
+        let currentData = null;
+
+        // Pobierz process_id z URL
+        function getProcessIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('process_id');
+        }
+
+        // Załaduj dane podsumowania
+        async function loadSummary() {
+            currentProcessId = getProcessIdFromUrl();
+
+            if (!currentProcessId) {
+                showError('Brak process_id w URL. Użyj: ?process_id=xxx');
+                return;
+            }
+
+            document.getElementById('processId').textContent = currentProcessId;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/summary/${currentProcessId}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                currentData = await response.json();
+                displaySummary(currentData);
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (error) {
+                showError(`Błąd ładowania danych: ${error.message}`);
+            }
+        }
+
+        // Wyświetl dane podsumowania
+        function displaySummary(data) {
+            // Status badge
+            const statusBadge = document.getElementById('statusBadge');
+            let statusClass = 'status-pending';
+            if (data.status === 'approved') statusClass = 'status-approved';
+            if (data.status === 'rejected') statusClass = 'status-rejected';
+
+            statusBadge.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <span class="status-badge ${statusClass}">${data.status}</span>
+                </div>
+            `;
+
+            // Metadata
+            const metadata = document.getElementById('metadata');
+            if (data.metadata) {
+                let metadataHtml = '';
+
+                if (data.metadata.przedmiot_regulacji) {
+                    metadataHtml += `
+                        <div class="metadata-item">
+                            <label>Przedmiot regulacji</label>
+                            <div class="value">${data.metadata.przedmiot_regulacji}</div>
+                        </div>
+                    `;
+                }
+
+                if (data.metadata.data_aktu) {
+                    metadataHtml += `
+                        <div class="metadata-item">
+                            <label>Data aktu</label>
+                            <div class="value">${data.metadata.data_aktu}</div>
+                        </div>
+                    `;
+                }
+
+                if (data.metadata.data_wejscia_w_zycie) {
+                    metadataHtml += `
+                        <div class="metadata-item">
+                            <label>Data wejścia w życie</label>
+                            <div class="value">${data.metadata.data_wejscia_w_zycie}</div>
+                        </div>
+                    `;
+                }
+
+                metadata.innerHTML = metadataHtml;
+            }
+
+            // Current summary
+            document.getElementById('currentSummary').textContent = data.summary_text;
+
+            // Editable textarea
+            const textarea = document.getElementById('summaryText');
+            textarea.value = data.summary_text;
+            updateCharCount();
+
+            // Disable buttons if already approved/rejected
+            if (data.status === 'approved' || data.status === 'rejected') {
+                document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+                showMessage(`To podsumowanie zostało już ${data.status === 'approved' ? 'zatwierdzone' : 'odrzucone'}.`, 'info');
+            }
+        }
+
+        // Aktualizuj licznik znaków
+        function updateCharCount() {
+            const textarea = document.getElementById('summaryText');
+            const charCount = document.getElementById('charCount');
+            charCount.textContent = textarea.value.length;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('summaryText').addEventListener('input', updateCharCount);
+        });
+
+        // Zapisz zmiany
+        async function saveSummary() {
+            const newText = document.getElementById('summaryText').value.trim();
+
+            if (!newText) {
+                alert('Podsumowanie nie może być puste!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/summary/${currentProcessId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        summary_text: newText,
+                        metadata: currentData.metadata || {}
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+                showSuccess('Zmiany zostały zapisane pomyślnie!');
+                currentData = result;
+                document.getElementById('currentSummary').textContent = newText;
+            } catch (error) {
+                showError(`Błąd zapisywania: ${error.message}`);
+            }
+        }
+
+        // Zatwierdź podsumowanie
+        async function approveSummary() {
+            if (!confirm('Czy na pewno chcesz zatwierdzić to podsumowanie?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/summary/${currentProcessId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        approved: true
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                showSuccess('✅ Podsumowanie zostało zatwierdzone! Za chwilę zostanie wysłany finalny raport.');
+                document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+                setTimeout(() => {
+                    window.close();
+                }, 3000);
+            } catch (error) {
+                showError(`Błąd zatwierdzania: ${error.message}`);
+            }
+        }
+
+        // Odrzuć podsumowanie
+        async function rejectSummary() {
+            if (!confirm('Czy na pewno chcesz odrzucić to podsumowanie?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/summary/${currentProcessId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        approved: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                showSuccess('❌ Podsumowanie zostało odrzucone.');
+                document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+                setTimeout(() => {
+                    window.close();
+                }, 3000);
+            } catch (error) {
+                showError(`Błąd odrzucania: ${error.message}`);
+            }
+        }
+
+        // Pokaż komunikat sukcesu
+        function showSuccess(message) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = `<div class="success-message">${message}</div>`;
+        }
+
+        // Pokaż komunikat błędu
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        // Pokaż komunikat info
+        function showMessage(message, type = 'info') {
+            const msgDiv = document.getElementById('message');
+            const className = type === 'info' ? 'info-box' : 'error-message';
+            msgDiv.innerHTML = `<div class="${className}">${message}</div>`;
+        }
+
+        // Załaduj dane po załadowaniu strony
+        window.addEventListener('load', loadSummary);
+    </script>
+</body>
+</html>

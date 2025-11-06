@@ -1,8 +1,8 @@
 ### BAW - Test Endpointów Podsumowań (n8n Integration)
 ### Użycie: VSCode + REST Client extension
-
-@baseUrl = http://localhost:8001
-@frontendUrl = http://localhost:8000
+### 217.182.76.146
+@baseUrl = http://217.182.76.146
+@frontendUrl = http://217.182.76.146:8000
 @processId = n8n-test-002
 
 ### ============================================================================

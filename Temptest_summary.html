@@ -6,11 +6,11 @@
     <title>Edytor Podsumowania - SecureDocCompare</title>
     <link rel="stylesheet" href="/static/css/style.css">
 
-    <!-- Quill.js - WYSIWYG Editor CSS (local with CDN fallback) -->
-    <link rel="stylesheet" href="/static/css/quill.snow.css" onerror="this.onerror=null; this.href='https://cdn.quilljs.com/1.3.6/quill.snow.css';">
-
-    <!-- Font Awesome (CDN - optional, not critical) -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Quill.js - WYSIWYG Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
     <style>
         * {
@@ -482,7 +482,7 @@
                     <div class="info-item">
                         <i class="fas fa-fingerprint"></i>
                         <strong>Process ID:</strong>
-                        <span id="processId">{{ process_id }}</span>
+                        <span id="processId">test-quill-editor</span>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-clock"></i>
@@ -578,7 +578,7 @@
     </div>
 
     <script>
-        const processId = "{{ process_id }}";
+        const processId = "test-quill-editor";
         let summaryData = null;
         let quill = null;
         let autoSaveInterval = null;
@@ -711,19 +711,8 @@
         function displaySummary(data) {
             console.log('displaySummary() started with data:', data);
             try {
-                // Sprawdź czy podsumowanie jest puste
-                const isEmpty = !data.summary_text || data.summary_text.trim() === '';
-
                 // Konwertuj Markdown -> HTML i ustaw w edytorze
-                let html = '';
-                if (isEmpty) {
-                    // Placeholder dla pustego podsumowania
-                    html = '<p class="placeholder"><em style="color: #999;">Podsumowanie jest puste. Zacznij pisać lub wklej treść wygenerowaną przez AI...</em></p>';
-                    console.log('Summary is empty, showing placeholder');
-                } else {
-                    html = markdownToHtml(data.summary_text);
-                }
-
+                const html = markdownToHtml(data.summary_text || '');
                 quill.root.innerHTML = html;
                 lastSavedContent = quill.root.innerHTML;
                 console.log('Editor content set');
@@ -963,23 +952,8 @@
         });
     </script>
 
-    <!-- External Libraries - Local copies with CDN fallback -->
-    <script src="/static/js/quill.min.js"></script>
-    <script>
-        // Fallback to CDN if local Quill.js failed to load
-        if (typeof Quill === 'undefined') {
-            console.warn('Local Quill.js failed, loading from CDN...');
-            document.write('<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"><\/script>');
-        }
-    </script>
-
-    <script src="/static/js/turndown.min.js"></script>
-    <script>
-        // Fallback to CDN if local Turndown.js failed to load
-        if (typeof TurndownService === 'undefined') {
-            console.warn('Local Turndown.js failed, loading from CDN...');
-            document.write('<script src="https://unpkg.com/turndown/dist/turndown.js"><\/script>');
-        }
-    </script>
+    <!-- External Libraries - Loaded at the end for proper initialization -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
 </body>
 </html>
